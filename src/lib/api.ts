@@ -1,3 +1,5 @@
+import { getAccessToken } from "./auth";
+
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -41,4 +43,18 @@ export async function apiJson<T>(
       error: error instanceof Error ? error.message : "Network error",
     };
   }
+}
+
+export async function apiJsonAuth<T>(
+  path: string,
+  init?: RequestInit
+): Promise<ApiResult<T>> {
+  const token = getAccessToken();
+  return apiJson<T>(path, {
+    ...init,
+    headers: {
+      ...(init?.headers ?? {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiJson } from "@/lib/api";
+import { Notice } from "@/components/Notice";
 
 type RegisterResponse = {
   success: boolean;
@@ -20,11 +21,13 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [country, setCountry] = useState("BENIN");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+    setSuccess(null);
 
     if (password !== confirmPassword) {
       setError("Les mots de passe ne correspondent pas.");
@@ -48,6 +51,11 @@ export default function RegisterPage() {
       setError(result.error ?? "Inscription impossible.");
       return;
     }
+
+    setSuccess(
+      result.data?.message ??
+        "Compte créé. Consultez votre email pour récupérer le code."
+    );
 
     const params = new URLSearchParams();
     params.set("email", email);
@@ -162,11 +170,8 @@ export default function RegisterPage() {
         </select>
       </div>
 
-      {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
-          {error}
-        </div>
-      ) : null}
+      {error ? <Notice tone="error" message={error} /> : null}
+      {success ? <Notice tone="success" message={success} /> : null}
 
       <button
         type="submit"

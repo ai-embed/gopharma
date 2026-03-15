@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiJson } from "@/lib/api";
 import { saveTokens } from "@/lib/auth";
+import { Notice } from "@/components/Notice";
 
 type LoginResponse = {
   accessToken: string;
@@ -11,6 +13,7 @@ type LoginResponse = {
 };
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
@@ -35,6 +38,7 @@ export default function LoginPage() {
     }
 
     saveTokens(result.data.accessToken, result.data.refreshToken);
+    router.push("/search");
   };
 
   return (
@@ -83,9 +87,7 @@ export default function LoginPage() {
       </div>
 
       {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
-          {error}
-        </div>
+        <Notice tone="error" message={error} />
       ) : null}
 
       <button

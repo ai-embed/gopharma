@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { apiJson } from "@/lib/api";
+import { Notice } from "@/components/Notice";
 
 export default function VerifyEmailPage() {
   const params = useSearchParams();
@@ -96,15 +97,7 @@ export default function VerifyEmailPage() {
         </div>
 
         {message ? (
-          <div
-            className={`rounded-2xl border px-4 py-3 text-xs ${
-              status === "success"
-                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                : "border-red-200 bg-red-50 text-red-700"
-            }`}
-          >
-            {message}
-          </div>
+          <Notice tone={status === "success" ? "success" : "error"} message={message} />
         ) : null}
 
         <button
