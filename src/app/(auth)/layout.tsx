@@ -1,99 +1,54 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+const tabs = [
+  { href: "/login", label: "Connexion" },
+  { href: "/register", label: "Inscription" },
+];
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#F6F3EE] text-[#1F1D1B]">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-emerald-200/60 blur-3xl" />
-        <div className="absolute -right-16 top-32 h-64 w-64 rounded-full bg-orange-200/60 blur-3xl" />
-        <div className="absolute bottom-0 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-amber-100/70 blur-3xl" />
-      </div>
-
-      <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-8">
-        <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-900 text-white">
-            GP
-          </span>
-          <span className="font-[var(--font-fraunces)] text-2xl">GoPharma</span>
-        </Link>
-        <div className="hidden items-center gap-3 text-sm text-[#3D3833] sm:flex">
-          <span className="rounded-full border border-[#D7CEC3] bg-white/80 px-3 py-1">
-            Backend ready
-          </span>
-          <span className="rounded-full border border-[#D7CEC3] bg-white/80 px-3 py-1">
-            Secure auth
-          </span>
+    <div className="min-h-screen bg-[#F3F6F9] px-4 py-10 text-[#1E1E1E]">
+      <div className="mx-auto w-full max-w-[420px] rounded-[28px] bg-white p-8 shadow-[0_18px_60px_-40px_rgba(15,23,42,0.6)]">
+        <div className="flex flex-col items-center text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B63D1] text-white">
+            <span className="text-lg font-semibold">GP</span>
+          </div>
+          <h1 className="mt-4 text-xl font-semibold">GoPharma</h1>
+          <p className="mt-2 text-sm text-[#6B7280]">
+            Votre compagnon de confiance pour la gestion des médicaments.
+          </p>
         </div>
-      </header>
 
-      <main className="relative z-10 mx-auto grid min-h-[calc(100vh-120px)] w-full max-w-6xl grid-cols-1 items-center gap-10 px-6 py-12 lg:grid-cols-[1.05fr_0.95fr]">
-        <section className="order-2 lg:order-1">
-          <div className="rounded-3xl border border-[#E4DDD4] bg-white/70 p-8 shadow-[0_24px_60px_-40px_rgba(0,0,0,0.25)]">
-            <h1 className="text-3xl font-semibold leading-tight text-[#1F1D1B] md:text-4xl">
-              Une plateforme claire, fiable et humaine pour connecter patients et
-              pharmacies.
-            </h1>
-            <p className="mt-4 text-sm leading-relaxed text-[#4E4741] md:text-base">
-              Centralisez les informations, la disponibilité des produits et les
-              alertes importantes. L&apos;expérience est pensée pour être rapide,
-              conforme et rassurante.
-            </p>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {[
-                {
-                  title: "Recherche précise",
-                  body: "Filtrage par distance, disponibilité et horaires en temps réel.",
-                },
-                {
-                  title: "Traçabilité",
-                  body: "Historique des mouvements et audits consolidés.",
-                },
-                {
-                  title: "Notifications utiles",
-                  body: "Alertes stocks bas et rappels adaptés aux patients.",
-                },
-                {
-                  title: "Sécurité",
-                  body: "Authentification robuste avec vérification email.",
-                },
-              ].map((item) => (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border border-[#E9E1D7] bg-white p-4"
-                >
-                  <h3 className="text-sm font-semibold text-[#1F1D1B]">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 text-xs leading-relaxed text-[#5B544E]">
-                    {item.body}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="mt-6 flex flex-wrap gap-3 text-xs text-[#5B544E]">
-            <span className="rounded-full border border-[#E4DDD4] bg-white/70 px-3 py-1">
-              Données chiffrées
-            </span>
-            <span className="rounded-full border border-[#E4DDD4] bg-white/70 px-3 py-1">
-              Multi-langue
-            </span>
-            <span className="rounded-full border border-[#E4DDD4] bg-white/70 px-3 py-1">
-              API temps réel
-            </span>
-          </div>
-        </section>
+        <div className="mt-6 flex border-b border-[#E5E7EB] text-sm">
+          {tabs.map((tab) => {
+            const isActive = pathname === tab.href;
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`flex-1 pb-3 text-center font-medium transition ${
+                  isActive
+                    ? "border-b-2 border-[#0B63D1] text-[#0B63D1]"
+                    : "text-[#8A8F98]"
+                }`}
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
+        </div>
 
-        <section className="order-1 lg:order-2">
-          <div className="rounded-3xl border border-[#E4DDD4] bg-white p-8 shadow-[0_28px_80px_-48px_rgba(0,0,0,0.35)]">
-            {children}
-          </div>
-        </section>
-      </main>
+        <div className="mt-6">{children}</div>
+      </div>
     </div>
   );
 }
