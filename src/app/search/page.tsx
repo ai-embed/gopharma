@@ -56,7 +56,6 @@ export default function SearchPage() {
 
   useEffect(() => {
     if (!query || query.length < 2) {
-      setSuggestions([]);
       return;
     }
 
@@ -71,6 +70,8 @@ export default function SearchPage() {
 
     return () => clearTimeout(timer);
   }, [query]);
+
+  const visibleSuggestions = query.length < 2 ? [] : suggestions;
 
   const maxPriceNumber = useMemo(() => {
     if (!maxPrice.trim()) return undefined;
@@ -182,9 +183,9 @@ export default function SearchPage() {
                   placeholder="Paracetamol, Ibuprofen..."
                   className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm outline-none focus:border-[#0B63D1] focus:ring-4 focus:ring-blue-100"
                 />
-                {suggestions.length > 0 ? (
+                {visibleSuggestions.length > 0 ? (
                   <div className="rounded-2xl border border-[#E5E7EB] bg-white p-2 text-sm shadow">
-                    {suggestions.map((item) => (
+                    {visibleSuggestions.map((item) => (
                       <button
                         type="button"
                         key={item}

@@ -1,5 +1,14 @@
 # GoPharma Frontend
 
+## Branching Strategy
+This repo follows: `feature/*` -> `dev` -> `test` -> `main`.
+Details are documented in `.github/BRANCHING_STRATEGY.md` and `.github/BRANCH_PROTECTION.md`.
+
+## CI Pipeline
+GitHub Actions runs on PRs and pushes for lint, unit tests, integration tests, and build.
+Workflow: `.github/workflows/ci.yml`.
+
+## Project
 Ce projet est une plateforme de recherche et de gestion pharmaceutique bâtie avec [Next.js](https://nextjs.org).
 
 ## Fonctionnalités

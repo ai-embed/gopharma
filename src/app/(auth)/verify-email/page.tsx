@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { apiJson } from "@/lib/api";
 import { Notice } from "@/components/Notice";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const params = useSearchParams();
   const initialToken = useMemo(() => params.get("token") ?? "", [params]);
   const email = useMemo(() => params.get("email") ?? "", [params]);
@@ -126,5 +126,19 @@ export default function VerifyEmailPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-3 text-sm text-[#6B7280]">
+          <p>Chargement de la verification...</p>
+        </div>
+      }
+    >
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
