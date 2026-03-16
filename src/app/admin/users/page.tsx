@@ -1,0 +1,302 @@
+const stats = [
+  {
+    label: "Utilisateurs Totaux",
+    value: "2 845",
+    note: "+12% ce mois",
+    tone: "blue",
+  },
+  {
+    label: "Validations en Attente",
+    value: "48",
+    note: "Action requise",
+    tone: "amber",
+  },
+  {
+    label: "Pharmaciens",
+    value: "420",
+    note: "Comptes actifs",
+    tone: "emerald",
+  },
+  {
+    label: "Nouveaux Aujourd&apos;hui",
+    value: "15",
+    note: "Inscriptions",
+    tone: "violet",
+  },
+];
+
+const users = [
+  {
+    name: "Dr. Sarah Wilson",
+    email: "sarah.w@pharmafinder.com",
+    role: "PHARMACIEN",
+    status: "Actif",
+    date: "24 Oct 2023",
+    action: "Modifier",
+  },
+  {
+    name: "Michael Johnson",
+    email: "michael.j88@gmail.com",
+    role: "PATIENT",
+    status: "En attente",
+    date: "01 Nov 2023",
+    action: "Valider",
+  },
+  {
+    name: "Robert Chen",
+    email: "rob.chen@techmail.com",
+    role: "PATIENT",
+    status: "Actif",
+    date: "15 Oct 2023",
+    action: "Modifier",
+  },
+  {
+    name: "Dr. Emily Davis",
+    email: "e.davis@medcare.org",
+    role: "PHARMACIEN",
+    status: "En attente",
+    date: "Hier",
+    action: "Docs",
+  },
+  {
+    name: "Dr. Ahmed Khan",
+    email: "ahmed.khan@pharma.net",
+    role: "PHARMACIEN",
+    status: "Actif",
+    date: "12 Sep 2023",
+    action: "Modifier",
+  },
+];
+
+const statusStyles: Record<string, string> = {
+  Actif: "text-emerald-600",
+  "En attente": "text-amber-600",
+};
+
+const roleStyles: Record<string, string> = {
+  PHARMACIEN: "bg-sky-100 text-sky-600",
+  PATIENT: "bg-slate-100 text-slate-600",
+};
+
+export default function AdminUsersPage() {
+  return (
+    <div className="min-h-screen bg-[#F6F8FA] text-[#1F1D1B]">
+      <div className="flex">
+        <aside className="flex w-64 flex-col border-r border-[#E5E7EB] bg-white px-6 py-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B63D1] text-xs font-semibold text-white">
+              +
+            </div>
+            <div>
+              <p className="text-sm font-semibold">GoPharma</p>
+              <p className="text-[11px] text-[#6B7280]">Dashboard</p>
+            </div>
+          </div>
+
+          <p className="mt-8 text-[10px] font-semibold uppercase text-[#9CA3AF]">
+            Principal
+          </p>
+          <nav className="mt-3 space-y-1 text-xs font-semibold text-[#6B7280]">
+            {[
+              "Tableau de bord",
+              "Utilisateurs",
+              "Pharmacies",
+              "Medicaments DB",
+              "File de validation",
+            ].map((item) => (
+              <button
+                key={item}
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition ${
+                  item === "Utilisateurs"
+                    ? "bg-[#EAF2FF] text-[#0B63D1]"
+                    : "hover:bg-[#F3F6F9]"
+                }`}
+              >
+                <span className="h-2 w-2 rounded-full bg-current opacity-70" />
+                {item}
+                {item === "Utilisateurs" ? (
+                  <span className="ml-auto rounded-full bg-[#EAF2FF] px-2 py-0.5 text-[10px] font-semibold text-[#0B63D1]">
+                    12
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </nav>
+
+          <p className="mt-6 text-[10px] font-semibold uppercase text-[#9CA3AF]">
+            Analytique
+          </p>
+          <nav className="mt-3 space-y-1 text-xs font-semibold text-[#6B7280]">
+            {["Rapports", "Croissance"].map((item) => (
+              <button
+                key={item}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-[#F3F6F9]"
+              >
+                <span className="h-2 w-2 rounded-full bg-current opacity-70" />
+                {item}
+              </button>
+            ))}
+          </nav>
+
+          <p className="mt-6 text-[10px] font-semibold uppercase text-[#9CA3AF]">
+            Systeme
+          </p>
+          <nav className="mt-3 space-y-1 text-xs font-semibold text-[#6B7280]">
+            {["Parametres", "Journaux d&apos;audit"].map((item) => (
+              <button
+                key={item}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-[#F3F6F9]"
+              >
+                <span className="h-2 w-2 rounded-full bg-current opacity-70" />
+                {item}
+              </button>
+            ))}
+          </nav>
+
+          <div className="mt-auto flex items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-3 text-xs text-[#6B7280]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EAF2FF] text-[11px] font-semibold text-[#0B63D1]">
+              AM
+            </span>
+            <div>
+              <p className="text-[11px] font-semibold text-[#1F1D1B]">
+                Alex Morgan
+              </p>
+              <p className="text-[10px]">Super Admin</p>
+            </div>
+          </div>
+        </aside>
+
+        <main className="flex-1 px-8 py-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <h1 className="text-lg font-semibold">Gestion des Utilisateurs</h1>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <input
+                  placeholder="Recherche globale..."
+                  className="w-56 rounded-full border border-[#E5E7EB] bg-white py-2 pl-4 pr-10 text-xs"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]">
+                  o
+                </span>
+              </div>
+              <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E7EB] bg-white">
+                o
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-2xl border border-[#E5E7EB] bg-white p-4"
+              >
+                <p className="text-xs text-[#6B7280]">{stat.label}</p>
+                <p className="mt-2 text-2xl font-semibold">{stat.value}</p>
+                <p className="mt-2 text-[11px] text-[#9CA3AF]">{stat.note}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-[#E5E7EB] bg-white">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E5E7EB] px-5 py-4">
+              <h2 className="text-sm font-semibold">
+                Tous les Utilisateurs Inscrits
+              </h2>
+              <div className="flex flex-wrap items-center gap-3">
+                <select className="rounded-full border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]">
+                  <option>Tous les Roles</option>
+                  <option>Pharmacien</option>
+                  <option>Patient</option>
+                </select>
+                <button className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
+                  + Ajouter un utilisateur
+                </button>
+              </div>
+            </div>
+
+            <div className="overflow-hidden">
+              <table className="w-full text-xs">
+                <thead className="bg-[#F8FAFC] text-[#6B7280]">
+                  <tr>
+                    <th className="px-4 py-3 text-left">DETAILS UTILISATEUR</th>
+                    <th className="px-4 py-3 text-left">ROLE</th>
+                    <th className="px-4 py-3 text-left">STATUT</th>
+                    <th className="px-4 py-3 text-left">DATE D&apos;INSCRIPTION</th>
+                    <th className="px-4 py-3 text-left">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr
+                      key={user.email}
+                      className="border-t border-[#E5E7EB]"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#EAF2FF] text-xs font-semibold text-[#0B63D1]">
+                            {user.name[0]}
+                          </span>
+                          <div>
+                            <p className="font-semibold">{user.name}</p>
+                            <p className="text-[10px] text-[#6B7280]">
+                              {user.email}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
+                            roleStyles[user.role]
+                          }`}
+                        >
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`flex items-center gap-2 text-[11px] font-semibold ${
+                            statusStyles[user.status]
+                          }`}
+                        >
+                          <span className="h-2 w-2 rounded-full bg-current" />
+                          {user.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-[#6B7280]">{user.date}</td>
+                      <td className="px-4 py-3 text-[11px] font-semibold text-[#0B63D1]">
+                        {user.action}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-xs text-[#6B7280]">
+              <span>Affichage 1-5 sur 2 845</span>
+              <div className="flex items-center gap-2">
+                <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
+                  Precedent
+                </button>
+                <button className="rounded-full bg-[#0B63D1] px-3 py-1 text-white">
+                  1
+                </button>
+                <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
+                  2
+                </button>
+                <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
+                  3
+                </button>
+                <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
+                  Suivant
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}

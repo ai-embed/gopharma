@@ -25,6 +25,7 @@ Ce document recense les principales evolutions apportees au frontend.
 - Ajout de l'enregistrement manuel de produit: `pharmacy/inventory/new`.
 - Ajout de la file de validation admin: `admin/validation-queue`.
 - Ajout de la gestion des pharmacies admin: `admin/pharmacies`.
+- Ajout de la gestion des utilisateurs admin: `admin/users`.
 
 ## Stabilite et build
 - Correction `useSearchParams` avec `Suspense` sur `/verify-email`.
