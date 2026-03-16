@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 export default function LocalisationPage() {
   return (
     <div className="min-h-screen bg-[#EEF5FB] text-[#1F1D1B]">

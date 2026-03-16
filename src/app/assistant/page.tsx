@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 const suggestions = [
   {
     name: "Pharmacie de la Ville",
