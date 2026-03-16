@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 const stats = [
   { label: "Total Produits", value: "1,284" },
   { label: "Stock Faible", value: "12", badge: "ALERTES" },
@@ -85,12 +87,15 @@ export default function PharmacyInventoryPage() {
             <option>Expiration Proche</option>
           </select>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
+        <Link
+          href="/pharmacy/inventory/new"
+          className="inline-flex items-center gap-2 rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
+        >
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-sm leading-none">
             +
           </span>
           Ajouter un Produit
-        </button>
+        </Link>
       </div>
 
       <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">

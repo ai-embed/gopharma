@@ -12,7 +12,7 @@ const requests = [
     ],
   },
   {
-    name: "Pharmacie de l&apos;Etoile",
+    name: "Pharmacie de l'Etoile",
     location: "Avenue des Champs, Paris",
     owner: "Dr. James Wilson",
     date: "23 Oct. 2023",
@@ -57,23 +57,23 @@ export default function ValidationQueuePage() {
           </p>
           <nav className="mt-3 space-y-1 text-xs font-semibold text-[#6B7280]">
             {[
-              "Tableau de Bord",
+              "Tableau de bord",
               "Utilisateurs",
               "Pharmacies",
               "Base Medicaments",
-              "File de Validation",
+              "File de validation",
             ].map((item) => (
               <button
                 key={item}
                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition ${
-                  item === "File de Validation"
+                  item === "File de validation"
                     ? "bg-[#EAF2FF] text-[#0B63D1]"
                     : "hover:bg-[#F3F6F9]"
                 }`}
               >
                 <span className="h-2 w-2 rounded-full bg-current opacity-70" />
                 {item}
-                {item === "File de Validation" ? (
+                {item === "File de validation" ? (
                   <span className="ml-auto rounded-full bg-[#EAF2FF] px-2 py-0.5 text-[10px] font-semibold text-[#0B63D1]">
                     12
                   </span>
@@ -101,7 +101,7 @@ export default function ValidationQueuePage() {
             Systeme
           </p>
           <nav className="mt-3 space-y-1 text-xs font-semibold text-[#6B7280]">
-            {["Parametres", "Journaux d&apos;Audit"].map((item) => (
+            {["Parametres", "Journaux d'audit"].map((item) => (
               <button
                 key={item}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-[#F3F6F9]"

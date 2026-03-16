@@ -21,7 +21,7 @@ export default function AdminSettingsPage() {
             </div>
             <div>
               <p className="text-sm font-semibold">GoPharma</p>
-              <p className="text-[11px] text-[#6B7280]">Dashboard</p>
+              <p className="text-[11px] text-[#6B7280]">Tableau de bord</p>
             </div>
           </div>
 
@@ -65,7 +65,7 @@ export default function AdminSettingsPage() {
             Systeme
           </p>
           <nav className="mt-3 space-y-1 text-xs font-semibold text-[#6B7280]">
-            {["Parametres", "Journaux d&apos;audit"].map((item) => (
+            {["Parametres", "Journaux d'audit"].map((item) => (
               <button
                 key={item}
                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition ${
