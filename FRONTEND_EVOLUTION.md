@@ -5,6 +5,7 @@ Ce document recense les principales evolutions apportees au frontend.
 ## Etapes cles
 - Mise en place du socle Next.js (App Router) et structure `/src`.
 - Pages patient: `login`, `register`, `verify-email`, `search`.
+- Ajout des pages profil utilisateur: `profile`, `history`, `favorites`, `preferences`.
 - Ajout des composants UI utilitaires: `TopNav`, `Notice`.
 - Mise en place des appels API front (helpers `apiJson` / `apiJsonAuth`).
 - Recherche produits: mode simple et multi-produits, suggestions par prefix, filtres (adresse, rayon, prix, openNow, categorie).

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { TopNav } from "@/components/TopNav";
 import { useUser } from "@/lib/useUser";
 
@@ -83,18 +84,21 @@ export default function HistoryPage() {
 
         <div className="rounded-3xl border border-[#E5E7EB] bg-white">
           <div className="flex flex-wrap gap-2 border-b border-[#E5E7EB] px-6 py-4 text-xs font-semibold text-[#6B7280]">
-            <button className="rounded-full border border-transparent px-4 py-2">
+            <Link className="rounded-full border border-transparent px-4 py-2" href="/profile">
               Infos personnelles
-            </button>
-            <button className="rounded-full border border-transparent px-4 py-2">
+            </Link>
+            <Link className="rounded-full border border-transparent px-4 py-2" href="/favorites">
               Favoris
-            </button>
-            <button className="rounded-full border border-[#0B63D1] bg-[#EAF2FF] px-4 py-2 text-[#0B63D1]">
+            </Link>
+            <Link
+              className="rounded-full border border-[#0B63D1] bg-[#EAF2FF] px-4 py-2 text-[#0B63D1]"
+              href="/history"
+            >
               Historique
-            </button>
-            <button className="rounded-full border border-transparent px-4 py-2">
+            </Link>
+            <Link className="rounded-full border border-transparent px-4 py-2" href="/preferences">
               Préférences
-            </button>
+            </Link>
           </div>
 
           <div className="space-y-5 px-6 py-6">
