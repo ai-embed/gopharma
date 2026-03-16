@@ -28,6 +28,7 @@ Ce document recense les principales evolutions apportees au frontend.
 - Ajout de la gestion des utilisateurs admin: `admin/users`.
 - Ajout de la base medicaments admin: `admin/medicaments`.
 - Ajout des journaux d'audit admin: `admin/audit-logs`.
+- Ajout des parametres admin: `admin/settings`.
 
 ## Stabilite et build
 - Correction `useSearchParams` avec `Suspense` sur `/verify-email`.
