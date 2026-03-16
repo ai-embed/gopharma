@@ -26,6 +26,14 @@ export default function ProfilePage() {
               <div>
                 <h1 className="text-lg font-semibold">{displayName}</h1>
                 <p className="text-sm text-[#6B7280]">{email}</p>
+                <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
+                  <span className="rounded-full bg-[#E8FFF1] px-3 py-1 text-[#0F9D58]">
+                    Patient Verifie
+                  </span>
+                  <span className="rounded-full bg-[#EAF2FF] px-3 py-1 text-[#0B63D1]">
+                    Membre depuis 2021
+                  </span>
+                </div>
               </div>
             </div>
             <button

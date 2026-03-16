@@ -19,7 +19,6 @@ export function TopNav() {
     { href: "/search", label: "Accueil" },
     { href: "/history", label: "Historique" },
     { href: "/favorites", label: "Favoris" },
-    { href: "/profile", label: "Profil" },
   ];
 
   const initials = user
@@ -69,9 +68,12 @@ export function TopNav() {
         >
           <span className="h-2 w-2 rounded-full bg-[#0B63D1]" />
         </button>
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#EEF2F7] text-xs font-semibold text-[#1F2937]">
+        <Link
+          href="/profile"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#EEF2F7] text-xs font-semibold text-[#1F2937]"
+        >
           {loading ? "..." : initials || "U"}
-        </div>
+        </Link>
       </div>
     </header>
   );
