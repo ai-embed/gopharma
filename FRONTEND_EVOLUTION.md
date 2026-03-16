@@ -5,9 +5,15 @@ Ce document recense les principales evolutions apportees au frontend.
 ## Etapes cles
 - Mise en place du socle Next.js (App Router) et structure `/src`.
 - Pages patient: `login`, `register`, `verify-email`, `search`.
+- Ajout des pages profil utilisateur: `profile`, `history`, `favorites`, `preferences`.
+- Ajout de l'ecran de modification de profil: `profile/edit`.
+- Ajout du formulaire de rappel d'ordonnance: `reminders/new`.
 - Ajout des composants UI utilitaires: `TopNav`, `Notice`.
 - Mise en place des appels API front (helpers `apiJson` / `apiJsonAuth`).
 - Recherche produits: mode simple et multi-produits, suggestions par prefix, filtres (adresse, rayon, prix, openNow, categorie).
+- Ecran de recherche aligne avec la maquette map/liste (Body-1).
+- Ajout du tableau de bord patient (Tableau de Bord GoPharma FR).
+- Ajout de la page details pharmacie: `pharmacies/[slug]`.
 
 ## Stabilite et build
 - Correction `useSearchParams` avec `Suspense` sur `/verify-email`.
