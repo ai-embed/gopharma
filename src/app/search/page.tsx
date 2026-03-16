@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiJson } from "@/lib/api";
 import { TopNav } from "@/components/TopNav";
@@ -69,6 +70,12 @@ export default function SearchPage() {
   }, [queryInput]);
 
   const visibleSuggestions = queryInput.length < 2 ? [] : suggestions;
+
+  const toSlug = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
 
   const commitToken = (value: string) => {
     const cleaned = value.trim();
@@ -282,9 +289,17 @@ export default function SearchPage() {
                           ))}
                         </div>
                       </div>
-                      <button className="rounded-full bg-[#0B63D1] px-3 py-2 text-[11px] font-semibold text-white">
-                        Itineraire
-                      </button>
+                      <div className="flex flex-col gap-2">
+                        <Link
+                          href={`/pharmacies/${toSlug(item.pharmacy.name)}`}
+                          className="rounded-full border border-[#E5E7EB] px-3 py-2 text-[11px] font-semibold text-[#1F1D1B]"
+                        >
+                          Voir details
+                        </Link>
+                        <button className="rounded-full bg-[#0B63D1] px-3 py-2 text-[11px] font-semibold text-white">
+                          Itineraire
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -348,9 +363,17 @@ export default function SearchPage() {
                           <p className="text-[11px] text-[#6B7280]">
                             Total panier
                           </p>
-                          <button className="mt-3 rounded-full bg-[#0B63D1] px-3 py-2 text-[11px] font-semibold text-white">
-                            Itineraire
-                          </button>
+                          <div className="mt-3 flex flex-col gap-2">
+                            <Link
+                              href={`/pharmacies/${toSlug(group.name)}`}
+                              className="rounded-full border border-[#E5E7EB] px-3 py-2 text-[11px] font-semibold text-[#1F1D1B]"
+                            >
+                              Voir details
+                            </Link>
+                            <button className="rounded-full bg-[#0B63D1] px-3 py-2 text-[11px] font-semibold text-white">
+                              Itineraire
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
