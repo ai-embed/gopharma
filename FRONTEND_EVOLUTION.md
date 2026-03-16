@@ -17,6 +17,7 @@ Ce document recense les principales evolutions apportees au frontend.
 - Ajout de la page details pharmacie: `pharmacies/[slug]`.
 - Ajout du layout pharmacie + ecran inventaire produits: `pharmacy/inventory`.
 - Ajout du tableau de bord pharmacie: `pharmacy/dashboard`.
+- Ajout de l'historique activite pharmacie: `pharmacy/history`.
 
 ## Stabilite et build
 - Correction `useSearchParams` avec `Suspense` sur `/verify-email`.
