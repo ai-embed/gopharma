@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const stats = [
   {
     label: "Utilisateurs Totaux",
@@ -18,7 +20,7 @@ const stats = [
     tone: "emerald",
   },
   {
-    label: "Nouveaux Aujourd&apos;hui",
+    label: "Nouveaux Aujourd'hui",
     value: "15",
     note: "Inscriptions",
     tone: "violet",
@@ -89,7 +91,7 @@ export default function AdminUsersPage() {
             </div>
             <div>
               <p className="text-sm font-semibold">GoPharma</p>
-              <p className="text-[11px] text-[#6B7280]">Dashboard</p>
+              <p className="text-[11px] text-[#6B7280]">Tableau de bord</p>
             </div>
           </div>
 
@@ -101,7 +103,7 @@ export default function AdminUsersPage() {
               "Tableau de bord",
               "Utilisateurs",
               "Pharmacies",
-              "Medicaments DB",
+              "Base Medicaments",
               "File de validation",
             ].map((item) => (
               <button
@@ -142,7 +144,7 @@ export default function AdminUsersPage() {
             Systeme
           </p>
           <nav className="mt-3 space-y-1 text-xs font-semibold text-[#6B7280]">
-            {["Parametres", "Journaux d&apos;audit"].map((item) => (
+            {["Parametres", "Journaux d'audit"].map((item) => (
               <button
                 key={item}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-[#F3F6F9]"
@@ -209,9 +211,12 @@ export default function AdminUsersPage() {
                   <option>Pharmacien</option>
                   <option>Patient</option>
                 </select>
-                <button className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
+                <Link
+                  href="/admin/users/new"
+                  className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
+                >
                   + Ajouter un utilisateur
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -227,7 +232,7 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
+                  {users.map((user, index) => (
                     <tr
                       key={user.email}
                       className="border-t border-[#E5E7EB]"
@@ -266,7 +271,9 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="px-4 py-3 text-[#6B7280]">{user.date}</td>
                       <td className="px-4 py-3 text-[11px] font-semibold text-[#0B63D1]">
-                        {user.action}
+                        <Link href={`/admin/users/${index + 1}`}>
+                          {user.action}
+                        </Link>
                       </td>
                     </tr>
                   ))}

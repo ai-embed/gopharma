@@ -1,76 +1,59 @@
-const stats = [
+const auditRows = [
   {
-    label: "Total Medicaments",
-    value: "12 450",
-    note: "+5% ce mois",
+    id: "#AUD-9012",
+    date: "24 Oct 2023",
+    time: "10:18",
+    action: "Connexion admin",
+    actor: "Alex Morgan",
+    cible: "Systeme",
+    statut: "Succes",
   },
   {
-    label: "Categories",
-    value: "64",
-    note: "Catalogues actifs",
+    id: "#AUD-9011",
+    date: "24 Oct 2023",
+    time: "09:55",
+    action: "Validation pharmacie",
+    actor: "Alex Morgan",
+    cible: "MediLife Centrale",
+    statut: "Succes",
   },
   {
-    label: "Mises a Jour",
-    value: "128",
-    note: "Derniers 30 jours",
+    id: "#AUD-9009",
+    date: "23 Oct 2023",
+    time: "18:21",
+    action: "Suppression utilisateur",
+    actor: "Super Admin",
+    cible: "user_83x21",
+    statut: "Reussi",
   },
   {
-    label: "Signales",
-    value: "9",
-    note: "A verifier",
-  },
-];
-
-const medicaments = [
-  {
-    name: "Paracetamol 500mg",
-    molecule: "Paracetamol",
-    form: "Comprime",
-    atc: "N02BE01",
-    status: "Actif",
-    date: "18 Oct 2023",
+    id: "#AUD-9007",
+    date: "23 Oct 2023",
+    time: "15:04",
+    action: "Changement de role",
+    actor: "Alex Morgan",
+    cible: "Dr. Emily Davis",
+    statut: "En attente",
   },
   {
-    name: "Amoxicilline 500mg",
-    molecule: "Amoxicilline",
-    form: "Capsule",
-    atc: "J01CA04",
-    status: "Actif",
-    date: "12 Oct 2023",
-  },
-  {
-    name: "Ibuprofene 400mg",
-    molecule: "Ibuprofene",
-    form: "Comprime",
-    atc: "M01AE01",
-    status: "A verifier",
-    date: "09 Oct 2023",
-  },
-  {
-    name: "Loratadine 10mg",
-    molecule: "Loratadine",
-    form: "Comprime",
-    atc: "R06AX13",
-    status: "Actif",
-    date: "02 Oct 2023",
-  },
-  {
-    name: "Omeprazole 20mg",
-    molecule: "Omeprazole",
-    form: "Gelule",
-    atc: "A02BC01",
-    status: "Inactif",
-    date: "29 Sep 2023",
+    id: "#AUD-9002",
+    date: "22 Oct 2023",
+    time: "11:40",
+    action: "Suspension pharmacie",
+    actor: "Alex Morgan",
+    cible: "MediCare Center",
+    statut: "Alerte",
   },
 ];
 
 const statusStyles: Record<string, string> = {
-  Actif: "bg-emerald-100 text-emerald-600",
-  "A verifier": "bg-amber-100 text-amber-700",
-  Inactif: "bg-slate-100 text-slate-600",
+  Succes: "bg-emerald-100 text-emerald-600",
+  Reussi: "bg-emerald-100 text-emerald-600",
+  "En attente": "bg-amber-100 text-amber-700",
+  Alerte: "bg-rose-100 text-rose-600",
 };
 
-export default function AdminMedicamentsPage() {
+export default function AdminAuditLogsPage() {
   return (
     <div className="min-h-screen bg-[#F6F8FA] text-[#1F1D1B]">
       <div className="flex">
@@ -98,19 +81,10 @@ export default function AdminMedicamentsPage() {
             ].map((item) => (
               <button
                 key={item}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition ${
-                  item === "Base Medicaments"
-                    ? "bg-[#EAF2FF] text-[#0B63D1]"
-                    : "hover:bg-[#F3F6F9]"
-                }`}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-[#F3F6F9]"
               >
                 <span className="h-2 w-2 rounded-full bg-current opacity-70" />
                 {item}
-                {item === "Base Medicaments" ? (
-                  <span className="ml-auto rounded-full bg-[#EAF2FF] px-2 py-0.5 text-[10px] font-semibold text-[#0B63D1]">
-                    12
-                  </span>
-                ) : null}
               </button>
             ))}
           </nav>
@@ -137,7 +111,11 @@ export default function AdminMedicamentsPage() {
             {["Parametres", "Journaux d'audit"].map((item) => (
               <button
                 key={item}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-[#F3F6F9]"
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition ${
+                  item === "Journaux d'audit"
+                    ? "bg-[#EAF2FF] text-[#0B63D1]"
+                    : "hover:bg-[#F3F6F9]"
+                }`}
               >
                 <span className="h-2 w-2 rounded-full bg-current opacity-70" />
                 {item}
@@ -160,7 +138,7 @@ export default function AdminMedicamentsPage() {
 
         <main className="flex-1 px-8 py-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <h1 className="text-lg font-semibold">Base Medicaments</h1>
+            <h1 className="text-lg font-semibold">Journaux d&apos;audit</h1>
             <div className="flex items-center gap-3">
               <div className="relative">
                 <input
@@ -177,77 +155,78 @@ export default function AdminMedicamentsPage() {
             </div>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {stats.map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-2xl border border-[#E5E7EB] bg-white p-4"
-              >
-                <p className="text-xs text-[#6B7280]">{stat.label}</p>
-                <p className="mt-2 text-2xl font-semibold">{stat.value}</p>
-                <p className="mt-2 text-[11px] text-[#9CA3AF]">{stat.note}</p>
-              </div>
-            ))}
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                placeholder="Filtrer par action ou utilisateur..."
+                className="w-64 rounded-full border border-[#E5E7EB] bg-white py-2 pl-4 pr-4 text-xs"
+              />
+              <select className="rounded-full border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]">
+                <option>30 derniers jours</option>
+                <option>7 derniers jours</option>
+                <option>3 derniers mois</option>
+              </select>
+              <select className="rounded-full border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]">
+                <option>Toutes les actions</option>
+                <option>Connexion</option>
+                <option>Suppression</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-3">
+              <button className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]">
+                Exporter en CSV
+              </button>
+              <button className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
+                Imprimer le rapport
+              </button>
+            </div>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-[#E5E7EB] bg-white">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E5E7EB] px-5 py-4">
-              <h2 className="text-sm font-semibold">Tous les Medicaments</h2>
-              <div className="flex flex-wrap items-center gap-3">
-                <select className="rounded-full border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]">
-                  <option>Toutes les Categories</option>
-                  <option>Analgesiques</option>
-                  <option>Antibiotiques</option>
-                </select>
-                <button className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
-                  + Ajouter un medicament
-                </button>
-              </div>
-            </div>
-
-            <div className="overflow-hidden">
+          <div className="mt-6 rounded-2xl border border-[#E5E7EB] bg-white p-4">
+            <div className="overflow-hidden rounded-2xl border border-[#E5E7EB]">
               <table className="w-full text-xs">
                 <thead className="bg-[#F8FAFC] text-[#6B7280]">
                   <tr>
-                    <th className="px-4 py-3 text-left">NOM</th>
-                    <th className="px-4 py-3 text-left">MOLECULE</th>
-                    <th className="px-4 py-3 text-left">FORME</th>
-                    <th className="px-4 py-3 text-left">ATC</th>
+                    <th className="px-4 py-3 text-left">ID</th>
+                    <th className="px-4 py-3 text-left">DATE &amp; HEURE</th>
+                    <th className="px-4 py-3 text-left">ACTION</th>
+                    <th className="px-4 py-3 text-left">ACTEUR</th>
+                    <th className="px-4 py-3 text-left">CIBLE</th>
                     <th className="px-4 py-3 text-left">STATUT</th>
-                    <th className="px-4 py-3 text-left">DERNIERE MAJ</th>
-                    <th className="px-4 py-3 text-left">ACTIONS</th>
+                    <th className="px-4 py-3 text-left">DETAILS</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {medicaments.map((item) => (
-                    <tr key={item.name} className="border-t border-[#E5E7EB]">
-                      <td className="px-4 py-3 font-semibold">{item.name}</td>
-                      <td className="px-4 py-3 text-[#6B7280]">
-                        {item.molecule}
+                  {auditRows.map((row) => (
+                    <tr key={row.id} className="border-t border-[#E5E7EB]">
+                      <td className="px-4 py-3 text-[#6B7280]">{row.id}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-semibold">{row.date}</div>
+                        <div className="text-[10px] text-[#6B7280]">
+                          {row.time}
+                        </div>
                       </td>
-                      <td className="px-4 py-3 text-[#6B7280]">{item.form}</td>
-                      <td className="px-4 py-3 text-[#6B7280]">{item.atc}</td>
+                      <td className="px-4 py-3 font-semibold">{row.action}</td>
+                      <td className="px-4 py-3">{row.actor}</td>
+                      <td className="px-4 py-3 text-[#6B7280]">{row.cible}</td>
                       <td className="px-4 py-3">
                         <span
                           className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
-                            statusStyles[item.status]
+                            statusStyles[row.statut]
                           }`}
                         >
-                          {item.status}
+                          {row.statut}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[#6B7280]">{item.date}</td>
-                      <td className="px-4 py-3 text-[11px] font-semibold text-[#0B63D1]">
-                        Modifier
-                      </td>
+                      <td className="px-4 py-3 text-[#0B63D1]">Voir</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-xs text-[#6B7280]">
-              <span>Affichage 1-5 sur 12 450</span>
+            <div className="mt-4 flex items-center justify-between text-xs text-[#6B7280]">
+              <span>Affichage de 1 a 5 sur 214 resultats</span>
               <div className="flex items-center gap-2">
                 <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
                   Precedent
@@ -257,9 +236,6 @@ export default function AdminMedicamentsPage() {
                 </button>
                 <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
                   2
-                </button>
-                <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
-                  3
                 </button>
                 <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
                   Suivant

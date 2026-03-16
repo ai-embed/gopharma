@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const stats = [
   {
     label: "Total Pharmacies",
@@ -8,7 +10,7 @@ const stats = [
   {
     label: "Ouvertes Actuellement",
     value: "84",
-    note: "Heures d&apos;ouverture actives",
+    note: "Heures d'ouverture actives",
     tone: "emerald",
   },
   {
@@ -85,7 +87,7 @@ export default function AdminPharmaciesPage() {
             </div>
             <div>
               <p className="text-sm font-semibold">GoPharma</p>
-              <p className="text-[11px] text-[#6B7280]">Dashboard</p>
+              <p className="text-[11px] text-[#6B7280]">Tableau de bord</p>
             </div>
           </div>
 
@@ -94,11 +96,11 @@ export default function AdminPharmaciesPage() {
           </p>
           <nav className="mt-3 space-y-1 text-xs font-semibold text-[#6B7280]">
             {[
-              "Dashboard",
+              "Tableau de bord",
               "Utilisateurs",
               "Pharmacies",
               "Base Medicaments",
-              "File de Validation",
+              "File de validation",
             ].map((item) => (
               <button
                 key={item}
@@ -138,7 +140,7 @@ export default function AdminPharmaciesPage() {
             Systeme
           </p>
           <nav className="mt-3 space-y-1 text-xs font-semibold text-[#6B7280]">
-            {["Parametres", "Journaux d&apos;audit"].map((item) => (
+            {["Parametres", "Journaux d'audit"].map((item) => (
               <button
                 key={item}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-[#F3F6F9]"
@@ -220,9 +222,12 @@ export default function AdminPharmaciesPage() {
                   <option>Actif</option>
                   <option>En attente</option>
                 </select>
-                <button className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
+                <Link
+                  href="/admin/pharmacies/new"
+                  className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
+                >
                   + Ajouter une pharmacie
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -238,7 +243,7 @@ export default function AdminPharmaciesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pharmacies.map((pharmacy) => (
+                  {pharmacies.map((pharmacy, index) => (
                     <tr
                       key={pharmacy.email}
                       className="border-t border-[#E5E7EB]"
@@ -276,7 +281,12 @@ export default function AdminPharmaciesPage() {
                           <button className="text-[#0B63D1]">
                             {pharmacy.action}
                           </button>
-                          <button className="text-[#6B7280]">Profil</button>
+                          <Link
+                            href={`/admin/pharmacies/${index + 1}`}
+                            className="text-[#6B7280]"
+                          >
+                            Profil
+                          </Link>
                         </div>
                       </td>
                     </tr>

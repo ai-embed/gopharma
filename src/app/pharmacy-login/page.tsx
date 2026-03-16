@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 export default function PharmacyLoginPage() {
   return (
     <div className="min-h-screen bg-[#F3F6F9] px-4 py-10 text-[#1F1D1B] md:py-16">

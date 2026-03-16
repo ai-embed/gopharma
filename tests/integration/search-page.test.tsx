@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
-import SearchPage from "@/app/search/page";
+import SearchView from "@/app/search/SearchView";
 import { apiJson } from "@/lib/api";
 
 vi.mock("@/components/TopNav", () => ({
@@ -25,7 +25,7 @@ describe("SearchPage integration", () => {
       return { ok: true, status: 200, data: [] };
     });
 
-    render(<SearchPage />);
+    render(<SearchView />);
     const input = screen.getByPlaceholderText("Ajouter un produit...");
     await userEvent.type(input, "par");
     await waitFor(() => expect(screen.getByText("Paracetamol")).toBeInTheDocument());
