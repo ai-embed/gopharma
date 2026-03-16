@@ -32,16 +32,13 @@ interface MultiResult {
 }
 
 export default function SearchPage() {
-  const [query, setQuery] = useState("");
-  const [address, setAddress] = useState("");
-  const [radiusKm, setRadiusKm] = useState(20);
-  const [maxPrice, setMaxPrice] = useState("");
+  const [queryInput, setQueryInput] = useState("");
+  const [queryTokens, setQueryTokens] = useState<string[]>([]);
   const [openNow, setOpenNow] = useState(true);
   const [category, setCategory] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [multiResults, setMultiResults] = useState<MultiResult[]>([]);
-  const [multiQuery, setMultiQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -55,13 +52,13 @@ export default function SearchPage() {
   }, []);
 
   useEffect(() => {
-    if (!query || query.length < 2) {
+    if (!queryInput || queryInput.length < 2) {
       return;
     }
 
     const timer = setTimeout(async () => {
       const res = await apiJson<string[]>(
-        `/api/search/autocomplete?q=${encodeURIComponent(query)}&prefix=true`
+        `/api/search/autocomplete?q=${encodeURIComponent(queryInput)}&prefix=true`
       );
       if (res.ok && res.data) {
         setSuggestions(res.data.slice(0, 6));
@@ -69,29 +66,46 @@ export default function SearchPage() {
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [queryInput]);
 
-  const visibleSuggestions = query.length < 2 ? [] : suggestions;
+  const visibleSuggestions = queryInput.length < 2 ? [] : suggestions;
 
-  const maxPriceNumber = useMemo(() => {
-    if (!maxPrice.trim()) return undefined;
-    const value = Number(maxPrice);
-    return Number.isNaN(value) ? undefined : value;
-  }, [maxPrice]);
+  const commitToken = (value: string) => {
+    const cleaned = value.trim();
+    if (!cleaned) return;
+    setQueryTokens((prev) =>
+      prev.includes(cleaned) ? prev : [...prev, cleaned]
+    );
+    setQueryInput("");
+  };
+
+  const removeToken = (value: string) => {
+    setQueryTokens((prev) => prev.filter((token) => token !== value));
+  };
 
   const runSearch = async () => {
     setLoading(true);
     setError(null);
-    setMultiResults([]);
-
     const params = new URLSearchParams();
-    params.set("q", query || "");
-    if (address.trim()) params.set("address", address.trim());
-    if (category) params.set("category", category);
     if (openNow !== undefined) params.set("openNow", String(openNow));
-    if (radiusKm) params.set("radiusKm", String(radiusKm));
-    if (maxPriceNumber !== undefined) params.set("maxPrice", String(maxPriceNumber));
 
+    if (queryTokens.length > 0) {
+      params.set("q", queryTokens.join(", "));
+      const res = await apiJson<MultiResult[]>(
+        `/api/search/products/multi?${params.toString()}`
+      );
+      setLoading(false);
+      if (!res.ok) {
+        setError(res.error ?? "Recherche multi-produits impossible.");
+        return;
+      }
+      setMultiResults(res.data ?? []);
+      setResults([]);
+      return;
+    }
+
+    params.set("q", queryInput || "");
+    if (category) params.set("category", category);
     const res = await apiJson<SearchResult[]>(
       `/api/search/products?${params.toString()}`
     );
@@ -103,284 +117,281 @@ export default function SearchPage() {
     }
 
     setResults(res.data ?? []);
+    setMultiResults([]);
   };
 
-  const runMultiSearch = async () => {
-    setLoading(true);
-    setError(null);
-    setResults([]);
+  const groupedResults = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        name: string;
+        address?: string;
+        items: SearchResult[];
+      }
+    >();
+    results.forEach((item) => {
+      const key = item.pharmacyId.name;
+      if (!map.has(key)) {
+        map.set(key, {
+          name: item.pharmacyId.name,
+          address: item.pharmacyId.address,
+          items: [],
+        });
+      }
+      map.get(key)?.items.push(item);
+    });
+    return Array.from(map.values());
+  }, [results]);
 
-    const params = new URLSearchParams();
-    params.set("q", multiQuery);
-    if (address.trim()) params.set("address", address.trim());
-    if (openNow !== undefined) params.set("openNow", String(openNow));
-    if (radiusKm) params.set("radiusKm", String(radiusKm));
-    if (maxPriceNumber !== undefined) params.set("maxPrice", String(maxPriceNumber));
-
-    const res = await apiJson<MultiResult[]>(
-      `/api/search/products/multi?${params.toString()}`
-    );
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(res.error ?? "Recherche multi-produits impossible.");
-      return;
-    }
-
-    setMultiResults(res.data ?? []);
-  };
-
-  const [mode, setMode] = useState<"single" | "multi">("single");
+  const pharmacyCount =
+    queryTokens.length > 0 ? multiResults.length : groupedResults.length;
 
   return (
-    <div className="min-h-screen bg-[#F3F6F9] px-6 py-10 text-[#1F1D1B]">
-      <div className="mx-auto max-w-6xl space-y-6">
+    <div className="min-h-screen bg-[#F3F6F9] px-4 py-6 text-[#1F1D1B]">
+      <div className="mx-auto max-w-7xl space-y-5">
         <TopNav />
 
-        <header className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold">Recherche de produits</h1>
-            <p className="mt-2 text-sm text-[#6B7280]">
-              Trouvez rapidement un produit disponible près de vous.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setMode("single")}
-              className={`rounded-full px-4 py-2 text-xs font-semibold ${
-                mode === "single"
-                  ? "bg-[#0B63D1] text-white"
-                  : "border border-[#E5E7EB] text-[#1F2937]"
-              }`}
-            >
-              Simple
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("multi")}
-              className={`rounded-full px-4 py-2 text-xs font-semibold ${
-                mode === "multi"
-                  ? "bg-[#0B63D1] text-white"
-                  : "border border-[#E5E7EB] text-[#1F2937]"
-              }`}
-            >
-              Multi-produits
-            </button>
-          </div>
-        </header>
-
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="space-y-5 rounded-3xl border border-[#E5E7EB] bg-white p-6">
-            {mode === "single" ? (
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-[#6B7280]">
-                  Produit recherché
-                </label>
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Paracetamol, Ibuprofen..."
-                  className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm outline-none focus:border-[#0B63D1] focus:ring-4 focus:ring-blue-100"
-                />
-                {visibleSuggestions.length > 0 ? (
-                  <div className="rounded-2xl border border-[#E5E7EB] bg-white p-2 text-sm shadow">
-                    {visibleSuggestions.map((item) => (
-                      <button
-                        type="button"
-                        key={item}
-                        onClick={() => {
-                          setQuery(item);
-                          setSuggestions([]);
-                        }}
-                        className="block w-full rounded-xl px-3 py-2 text-left hover:bg-[#F3F6F9]"
-                      >
-                        {item}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-[#6B7280]">
-                  Liste de produits (séparés par des virgules)
-                </label>
-                <textarea
-                  value={multiQuery}
-                  onChange={(event) => setMultiQuery(event.target.value)}
-                  placeholder="Paracetamol, Ibuprofen, Vitamine C"
-                  className="min-h-[120px] w-full rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm outline-none focus:border-[#0B63D1] focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
-            )}
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-[#6B7280]">Adresse</label>
-                <input
-                  value={address}
-                  onChange={(event) => setAddress(event.target.value)}
-                  placeholder="Cotonou, Benin"
-                  className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm outline-none focus:border-[#0B63D1] focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-[#6B7280]">
-                  Rayon (km)
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  value={radiusKm}
-                  onChange={(event) => setRadiusKm(Number(event.target.value))}
-                  className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm outline-none focus:border-[#0B63D1] focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
-            </div>
-
-            {mode === "single" ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-[#6B7280]">Catégorie</label>
-                  <select
-                    value={category}
-                    onChange={(event) => setCategory(event.target.value)}
-                    className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm outline-none focus:border-[#0B63D1] focus:ring-4 focus:ring-blue-100"
+        <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
+          <aside className="space-y-4">
+            <div className="relative rounded-2xl border border-[#E5E7EB] bg-white p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                {queryTokens.map((token) => (
+                  <span
+                    key={token}
+                    className="flex items-center gap-2 rounded-full bg-[#EAF2FF] px-3 py-1 text-xs font-semibold text-[#0B63D1]"
                   >
-                    <option value="">Toutes</option>
-                    {categories.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-[#6B7280]">
-                    Prix max (XOF)
-                  </label>
-                  <input
-                    value={maxPrice}
-                    onChange={(event) => setMaxPrice(event.target.value)}
-                    placeholder="5000"
-                    className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm outline-none focus:border-[#0B63D1] focus:ring-4 focus:ring-blue-100"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-[#6B7280]">
-                  Prix max (XOF)
-                </label>
-                <input
-                  value={maxPrice}
-                  onChange={(event) => setMaxPrice(event.target.value)}
-                  placeholder="5000"
-                  className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm outline-none focus:border-[#0B63D1] focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
-            )}
-
-            <label className="flex items-center gap-3 text-sm text-[#6B7280]">
-              <input
-                type="checkbox"
-                checked={openNow}
-                onChange={(event) => setOpenNow(event.target.checked)}
-                className="h-4 w-4 rounded border-[#CBD5E1] text-[#0B63D1] focus:ring-blue-200"
-              />
-              Afficher uniquement les pharmacies ouvertes
-            </label>
-
-            <button
-              type="button"
-              onClick={mode === "single" ? runSearch : runMultiSearch}
-              className="w-full rounded-2xl bg-[#0B63D1] px-6 py-3 text-sm font-semibold text-white"
-            >
-              Lancer la recherche
-            </button>
-          </div>
-
-          <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
-            <h2 className="text-sm font-semibold text-[#1F2937]">Résultats</h2>
-            {loading ? (
-              <p className="mt-4 text-sm text-[#6B7280]">Recherche en cours...</p>
-            ) : error ? (
-              <p className="mt-4 text-sm text-red-600">{error}</p>
-            ) : mode === "single" ? (
-              results.length === 0 ? (
-                <p className="mt-4 text-sm text-[#6B7280]">
-                  Aucun résultat pour le moment.
-                </p>
-              ) : (
-                <div className="mt-4 space-y-4">
-                  {results.map((item) => (
-                    <div
-                      key={item._id}
-                      className="rounded-2xl border border-[#E5E7EB] p-4"
+                    {token}
+                    <button
+                      type="button"
+                      onClick={() => removeToken(token)}
+                      className="text-[10px] font-semibold"
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h3 className="text-sm font-semibold">
-                            {item.productId.name}
-                          </h3>
-                          <p className="mt-1 text-xs text-[#6B7280]">
-                            {item.pharmacyId.name}
-                          </p>
-                          {item.pharmacyId.address ? (
-                            <p className="text-xs text-[#9CA3AF]">
-                              {item.pharmacyId.address}
-                            </p>
-                          ) : null}
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-semibold text-[#0B63D1]">
-                            {item.price.toLocaleString()} XOF
-                          </p>
-                          <p className="text-xs text-[#6B7280]">
-                            Stock: {item.stockQuantity}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                      x
+                    </button>
+                  </span>
+                ))}
+                <input
+                  value={queryInput}
+                  onChange={(event) => setQueryInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === ",") {
+                      event.preventDefault();
+                      commitToken(queryInput);
+                    }
+                  }}
+                  placeholder="Ajouter un produit..."
+                  className="min-w-[140px] flex-1 border-none bg-transparent text-xs outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={runSearch}
+                  className="rounded-full bg-[#0B63D1] px-3 py-2 text-[11px] font-semibold text-white"
+                >
+                  Rechercher
+                </button>
+              </div>
+              {visibleSuggestions.length > 0 ? (
+                <div className="absolute left-4 right-4 top-full z-10 mt-2 rounded-2xl border border-[#E5E7EB] bg-white p-2 text-sm shadow">
+                  {visibleSuggestions.map((item) => (
+                    <button
+                      type="button"
+                      key={item}
+                      onClick={() => {
+                        commitToken(item);
+                        setSuggestions([]);
+                      }}
+                      className="block w-full rounded-xl px-3 py-2 text-left hover:bg-[#F3F6F9]"
+                    >
+                      {item}
+                    </button>
                   ))}
                 </div>
-              )
-            ) : multiResults.length === 0 ? (
-              <p className="mt-4 text-sm text-[#6B7280]">
-                Aucun résultat pour le moment.
-              </p>
-            ) : (
-              <div className="mt-4 space-y-4">
+              ) : null}
+            </div>
+
+            <div className="flex flex-wrap gap-2 text-xs font-semibold text-[#6B7280]">
+              <button className="rounded-full border border-[#E5E7EB] px-3 py-2">
+                Tous les filtres
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpenNow((value) => !value)}
+                className={`rounded-full px-3 py-2 ${
+                  openNow ? "bg-[#EAF2FF] text-[#0B63D1]" : "border border-[#E5E7EB]"
+                }`}
+              >
+                Ouvert maintenant
+              </button>
+              <button className="rounded-full border border-[#E5E7EB] px-3 py-2">
+                Prix: croissant
+              </button>
+              <button className="rounded-full border border-[#E5E7EB] px-3 py-2">
+                Disponibilite
+              </button>
+              <select
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                className="rounded-full border border-[#E5E7EB] px-3 py-2 text-xs text-[#6B7280]"
+              >
+                <option value="">Toutes les categories</option>
+                {categories.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center justify-between text-xs text-[#6B7280]">
+              <span>{pharmacyCount} pharmacies trouvées près de vous</span>
+              <span className="rounded-full border border-[#E5E7EB] px-3 py-1">
+                Prix total
+              </span>
+            </div>
+
+            {loading ? (
+              <p className="text-sm text-[#6B7280]">Recherche en cours...</p>
+            ) : error ? (
+              <p className="text-sm text-red-600">{error}</p>
+            ) : queryTokens.length > 0 ? (
+              <div className="space-y-4">
                 {multiResults.map((item) => (
                   <div
                     key={item.pharmacy.name}
-                    className="rounded-2xl border border-[#E5E7EB] p-4"
+                    className="rounded-2xl border border-[#E5E7EB] bg-white p-4"
                   >
-                    <h3 className="text-sm font-semibold">{item.pharmacy.name}</h3>
-                    {item.pharmacy.address ? (
-                      <p className="text-xs text-[#9CA3AF]">
-                        {item.pharmacy.address}
-                      </p>
-                    ) : null}
-                    <p className="mt-2 text-xs text-[#6B7280]">
-                      {item.matchedCount} produits trouvés
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {item.matchedProducts.map((product) => (
-                        <span
-                          key={product}
-                          className="rounded-full bg-[#F3F6F9] px-3 py-1 text-xs text-[#1F2937]"
-                        >
-                          {product}
-                        </span>
-                      ))}
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-sm font-semibold">
+                          {item.pharmacy.name}
+                        </h3>
+                        <p className="text-xs text-[#6B7280]">
+                          {item.pharmacy.address ?? "Adresse non renseignée"}
+                        </p>
+                        <p className="mt-2 text-[11px] text-[#6B7280]">
+                          {item.matchedCount} produits disponibles
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+                          {item.matchedProducts.map((product) => (
+                            <span
+                              key={product}
+                              className="rounded-full bg-[#F3F6F9] px-2 py-1 text-[#6B7280]"
+                            >
+                              {product}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <button className="rounded-full bg-[#0B63D1] px-3 py-2 text-[11px] font-semibold text-white">
+                        Itineraire
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
+            ) : groupedResults.length === 0 ? (
+              <p className="text-sm text-[#6B7280]">Aucun resultat pour le moment.</p>
+            ) : (
+              <div className="space-y-4">
+                {groupedResults.map((group) => {
+                  const availableCount = group.items.filter(
+                    (item) => item.isAvailable
+                  ).length;
+                  const totalPrice = group.items.reduce(
+                    (sum, item) => sum + item.price,
+                    0
+                  );
+                  return (
+                    <div
+                      key={group.name}
+                      className="rounded-2xl border border-[#E5E7EB] bg-white p-4"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-2">
+                          <div>
+                            <h3 className="text-sm font-semibold">{group.name}</h3>
+                            <p className="text-xs text-[#6B7280]">
+                              {group.address ?? "Adresse non renseignée"}
+                            </p>
+                          </div>
+                          <p className="text-[11px] text-[#6B7280]">
+                            {availableCount}/{group.items.length} produits
+                            disponibles
+                          </p>
+                          <div className="space-y-1 text-[11px] text-[#6B7280]">
+                            {group.items.map((item) => (
+                              <div
+                                key={item._id}
+                                className="flex items-center justify-between gap-2"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className={`h-2 w-2 rounded-full ${
+                                      item.isAvailable
+                                        ? "bg-emerald-500"
+                                        : "bg-rose-500"
+                                    }`}
+                                  />
+                                  <span>{item.productId.name}</span>
+                                </div>
+                                <span className="text-[#1F1D1B]">
+                                  {item.price.toLocaleString()} XOF
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-[#0B63D1]">
+                            {totalPrice.toLocaleString()} XOF
+                          </p>
+                          <p className="text-[11px] text-[#6B7280]">
+                            Total panier
+                          </p>
+                          <button className="mt-3 rounded-full bg-[#0B63D1] px-3 py-2 text-[11px] font-semibold text-white">
+                            Itineraire
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
-          </div>
+          </aside>
+
+          <section className="relative min-h-[600px] overflow-hidden rounded-3xl border border-[#E5E7EB] bg-[#E6E9ED]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,#dfe6ee,transparent_60%),radial-gradient(circle_at_80%_40%,#dfe6ee,transparent_50%)]" />
+            <div className="absolute inset-0 opacity-40">
+              <div className="absolute left-10 top-10 h-40 w-40 rounded-full border-2 border-white/60" />
+              <div className="absolute right-16 top-24 h-64 w-64 rounded-full border-2 border-white/60" />
+              <div className="absolute left-32 bottom-20 h-64 w-64 rounded-full border-2 border-white/60" />
+            </div>
+            <div className="absolute right-4 top-4 flex flex-col gap-2">
+              <button className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#1F1D1B] shadow">
+                ⛶
+              </button>
+              <button className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#1F1D1B] shadow">
+                +
+              </button>
+              <button className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#1F1D1B] shadow">
+                -
+              </button>
+            </div>
+            <div className="absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow">
+              ⊙
+            </div>
+
+            <div className="absolute left-1/3 top-1/3 flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#0B63D1] shadow">
+              4,50€
+            </div>
+            <div className="absolute left-1/2 top-1/2 flex items-center gap-2 rounded-full bg-[#0B63D1] px-3 py-1 text-xs font-semibold text-white shadow">
+              5,20€
+            </div>
+            <div className="absolute right-1/4 top-2/3 flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#1F1D1B] shadow">
+              6,15€
+            </div>
+          </section>
         </div>
       </div>
     </div>

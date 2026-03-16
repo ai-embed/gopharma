@@ -26,12 +26,11 @@ describe("SearchPage integration", () => {
     });
 
     render(<SearchPage />);
-    const input = screen.getByPlaceholderText("Paracetamol, Ibuprofen...");
+    const input = screen.getByPlaceholderText("Ajouter un produit...");
     await userEvent.type(input, "par");
-    await waitFor(() =>
-      expect(screen.getByText("Paracetamol")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Paracetamol")).toBeInTheDocument());
     await userEvent.click(screen.getByText("Paracetamol"));
-    expect((input as HTMLInputElement).value).toBe("Paracetamol");
+    expect(screen.getByText("Paracetamol")).toBeInTheDocument();
+    expect((input as HTMLInputElement).value).toBe("");
   });
 });

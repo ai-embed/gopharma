@@ -11,6 +11,7 @@ Ce document recense les principales evolutions apportees au frontend.
 - Ajout des composants UI utilitaires: `TopNav`, `Notice`.
 - Mise en place des appels API front (helpers `apiJson` / `apiJsonAuth`).
 - Recherche produits: mode simple et multi-produits, suggestions par prefix, filtres (adresse, rayon, prix, openNow, categorie).
+- Ecran de recherche aligne avec la maquette map/liste (Body-1).
 
 ## Stabilite et build
 - Correction `useSearchParams` avec `Suspense` sur `/verify-email`.
