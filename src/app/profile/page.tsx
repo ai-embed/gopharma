@@ -37,12 +37,12 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-            <button
-              type="button"
+            <Link
+              href="/profile/edit"
               className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
             >
               Modifier le profil
-            </button>
+            </Link>
           </div>
         </div>
 

@@ -6,6 +6,7 @@ Ce document recense les principales evolutions apportees au frontend.
 - Mise en place du socle Next.js (App Router) et structure `/src`.
 - Pages patient: `login`, `register`, `verify-email`, `search`.
 - Ajout des pages profil utilisateur: `profile`, `history`, `favorites`, `preferences`.
+- Ajout de l'ecran de modification de profil: `profile/edit`.
 - Ajout du formulaire de rappel d'ordonnance: `reminders/new`.
 - Ajout des composants UI utilitaires: `TopNav`, `Notice`.
 - Mise en place des appels API front (helpers `apiJson` / `apiJsonAuth`).
