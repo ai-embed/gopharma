@@ -16,7 +16,7 @@ export function TopNav() {
   };
 
   const navItems = [
-    { href: "/search", label: "Accueil" },
+    { href: "/dashboard", label: "Accueil" },
     { href: "/history", label: "Historique" },
     { href: "/favorites", label: "Favoris" },
   ];

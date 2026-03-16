@@ -12,6 +12,7 @@ Ce document recense les principales evolutions apportees au frontend.
 - Mise en place des appels API front (helpers `apiJson` / `apiJsonAuth`).
 - Recherche produits: mode simple et multi-produits, suggestions par prefix, filtres (adresse, rayon, prix, openNow, categorie).
 - Ecran de recherche aligne avec la maquette map/liste (Body-1).
+- Ajout du tableau de bord patient (Tableau de Bord GoPharma FR).
 - Ajout de la page details pharmacie: `pharmacies/[slug]`.
 
 ## Stabilite et build
