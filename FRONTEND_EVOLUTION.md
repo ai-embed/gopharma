@@ -23,6 +23,7 @@ Ce document recense les principales evolutions apportees au frontend.
 - Ajout de la page de connexion pharmacie professionnelle: `pharmacy-login`.
 - Ajout de la page d'inscription pharmacie: `pharmacy-register`.
 - Ajout de l'enregistrement manuel de produit: `pharmacy/inventory/new`.
+- Ajout de la file de validation admin: `admin/validation-queue`.
 
 ## Stabilite et build
 - Correction `useSearchParams` avec `Suspense` sur `/verify-email`.
