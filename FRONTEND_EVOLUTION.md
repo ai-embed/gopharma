@@ -15,6 +15,7 @@ Ce document recense les principales evolutions apportees au frontend.
 - Ajout du tableau de bord patient (Tableau de Bord GoPharma FR).
 - Ajout de l'ecran Scan code-barres (Scan Code-Barres GoPharma FR).
 - Ajout de la page details pharmacie: `pharmacies/[slug]`.
+- Ajout du layout pharmacie + ecran inventaire produits: `pharmacy/inventory`.
 
 ## Stabilite et build
 - Correction `useSearchParams` avec `Suspense` sur `/verify-email`.
