@@ -13,7 +13,10 @@ Ce document recense les principales evolutions apportees au frontend.
 - Recherche produits: mode simple et multi-produits, suggestions par prefix, filtres (adresse, rayon, prix, openNow, categorie).
 - Ecran de recherche aligne avec la maquette map/liste (Body-1).
 - Ajout du tableau de bord patient (Tableau de Bord GoPharma FR).
+- Ajout de l'ecran Scan code-barres (Scan Code-Barres GoPharma FR).
 - Ajout de la page details pharmacie: `pharmacies/[slug]`.
+- Ajout du layout pharmacie + ecran inventaire produits: `pharmacy/inventory`.
+- Ajout du tableau de bord pharmacie: `pharmacy/dashboard`.
 
 ## Stabilite et build
 - Correction `useSearchParams` avec `Suspense` sur `/verify-email`.
