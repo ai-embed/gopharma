@@ -5,25 +5,101 @@ const stats = [
     label: "Utilisateurs Totaux",
     value: "2 845",
     note: "+12% ce mois",
+    noteTone: "emerald",
     tone: "blue",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+        <path
+          d="M8 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3zm8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3z"
+          fill="currentColor"
+        />
+        <path
+          d="M4 18a4 4 0 0 1 8 0M12 18a4 4 0 0 1 8 0"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
   },
   {
     label: "Validations en Attente",
     value: "48",
     note: "Action requise",
+    noteTone: "amber",
     tone: "amber",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+        <path
+          d="M12 4l7 3v5c0 4.5-3 7.5-7 8-4-0.5-7-3.5-7-8V7l7-3z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M12 9v4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+        <circle cx="12" cy="16.5" r="1" fill="currentColor" />
+      </svg>
+    ),
   },
   {
     label: "Pharmaciens",
     value: "420",
     note: "Comptes actifs",
+    noteTone: "slate",
     tone: "emerald",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+        <path
+          d="M8 5h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+        />
+        <path
+          d="M12 9v6M9 12h6"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
   },
   {
     label: "Nouveaux Aujourd'hui",
     value: "15",
     note: "Inscriptions",
+    noteTone: "slate",
     tone: "violet",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+        <rect
+          x="4"
+          y="5"
+          width="16"
+          height="15"
+          rx="2.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+        />
+        <path
+          d="M8 3.5v3M16 3.5v3M4 9h16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
   },
 ];
 
@@ -80,39 +156,115 @@ const roleStyles: Record<string, string> = {
   PATIENT: "bg-slate-100 text-slate-600",
 };
 
+const toneStyles: Record<
+  string,
+  { icon: string; note: string }
+> = {
+  blue: {
+    icon: "bg-[#EAF2FF] text-[#0B63D1]",
+    note: "text-emerald-600",
+  },
+  amber: {
+    icon: "bg-amber-100 text-amber-600",
+    note: "text-amber-600",
+  },
+  emerald: {
+    icon: "bg-emerald-100 text-emerald-600",
+    note: "text-[#9CA3AF]",
+  },
+  violet: {
+    icon: "bg-violet-100 text-violet-600",
+    note: "text-[#9CA3AF]",
+  },
+};
+
+const noteStyles: Record<string, string> = {
+  emerald: "text-emerald-600",
+  amber: "text-amber-600",
+  slate: "text-[#9CA3AF]",
+};
+
 export default function AdminUsersPage() {
   return (
     <div>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <h1 className="text-lg font-semibold">Gestion des Utilisateurs</h1>
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <input
-                  placeholder="Recherche globale..."
-                  className="w-56 rounded-full border border-[#E5E7EB] bg-white py-2 pl-4 pr-10 text-xs"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]">
-                  o
-                </span>
-              </div>
-              <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E7EB] bg-white">
-                o
-              </button>
-            </div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-lg font-semibold">Gestion des Utilisateurs</h1>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <svg
+              viewBox="0 0 24 24"
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]"
+              aria-hidden="true"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="7"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+              />
+              <path
+                d="M20 20l-3.5-3.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
+            <input
+              placeholder="Recherche globale..."
+              className="w-56 rounded-xl border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-10 text-xs"
+            />
           </div>
+          <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E7EB] bg-white">
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4 text-[#6B7280]"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 4a5 5 0 0 1 5 5v2.2l1.2 2.4c.4.8-.1 1.4-1 1.4H6.8c-.9 0-1.4-.6-1-1.4L7 11.2V9a5 5 0 0 1 5-5z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M9.5 19a2.5 2.5 0 0 0 5 0"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {stats.map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-2xl border border-[#E5E7EB] bg-white p-4"
+        {stats.map((stat) => (
+          <div
+            key={stat.label}
+            className="rounded-2xl border border-[#E5E7EB] bg-white p-4"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-xs text-[#6B7280]">{stat.label}</p>
+              <span
+                className={`flex h-8 w-8 items-center justify-center rounded-xl ${
+                  toneStyles[stat.tone].icon
+                }`}
               >
-                <p className="text-xs text-[#6B7280]">{stat.label}</p>
-                <p className="mt-2 text-2xl font-semibold">{stat.value}</p>
-                <p className="mt-2 text-[11px] text-[#9CA3AF]">{stat.note}</p>
-              </div>
-            ))}
+                {stat.icon}
+              </span>
+            </div>
+            <p className="mt-2 text-2xl font-semibold">{stat.value}</p>
+            <p className={`mt-2 text-[11px] ${noteStyles[stat.noteTone]}`}>
+              {stat.note}
+            </p>
           </div>
+        ))}
+      </div>
 
           <div className="mt-6 rounded-2xl border border-[#E5E7EB] bg-white">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E5E7EB] px-5 py-4">
@@ -120,16 +272,19 @@ export default function AdminUsersPage() {
                 Tous les Utilisateurs Inscrits
               </h2>
               <div className="flex flex-wrap items-center gap-3">
-                <select className="rounded-full border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]">
+                <select className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]">
                   <option>Tous les Roles</option>
                   <option>Pharmacien</option>
                   <option>Patient</option>
                 </select>
                 <Link
                   href="/admin/users/new"
-                  className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
                 >
-                  + Ajouter un utilisateur
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-sm leading-none">
+                    +
+                  </span>
+                  Ajouter un utilisateur
                 </Link>
               </div>
             </div>
@@ -138,6 +293,9 @@ export default function AdminUsersPage() {
               <table className="w-full text-xs">
                 <thead className="bg-[#F8FAFC] text-[#6B7280]">
                   <tr>
+                    <th className="px-4 py-3 text-left">
+                      <span className="inline-flex h-4 w-4 rounded-full border border-[#D1D5DB]" />
+                    </th>
                     <th className="px-4 py-3 text-left">DETAILS UTILISATEUR</th>
                     <th className="px-4 py-3 text-left">ROLE</th>
                     <th className="px-4 py-3 text-left">STATUT</th>
@@ -151,6 +309,9 @@ export default function AdminUsersPage() {
                       key={user.email}
                       className="border-t border-[#E5E7EB]"
                     >
+                      <td className="px-4 py-3">
+                        <span className="inline-flex h-4 w-4 rounded-full border border-[#D1D5DB]" />
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#EAF2FF] text-xs font-semibold text-[#0B63D1]">
