@@ -1,18 +1,11 @@
+import { PatientShell } from "@/components/PatientShell";
+
 export const dynamic = "force-dynamic";
 
 export default function LocalisationPage() {
   return (
-    <div className="min-h-screen bg-[#EEF5FB] text-[#1F1D1B]">
-      <div className="px-6 py-8">
-        <div className="flex items-center gap-2 text-sm font-semibold text-[#0B63D1]">
-          <span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-[#0B63D1] text-xs font-semibold text-white">
-            +
-          </span>
-          GoPharma
-        </div>
-      </div>
-
-      <div className="flex min-h-[70vh] items-center justify-center px-4">
+    <PatientShell>
+      <div className="flex min-h-[60vh] items-center justify-center">
         <div className="w-full max-w-md rounded-[32px] bg-white p-8 text-center shadow-sm">
           <div className="mx-auto h-28 w-28 rounded-full bg-[#EAF2FF]" />
           <h1 className="mt-6 text-2xl font-semibold">
@@ -40,10 +33,6 @@ export default function LocalisationPage() {
           </p>
         </div>
       </div>
-
-      <p className="pb-6 text-center text-[10px] text-[#9CA3AF]">
-        (c) 2023 PharmaFinder Inc. All rights reserved.
-      </p>
-    </div>
+    </PatientShell>
   );
 }

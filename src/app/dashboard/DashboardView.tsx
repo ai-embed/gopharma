@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { TopNav } from "@/components/TopNav";
+import { PatientShell } from "@/components/PatientShell";
 
 const recentSearches = [
   { name: "Doliprane 1000mg", time: "Il y a 2 heures" },
@@ -46,11 +46,8 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
 
   return (
-    <div className="min-h-screen bg-[#F3F6F9] px-6 py-10 text-[#1F1D1B]">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <TopNav />
-
-        <section className="relative overflow-hidden rounded-3xl border border-[#0B63D1] bg-[#0B63D1] px-8 py-10 text-white">
+    <PatientShell>
+      <section className="relative overflow-hidden rounded-3xl border border-[#0B63D1] bg-[#0B63D1] px-8 py-10 text-white">
           <div className="absolute -left-10 -top-16 h-48 w-48 rounded-full bg-white/10" />
           <div className="absolute -right-10 -bottom-20 h-56 w-56 rounded-full bg-white/10" />
           <div className="relative z-10 max-w-2xl space-y-4">
@@ -76,9 +73,9 @@ export default function DashboardPage() {
               </Link>
             </div>
           </div>
-        </section>
+      </section>
 
-        <section className="space-y-3">
+      <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">Recherches recentes</h2>
           </div>
@@ -96,9 +93,9 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
-        </section>
+      </section>
 
-        <section className="space-y-4">
+      <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">Pharmacies a proximite</h2>
             <Link
@@ -170,8 +167,7 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
-        </section>
-      </div>
-    </div>
+      </section>
+    </PatientShell>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { TopNav } from "@/components/TopNav";
+import { PatientShell } from "@/components/PatientShell";
 import { useUser } from "@/lib/useUser";
 
 export default function HistoryView() {
@@ -52,11 +52,8 @@ export default function HistoryView() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F3F6F9] px-6 py-10 text-[#1F1D1B]">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <TopNav />
-
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
+    <PatientShell>
+      <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#EAF2FF] text-lg font-semibold text-[#0B63D1]">
@@ -104,9 +101,9 @@ export default function HistoryView() {
               );
             })}
           </div>
-        </div>
+      </div>
 
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
+      <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold">Historique des activites</h2>
@@ -154,8 +151,7 @@ export default function HistoryView() {
               </div>
             ))}
           </div>
-        </div>
       </div>
-    </div>
+    </PatientShell>
   );
 }

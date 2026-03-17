@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { TopNav } from "@/components/TopNav";
+import { PatientShell } from "@/components/PatientShell";
 import { useUser } from "@/lib/useUser";
 
 export default function EditProfileForm() {
@@ -16,11 +16,8 @@ export default function EditProfileForm() {
   const email = user?.email ?? "utilisateur@example.com";
 
   return (
-    <div className="min-h-screen bg-[#F3F6F9] px-6 py-10 text-[#1F1D1B]">
-      <div className="mx-auto max-w-4xl space-y-6">
-        <TopNav />
-
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
+    <PatientShell>
+      <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="relative h-16 w-16 overflow-hidden rounded-full bg-[#E5E7EB]" />
@@ -36,9 +33,9 @@ export default function EditProfileForm() {
               Retour au profil
             </Link>
           </div>
-        </div>
+      </div>
 
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
+      <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
           <h2 className="text-sm font-semibold">Modifier le profil</h2>
           <p className="mt-2 text-xs text-[#6B7280]">
             Mettez a jour vos informations personnelles.
@@ -110,8 +107,7 @@ export default function EditProfileForm() {
               Enregistrer
             </button>
           </div>
-        </div>
       </div>
-    </div>
+    </PatientShell>
   );
 }

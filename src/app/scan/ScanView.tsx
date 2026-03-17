@@ -1,14 +1,11 @@
 "use client";
 
-import { TopNav } from "@/components/TopNav";
+import { PatientShell } from "@/components/PatientShell";
 
 export default function ScanPage() {
   return (
-    <div className="min-h-screen bg-[#F3F6F9] px-6 py-10 text-[#1F1D1B]">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <TopNav />
-
-        <div className="relative overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white p-6">
+    <PatientShell>
+      <div className="relative overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white p-6">
           <div className="pointer-events-none absolute inset-0 bg-[#1F2937]/40" />
 
           <div className="relative mx-auto w-full max-w-md rounded-3xl border border-[#E5E7EB] bg-white p-5 shadow-xl">
@@ -55,8 +52,7 @@ export default function ScanPage() {
               Impossible de scanner ? utilisez la saisie manuelle ou contactez le support.
             </p>
           </div>
-        </div>
       </div>
-    </div>
+    </PatientShell>
   );
 }

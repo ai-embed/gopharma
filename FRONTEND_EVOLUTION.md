@@ -34,6 +34,7 @@ Ce document recense les principales evolutions apportees au frontend.
 - Ajout des pages profils/admin creation: `admin/users/new`, `admin/users/[id]`, `admin/pharmacies/new`, `admin/pharmacies/[id]`.
 - Ajout de la page localisation patient: `localisation`.
 - Ajout de la page assistant: `assistant`.
+- Mise en place PWA (manifest, service worker, icones, offline).
 
 ## Stabilite et build
 - Correction `useSearchParams` avec `Suspense` sur `/verify-email`.
