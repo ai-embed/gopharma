@@ -107,7 +107,7 @@ export default function PharmacyHistoryPage() {
             </svg>
             <input
               placeholder="Filtrer par produit ou utilisateur..."
-              className="w-64 rounded-full border border-[#E5E7EB] bg-white py-2 pl-10 pr-4 text-xs"
+              className="w-64 rounded-xl border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-4 text-xs"
             />
           </div>
           <div className="relative">
@@ -134,7 +134,7 @@ export default function PharmacyHistoryPage() {
                 strokeWidth="1.6"
               />
             </svg>
-            <select className="rounded-full border border-[#E5E7EB] bg-white py-2 pl-10 pr-8 text-xs font-semibold text-[#1F1D1B]">
+            <select className="rounded-xl border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-8 text-xs font-semibold text-[#1F1D1B]">
               <option>30 derniers jours</option>
               <option>7 derniers jours</option>
               <option>3 derniers mois</option>
@@ -154,7 +154,7 @@ export default function PharmacyHistoryPage() {
                 strokeLinecap="round"
               />
             </svg>
-            <select className="rounded-full border border-[#E5E7EB] bg-white py-2 pl-10 pr-8 text-xs font-semibold text-[#1F1D1B]">
+            <select className="rounded-xl border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-8 text-xs font-semibold text-[#1F1D1B]">
               <option>Toutes les actions</option>
               <option>Ventes</option>
               <option>Reapprovisionnement</option>
@@ -163,10 +163,60 @@ export default function PharmacyHistoryPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]">
+          <button className="inline-flex items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+              <path
+                d="M12 5v9"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+              <path
+                d="M8.5 11.5L12 15l3.5-3.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M5 19h14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
             Exporter en CSV
           </button>
-          <button className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
+          <button className="inline-flex items-center gap-2 rounded-xl bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+              <path
+                d="M7 8V4h10v4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <rect
+                x="5"
+                y="9"
+                width="14"
+                height="8"
+                rx="2"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+              />
+              <path
+                d="M7.5 14h9"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
             Imprimer le rapport
           </button>
         </div>
@@ -205,8 +255,30 @@ export default function PharmacyHistoryPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F3F4F6] text-[11px] font-semibold text-[#6B7280]">
-                        Rx
+                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F3F4F6] text-[#6B7280]">
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="h-4 w-4"
+                          aria-hidden="true"
+                        >
+                          <rect
+                            x="6"
+                            y="4"
+                            width="12"
+                            height="16"
+                            rx="3"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                          />
+                          <path
+                            d="M9 12h6"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinecap="round"
+                          />
+                        </svg>
                       </span>
                       <span className="font-semibold">{row.product}</span>
                     </div>
