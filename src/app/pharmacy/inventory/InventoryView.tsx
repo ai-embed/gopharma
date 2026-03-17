@@ -203,21 +203,22 @@ export default function PharmacyInventoryPage() {
                     ) : null}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`flex h-5 w-10 items-center rounded-full px-0.5 ${
-                          product.available ? "bg-[#0B63D1]" : "bg-[#D1D5DB]"
+                    <button
+                      type="button"
+                      className={`relative inline-flex h-5 w-10 items-center rounded-full px-0.5 transition ${
+                        product.available ? "bg-[#0B63D1]" : "bg-[#D1D5DB]"
+                      }`}
+                    >
+                      <span
+                        className={`flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-semibold transition ${
+                          product.available
+                            ? "translate-x-5 text-[#0B63D1]"
+                            : "translate-x-0 text-[#9CA3AF]"
                         }`}
                       >
-                        <div
-                          className={`flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-semibold ${
-                            product.available ? "translate-x-5" : ""
-                          } transition`}
-                        >
-                          {product.available ? "v" : ""}
-                        </div>
-                      </div>
-                    </div>
+                        {product.available ? "✓" : ""}
+                      </span>
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -264,7 +265,7 @@ export default function PharmacyInventoryPage() {
               securite. Veuillez examiner les commandes pour eviter les
               penuries.
             </p>
-            <button className="mt-3 text-xs font-semibold text-[#B91C1C]">
+            <button className="mt-3 text-xs font-semibold uppercase text-[#B91C1C]">
               Voir le rapport de stock faible
             </button>
           </div>

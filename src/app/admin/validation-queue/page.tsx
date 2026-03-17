@@ -10,6 +10,7 @@ const requests = [
       { name: "Licence_Commerciale_2023.pdf", size: "2.4 Mo" },
       { name: "ID_Pharmacien_Recto.jpg", size: "1.3 Mo" },
     ],
+    accent: "sky",
   },
   {
     name: "Pharmacie de l'Etoile",
@@ -22,6 +23,7 @@ const requests = [
       { name: "Enregistrement_Ordre.pdf", size: "4.1 Mo" },
       { name: "Passeport_Scan.png", size: "3.2 Mo" },
     ],
+    accent: "emerald",
   },
   {
     name: "SantePlus Rx",
@@ -34,46 +36,90 @@ const requests = [
       { name: "Licence_Bordeaux_2023.pdf", size: "1.8 Mo" },
       { name: "CNI_Verso_Rodriguez.jpg", size: "2.2 Mo" },
     ],
+    accent: "violet",
   },
 ];
+
+const accentStyles: Record<string, string> = {
+  sky: "bg-sky-100 text-sky-600",
+  emerald: "bg-emerald-100 text-emerald-600",
+  violet: "bg-violet-100 text-violet-600",
+};
 
 export default function ValidationQueuePage() {
   return (
     <div>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <h1 className="text-lg font-semibold">Validation des Pharmacies</h1>
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <input
-                  placeholder="Recherche globale..."
-                  className="w-56 rounded-full border border-[#E5E7EB] bg-white py-2 pl-4 pr-10 text-xs"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]">
-                  o
-                </span>
-              </div>
-              <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E7EB] bg-white">
-                o
-              </button>
-            </div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-lg font-semibold">Validation des Pharmacies</h1>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <svg
+              viewBox="0 0 24 24"
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]"
+              aria-hidden="true"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="7"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+              />
+              <path
+                d="M20 20l-3.5-3.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
+            <input
+              placeholder="Recherche globale..."
+              className="w-56 rounded-xl border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-10 text-xs"
+            />
           </div>
+          <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E7EB] bg-white">
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4 text-[#6B7280]"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 4a5 5 0 0 1 5 5v2.2l1.2 2.4c.4.8-.1 1.4-1 1.4H6.8c-.9 0-1.4-.6-1-1.4L7 11.2V9a5 5 0 0 1 5-5z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M9.5 19a2.5 2.5 0 0 0 5 0"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
 
-          <div className="mt-6 flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 rounded-full bg-white p-1 text-xs font-semibold text-[#6B7280]">
-              <button className="rounded-full bg-[#0B63D1] px-4 py-2 text-white">
-                En Attente
-              </button>
-              <button className="rounded-full px-4 py-2">Approuvees</button>
-              <button className="rounded-full px-4 py-2">Rejetees</button>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-[#6B7280]">
-              <span>Trier par:</span>
-              <select className="rounded-full border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]">
-                <option>Plus Recentes</option>
-                <option>Plus anciennes</option>
-              </select>
-            </div>
-          </div>
+      <div className="mt-6 flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2 rounded-xl bg-white p-1 text-xs font-semibold text-[#6B7280]">
+          <button className="rounded-xl bg-[#0B63D1] px-4 py-2 text-white">
+            En Attente
+          </button>
+          <button className="rounded-xl px-4 py-2">Approuvees</button>
+          <button className="rounded-xl px-4 py-2">Rejetees</button>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-[#6B7280]">
+          <span>Trier par:</span>
+          <select className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]">
+            <option>Plus Recentes</option>
+            <option>Plus anciennes</option>
+          </select>
+        </div>
+      </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             {requests.map((request) => (
@@ -83,8 +129,16 @@ export default function ValidationQueuePage() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#EAF2FF] text-sm font-semibold text-[#0B63D1]">
-                      {request.name[0]}
+                    <span
+                      className={`flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-semibold ${
+                        accentStyles[request.accent]
+                      }`}
+                    >
+                      {request.name
+                        .split(" ")
+                        .map((part) => part[0])
+                        .slice(0, 2)
+                        .join("")}
                     </span>
                     <div>
                       <p className="text-sm font-semibold">{request.name}</p>
@@ -120,6 +174,9 @@ export default function ValidationQueuePage() {
                       Contact
                     </p>
                     <p className="font-semibold text-[#0B63D1]">
+                      <span className="mr-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#EAF2FF] text-[10px] text-[#0B63D1]">
+                        @
+                      </span>
                       {request.email}
                     </p>
                   </div>
@@ -128,6 +185,9 @@ export default function ValidationQueuePage() {
                       Telephone
                     </p>
                     <p className="font-semibold text-[#1F1D1B]">
+                      <span className="mr-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#EAF2FF] text-[10px] text-[#0B63D1]">
+                        +
+                      </span>
                       {request.phone}
                     </p>
                   </div>
@@ -144,8 +204,28 @@ export default function ValidationQueuePage() {
                         className="flex items-center justify-between rounded-xl border border-[#E5E7EB] px-3 py-2 text-xs"
                       >
                         <div className="flex items-center gap-2">
-                          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F8FAFC] text-[11px] text-[#6B7280]">
-                            PDF
+                          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F8FAFC] text-[#0B63D1]">
+                            <svg
+                              viewBox="0 0 24 24"
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                            >
+                              <path
+                                d="M7 4h7l3 3V20a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 20V5A1.5 1.5 0 0 1 7 4z"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.6"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M14 4v3h3"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.6"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
                           </span>
                           <div>
                             <p className="font-semibold text-[#1F1D1B]">
@@ -156,18 +236,47 @@ export default function ValidationQueuePage() {
                             </p>
                           </div>
                         </div>
-                        <button className="text-[#0B63D1]">o</button>
+                        <button className="text-[#0B63D1]">
+                          <svg
+                            viewBox="0 0 24 24"
+                            className="h-4 w-4"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M12 5v9"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.6"
+                              strokeLinecap="round"
+                            />
+                            <path
+                              d="M8.5 11.5L12 15l3.5-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.6"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M5 19h14"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.6"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        </button>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div className="mt-4 flex items-center gap-3">
-                  <button className="flex-1 rounded-full border border-[#FCA5A5] bg-white px-4 py-2 text-xs font-semibold text-[#DC2626]">
-                    Rejeter
+                  <button className="flex-1 rounded-xl border border-[#FCA5A5] bg-white px-4 py-2 text-xs font-semibold text-[#DC2626]">
+                    × Rejeter
                   </button>
-                  <button className="flex-1 rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
-                    Approuver
+                  <button className="flex-1 rounded-xl bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
+                    ✓ Approuver
                   </button>
                 </div>
               </div>
@@ -178,11 +287,11 @@ export default function ValidationQueuePage() {
             Affichage de 3 sur 12 demandes en attente
           </div>
 
-          <div className="mt-4 flex justify-center">
-            <button className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]">
-              Charger Plus
-            </button>
-          </div>
+      <div className="mt-4 flex justify-center">
+        <button className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]">
+          Charger Plus
+        </button>
+      </div>
             </div>
   );
 }

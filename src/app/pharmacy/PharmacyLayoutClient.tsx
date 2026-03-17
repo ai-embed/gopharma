@@ -65,7 +65,7 @@ const navItems = [
   },
   {
     href: "/pharmacy/plannings",
-    label: "Plannings",
+    label: "Horaires",
     icon: (
       <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
         <rect
@@ -134,7 +134,9 @@ export default function PharmacyLayout({
 
           <nav className="mt-8 space-y-1 text-xs font-semibold">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive =
+                pathname === item.href ||
+                pathname.startsWith(`${item.href}/`);
               return (
                 <Link
                   key={item.href}
