@@ -66,7 +66,7 @@ export default function AdminUserProfilePage() {
                   </div>
                   <div>
                     <p className="text-[11px] uppercase text-[#9CA3AF]">
-                      Derniere connexion
+                      Dernière connexion
                     </p>
                     <p className="font-semibold text-[#1F1D1B]">
                       Aujourd&apos;hui 09:40
@@ -76,7 +76,7 @@ export default function AdminUserProfilePage() {
               </div>
 
               <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
-                <h2 className="text-sm font-semibold">Activite recente</h2>
+                <h2 className="text-sm font-semibold">Activité récente</h2>
                 <div className="mt-4 space-y-3 text-xs text-[#6B7280]">
                   <div className="rounded-2xl border border-[#E5E7EB] px-3 py-2">
                     24 Oct - Validation de pharmacie MediLife Centrale
@@ -127,7 +127,7 @@ export default function AdminUserProfilePage() {
                   <h2 className="text-sm font-semibold">Zone de danger</h2>
                 </div>
                 <p className="mt-2">
-                  Desactiver l&apos;acces utilisateur ou revoquer les droits.
+                  Désactiver l&apos;accès utilisateur ou révoquer les droits.
                 </p>
                 <button className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#DC2626] px-4 py-2 text-xs font-semibold text-white">
                   <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">

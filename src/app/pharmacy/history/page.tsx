@@ -38,7 +38,7 @@ const activityRows = [
     time: "11:20",
     action: "Vente",
     actionTone: "emerald",
-    product: "Ibuprofene 200mg",
+    product: "Ibuprofène 200mg",
     change: "-1",
     changeTone: "rose",
     user: "Jean Dupont",
@@ -52,7 +52,7 @@ const activityRows = [
     product: "Sirop Toux Enfant",
     change: "--",
     changeTone: "slate",
-    user: "Systeme",
+    user: "Système",
   },
   {
     id: "#TRX-8850",
@@ -85,7 +85,7 @@ export default function PharmacyHistoryPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-lg font-semibold">
-          Historique d&apos;Activite de la Pharmacie
+          Historique d&apos;activité de la Pharmacie
         </h1>
       </div>
 
@@ -224,8 +224,9 @@ export default function PharmacyHistoryPage() {
 
       <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
         <div className="overflow-hidden rounded-2xl border border-[#E5E7EB]">
-          <table className="w-full text-xs">
-            <thead className="bg-[#F8FAFC] text-[#6B7280]">
+          <div className="overflow-x-auto">
+            <table className="min-w-[720px] w-full text-xs">
+              <thead className="bg-[#F8FAFC] text-[#6B7280]">
               <tr>
                 <th className="px-4 py-3 text-left">ID TRANSACTION</th>
                 <th className="px-4 py-3 text-left">DATE ET HEURE</th>
@@ -233,7 +234,7 @@ export default function PharmacyHistoryPage() {
                 <th className="px-4 py-3 text-left">NOM DU PRODUIT</th>
                 <th className="px-4 py-3 text-left">CHANGEMENT</th>
                 <th className="px-4 py-3 text-left">UTILISATEUR</th>
-                <th className="px-4 py-3 text-left">DETAILS</th>
+                <th className="px-4 py-3 text-left">DÉTAILS</th>
               </tr>
             </thead>
             <tbody>
@@ -304,14 +305,15 @@ export default function PharmacyHistoryPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
 
         <div className="mt-4 flex items-center justify-between text-xs text-[#6B7280]">
-          <span>Affichage de 1 a 6 sur 128 resultats</span>
+          <span>Affichage de 1 à 6 sur 128 résultats</span>
           <div className="flex items-center gap-2">
             <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
-              Precedent
+              Précédent
             </button>
             <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
               Suivant

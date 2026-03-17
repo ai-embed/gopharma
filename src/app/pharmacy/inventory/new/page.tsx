@@ -63,7 +63,7 @@ export default function PharmacyInventoryNewPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-[#6B7280]">
-                  Categorie
+                  Catégorie
                 </label>
                 <select className="w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm">
                   <option>Selectionner une categorie</option>

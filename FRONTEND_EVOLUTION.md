@@ -40,7 +40,12 @@ Ce document recense les principales evolutions apportees au frontend.
 - Ajout des pages profils/admin creation: `admin/users/new`, `admin/users/[id]`, `admin/pharmacies/new`, `admin/pharmacies/[id]`.
 - Ajout de la page localisation patient: `localisation`.
 - Ajout de la page assistant: `assistant`.
+- Ajout de la page confirmation suppression compte: `account/delete`.
+- Ajout du loading global (maquette Body.png): `src/app/loading.tsx`.
 - Mise en place PWA (manifest, service worker, icones, offline).
+- Ajout du prompt d&apos;installation PWA.
+- Ajout d&apos;un footer global (patient, pharmacie, admin, auth).
+- Branchement donnees reelles (history + favorites + recent searches).
 
 ## Stabilite et build
 - Correction `useSearchParams` avec `Suspense` sur `/verify-email`.

@@ -5,8 +5,8 @@ const auditRows = [
     time: "10:18",
     action: "Connexion admin",
     actor: "Alex Morgan",
-    cible: "Systeme",
-    statut: "Succes",
+    cible: "Système",
+    statut: "Succès",
   },
   {
     id: "#AUD-9011",
@@ -15,7 +15,7 @@ const auditRows = [
     action: "Validation pharmacie",
     actor: "Alex Morgan",
     cible: "MediLife Centrale",
-    statut: "Succes",
+    statut: "Succès",
   },
   {
     id: "#AUD-9009",
@@ -24,7 +24,7 @@ const auditRows = [
     action: "Suppression utilisateur",
     actor: "Super Admin",
     cible: "user_83x21",
-    statut: "Reussi",
+    statut: "Réussi",
   },
   {
     id: "#AUD-9007",
@@ -47,8 +47,8 @@ const auditRows = [
 ];
 
 const statusStyles: Record<string, string> = {
-  Succes: "bg-emerald-100 text-emerald-600",
-  Reussi: "bg-emerald-100 text-emerald-600",
+  Succès: "bg-emerald-100 text-emerald-600",
+  Réussi: "bg-emerald-100 text-emerald-600",
   "En attente": "bg-amber-100 text-amber-700",
   Alerte: "bg-rose-100 text-rose-600",
 };
@@ -205,8 +205,9 @@ export default function AdminAuditLogsPage() {
 
       <div className="mt-6 rounded-2xl border border-[#E5E7EB] bg-white p-4">
             <div className="overflow-hidden rounded-2xl border border-[#E5E7EB]">
-              <table className="w-full text-xs">
-                <thead className="bg-[#F8FAFC] text-[#6B7280]">
+              <div className="overflow-x-auto">
+                <table className="min-w-[720px] w-full text-xs">
+                  <thead className="bg-[#F8FAFC] text-[#6B7280]">
                   <tr>
                     <th className="px-4 py-3 text-left">ID</th>
                     <th className="px-4 py-3 text-left">DATE &amp; HEURE</th>
@@ -214,7 +215,7 @@ export default function AdminAuditLogsPage() {
                     <th className="px-4 py-3 text-left">ACTEUR</th>
                     <th className="px-4 py-3 text-left">CIBLE</th>
                     <th className="px-4 py-3 text-left">STATUT</th>
-                    <th className="px-4 py-3 text-left">DETAILS</th>
+                    <th className="px-4 py-3 text-left">DÉTAILS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -243,14 +244,15 @@ export default function AdminAuditLogsPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
 
             <div className="mt-4 flex items-center justify-between text-xs text-[#6B7280]">
-              <span>Affichage de 1 a 5 sur 214 resultats</span>
+              <span>Affichage de 1 à 5 sur 214 résultats</span>
               <div className="flex items-center gap-2">
                 <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
-                  Precedent
+                  Précédent
                 </button>
                 <button className="rounded-full bg-[#0B63D1] px-3 py-1 text-white">
                   1

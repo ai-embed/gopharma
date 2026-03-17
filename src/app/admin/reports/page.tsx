@@ -1,6 +1,6 @@
 const reportCards = [
   {
-    label: "Rapports Generes",
+    label: "Rapports générés",
     value: "128",
     note: "30 derniers jours",
     noteTone: "slate",
@@ -28,9 +28,9 @@ const reportCards = [
     ),
   },
   {
-    label: "Alertes Systeme",
+    label: "Alertes système",
     value: "6",
-    note: "A traiter",
+    note: "À traiter",
     noteTone: "amber",
     tone: "amber",
     icon: (
@@ -54,7 +54,7 @@ const reportCards = [
     ),
   },
   {
-    label: "Pharmacies Analysees",
+    label: "Pharmacies analysées",
     value: "356",
     note: "Semaine en cours",
     noteTone: "slate",
@@ -97,7 +97,7 @@ export default function AdminReportsPage() {
             <div>
               <h1 className="text-lg font-semibold">Rapports</h1>
               <p className="mt-1 text-xs text-[#6B7280]">
-                Vue d&apos;ensemble des rapports systeme et operations.
+                Vue d&apos;ensemble des rapports système et opérations.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -164,7 +164,7 @@ export default function AdminReportsPage() {
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold">Activite hebdomadaire</h2>
+              <h2 className="text-sm font-semibold">Activité hebdomadaire</h2>
                 <span className="text-xs text-[#6B7280]">7 jours</span>
               </div>
               <div className="mt-6 flex h-48 items-end gap-3 rounded-2xl bg-gradient-to-br from-[#EAF2FF] via-[#F8FAFC] to-[#EAF2FF] px-4 pb-4">
@@ -181,7 +181,7 @@ export default function AdminReportsPage() {
             </div>
             <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold">Alertes et incidents</h2>
+              <h2 className="text-sm font-semibold">Alertes et incidents</h2>
                 <span className="text-xs text-[#6B7280]">30 jours</span>
               </div>
               <div className="mt-6 space-y-3 text-xs text-[#6B7280]">

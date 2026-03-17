@@ -11,11 +11,11 @@ const gallery = [
 
 const services = [
   { title: "Vaccinations", desc: "Grippe, COVID-19, Voyage" },
-  { title: "Livraison a domicile", desc: "Gratuite dans le secteur" },
-  { title: "Suivi de sante", desc: "Tension, Diabete, Poids" },
-  { title: "Preparations magistrales", desc: "Dosages personnalises" },
-  { title: "Synchro. medicaments", desc: "Renouvellement automatique" },
-  { title: "Acces PMR", desc: "Rampe et assistance" },
+  { title: "Livraison à domicile", desc: "Gratuite dans le secteur" },
+  { title: "Suivi de santé", desc: "Tension, Diabète, Poids" },
+  { title: "Préparations magistrales", desc: "Dosages personnalisés" },
+  { title: "Synchro. médicaments", desc: "Renouvellement automatique" },
+  { title: "Accès PMR", desc: "Rampe et assistance" },
 ];
 
 export default function PharmacyDetailPage() {
@@ -42,11 +42,11 @@ export default function PharmacyDetailPage() {
               {[
                 {
                   title: "Adresse",
-                  value: "123 Boulevard de la Sante, Suite 100",
-                  sub: "Cotonou, Benin",
+                  value: "123 Boulevard de la Santé, Suite 100",
+                  sub: "Cotonou, Bénin",
                 },
                 {
-                  title: "Telephone",
+                  title: "Téléphone",
                   value: "+229 67 12 34 56 78",
                   sub: "Ligne principale",
                 },
@@ -84,18 +84,18 @@ export default function PharmacyDetailPage() {
             </div>
 
             <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5">
-              <h2 className="text-sm font-semibold">A propos de nous</h2>
+              <h2 className="text-sm font-semibold">À propos de nous</h2>
               <p className="mt-3 text-xs text-[#6B7280]">
-                La Pharmacie du Centre est un partenaire de sante de confiance
-                dans la communaute de Metropolis depuis plus de 20 ans. Nous
-                nous engageons a fournir des soins pharmaceutiques humains,
-                en veillant a ce que chaque patient comprenne ses medicaments
+                La Pharmacie du Centre est un partenaire de santé de confiance
+                dans la communauté de Metropolis depuis plus de 20 ans. Nous
+                nous engageons à fournir des soins pharmaceutiques humains,
+                en veillant à ce que chaque patient comprenne ses médicaments
                 et son plan de traitement.
               </p>
               <p className="mt-3 text-xs text-[#6B7280]">
-                Nous proposons des conseils personnalises, des medicaments
-                difficiles a trouver et des solutions de soins a domicile.
-                Votre sante est notre priorite.
+                Nous proposons des conseils personnalisés, des médicaments
+                difficiles à trouver et des solutions de soins à domicile.
+                Votre santé est notre priorité.
               </p>
             </div>
 
@@ -118,7 +118,7 @@ export default function PharmacyDetailPage() {
           <aside className="space-y-4">
             <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5">
               <button className="w-full rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
-                Obtenir l&apos;itineraire
+                Obtenir l&apos;itinéraire
               </button>
               <button className="mt-3 w-full rounded-full border border-[#E5E7EB] px-4 py-2 text-xs font-semibold text-[#1F1D1B]">
                 Appeler maintenant
@@ -129,7 +129,7 @@ export default function PharmacyDetailPage() {
                 {[
                   ["Lun - Vend", "08:00 - 20:00"],
                   ["Samedi", "09:00 - 17:00"],
-                  ["Dimanche", "Ferme"],
+                  ["Dimanche", "Fermé"],
                 ].map(([day, time]) => (
                   <div key={day} className="flex items-center justify-between">
                     <span>{day}</span>
@@ -150,7 +150,7 @@ export default function PharmacyDetailPage() {
                 </div>
               </div>
               <p className="mt-3 text-xs text-[#6B7280]">
-                Situe pres de l&apos;Hopital Central, en face du Grand Parc.
+                Situé près de l&apos;Hôpital Central, en face du Grand Parc.
               </p>
             </div>
           </aside>

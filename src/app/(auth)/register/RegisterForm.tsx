@@ -61,7 +61,7 @@ export default function RegisterForm() {
 
     setSuccess(
       result.data.message ??
-        "Un code de verification a ete envoye. Verifiez votre boite email."
+        "Un code de vérification a été envoyé. Vérifiez votre boîte email."
     );
     router.push("/verify-email");
   };

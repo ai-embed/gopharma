@@ -15,7 +15,7 @@ export default function AdminSettingsPage() {
     <div>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-lg font-semibold">Parametres Admin</h1>
+              <h1 className="text-lg font-semibold">Paramètres Admin</h1>
               <p className="mt-1 text-xs text-[#6B7280]">
                 Gerer les preferences globales, la securite et les integrations.
               </p>
@@ -251,7 +251,7 @@ export default function AdminSettingsPage() {
                       <circle cx="12" cy="16.5" r="1" fill="currentColor" />
                     </svg>
                   </span>
-                  <h2 className="text-sm font-semibold">Securite</h2>
+                  <h2 className="text-sm font-semibold">Sécurité</h2>
                 </div>
                 <div className="mt-4 space-y-3">
                   {securityOptions.map((item) => (

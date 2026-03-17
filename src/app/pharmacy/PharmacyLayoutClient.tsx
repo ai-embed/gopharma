@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import AppFooter from "@/components/AppFooter";
 
 const navItems = [
   {
@@ -90,7 +91,7 @@ const navItems = [
   },
   {
     href: "/pharmacy/settings",
-    label: "Parametres",
+    label: "Paramètres",
     icon: (
       <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
         <path
@@ -120,8 +121,8 @@ export default function PharmacyLayout({
 
   return (
     <div className="min-h-screen bg-[#F3F6F9] text-[#1F1D1B]">
-      <div className="flex">
-        <aside className="flex w-64 flex-col border-r border-[#E5E7EB] bg-white px-6 py-6">
+      <div className="flex flex-col md:flex-row">
+        <aside className="flex w-full flex-col border-b border-[#E5E7EB] bg-white px-6 py-6 md:sticky md:top-0 md:h-screen md:w-64 md:border-b-0 md:border-r">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B63D1] text-xs font-semibold text-white">
               +
@@ -163,7 +164,7 @@ export default function PharmacyLayout({
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
                 Ouvert
               </span>
-              <span>Ferme a 21h</span>
+              <span>Fermé à 21h</span>
             </div>
           </div>
 
@@ -187,11 +188,11 @@ export default function PharmacyLayout({
                 />
               </svg>
             </span>
-            Deconnexion
+            Déconnexion
           </button>
         </aside>
 
-        <div className="flex-1 px-6 py-8">
+        <div className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
           <div className="mx-auto w-full max-w-6xl space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div />
@@ -261,6 +262,7 @@ export default function PharmacyLayout({
             </div>
 
             {children}
+            <AppFooter />
           </div>
         </div>
       </div>

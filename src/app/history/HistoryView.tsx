@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { PatientShell } from "@/components/PatientShell";
+import { apiJsonAuth } from "@/lib/api";
 import { useUser } from "@/lib/useUser";
 
 export default function HistoryView() {
@@ -51,65 +53,116 @@ export default function HistoryView() {
     },
   ];
 
+  const [activityItems, setActivityItems] = useState(historyItems);
+
+  useEffect(() => {
+    let active = true;
+    apiJsonAuth<
+      {
+        _id: string;
+        query: string;
+        searchType: "PRODUIT" | "PHARMACIE";
+        resultCount: number;
+        createdAt: string;
+      }[]
+    >("/api/history").then((res) => {
+      if (!active) return;
+      if (!res.ok || !res.data || res.data.length === 0) return;
+
+      const formatter = new Intl.DateTimeFormat("fr-FR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+
+      const mapped = res.data.map((entry) => {
+        const isProduct = entry.searchType === "PRODUIT";
+        return {
+          title: entry.query,
+          subtitle: isProduct
+            ? `Recherche de médicament • ${entry.resultCount} résultats`
+            : `Recherche de pharmacie • ${entry.resultCount} résultats`,
+          time: formatter.format(new Date(entry.createdAt)),
+          category: isProduct ? "Médicaments" : "Pharmacies",
+          action: isProduct ? "Relancer" : "Voir détails",
+          icon: isProduct ? "Rx" : "PH",
+          tone: isProduct
+            ? "bg-[#EAF2FF] text-[#0B63D1]"
+            : "bg-[#E8FFF1] text-[#0F9D58]",
+        };
+      });
+
+      setActivityItems(mapped);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <PatientShell>
       <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#EAF2FF] text-lg font-semibold text-[#0B63D1]">
-                {displayName.charAt(0)}
-              </div>
+              <div className="relative h-16 w-16 overflow-hidden rounded-full bg-[#E5E7EB]" />
               <div>
-                <p className="text-lg font-semibold">{displayName}</p>
+                <h1 className="text-lg font-semibold">{displayName}</h1>
                 <p className="text-sm text-[#6B7280]">{email}</p>
+                <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
+                  <span className="rounded-full bg-[#E8FFF1] px-3 py-1 text-[#0F9D58]">
+                    Patient vérifié
+                  </span>
+                  <span className="rounded-full bg-[#EAF2FF] px-3 py-1 text-[#0B63D1]">
+                    Membre depuis 2021
+                  </span>
+                </div>
               </div>
             </div>
-
-            <div className="flex flex-wrap items-center gap-3 text-xs font-semibold">
-              <span className="rounded-full bg-[#EAF2FF] px-3 py-1 text-[#0B63D1]">
-                Patient
-              </span>
-              <span className="rounded-full bg-[#E8FFF1] px-3 py-1 text-[#0F9D58]">
-                Actif
-              </span>
-              <span className="rounded-full bg-[#F4F4F5] px-3 py-1 text-[#6B7280]">
-                ID #GP-0324
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3 border-t border-[#E5E7EB] pt-4 text-sm font-medium">
-            {[
-              { label: "Profil", href: "/profile" },
-              { label: "Favoris", href: "/favorites" },
-              { label: "Historique", href: "/history" },
-              { label: "Préférences", href: "/preferences" },
-            ].map((tab) => {
-              const isActive = tab.href === "/history";
-              return (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  className={`rounded-full px-4 py-2 transition ${
-                    isActive
-                      ? "bg-[#0B63D1] text-white"
-                      : "bg-[#F3F4F6] text-[#6B7280]"
-                  }`}
-                >
-                  {tab.label}
-                </Link>
-              );
-            })}
+            <Link
+              href="/profile/edit"
+              className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
+            >
+              Modifier le profil
+            </Link>
           </div>
       </div>
 
-      <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-3xl border border-[#E5E7EB] bg-white">
+          <div className="flex flex-wrap gap-2 border-b border-[#E5E7EB] px-6 py-4 text-xs font-semibold text-[#6B7280]">
+            <Link
+              className="rounded-full border border-transparent px-4 py-2"
+              href="/profile"
+            >
+              Infos personnelles
+            </Link>
+            <Link
+              className="rounded-full border border-transparent px-4 py-2"
+              href="/favorites"
+            >
+              Favoris
+            </Link>
+            <Link
+              className="rounded-full border border-[#0B63D1] bg-[#EAF2FF] px-4 py-2 text-[#0B63D1]"
+              href="/history"
+            >
+              Historique
+            </Link>
+            <Link
+              className="rounded-full border border-transparent px-4 py-2"
+              href="/preferences"
+            >
+              Préférences
+            </Link>
+          </div>
+
+          <div className="px-6 py-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold">Historique des activites</h2>
+              <h2 className="text-lg font-semibold">Historique des activités</h2>
               <p className="text-sm text-[#6B7280]">
-                Suivez les recherches, pharmacies consultees et demandes
-                recentes.
+                Suivez les recherches, pharmacies consultées et demandes
+                récentes.
               </p>
             </div>
             <div className="flex items-center gap-2 text-sm">
@@ -123,7 +176,7 @@ export default function HistoryView() {
           </div>
 
           <div className="mt-6 space-y-4">
-            {historyItems.map((item) => (
+            {activityItems.map((item) => (
               <div
                 key={item.title}
                 className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#E5E7EB] p-4"
@@ -151,6 +204,7 @@ export default function HistoryView() {
               </div>
             ))}
           </div>
+        </div>
       </div>
     </PatientShell>
   );

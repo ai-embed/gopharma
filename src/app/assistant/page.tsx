@@ -10,13 +10,13 @@ const suggestions = [
     price: "3.50€",
   },
   {
-    name: "Croix Verte Medicaments",
+    name: "Croix Verte Médicaments",
     distance: "1.5km",
-    status: "Ferme Bientot",
+    status: "Fermé bientôt",
     price: "4.10€",
   },
   {
-    name: "Sante Centre-Ville",
+    name: "Santé Centre-Ville",
     distance: "2.0km",
     status: "En Stock",
     price: "4.90€",
@@ -26,8 +26,8 @@ const suggestions = [
 export default function AssistantPage() {
   return (
     <PatientShell>
-      <div className="flex min-h-[70vh] rounded-3xl border border-[#E5E7EB] bg-white">
-        <aside className="flex w-64 flex-col border-r border-[#E5E7EB] bg-white px-5 py-6">
+      <div className="flex min-h-[70vh] flex-col rounded-3xl border border-[#E5E7EB] bg-white lg:flex-row">
+        <aside className="flex w-full flex-col border-b border-[#E5E7EB] bg-white px-5 py-6 lg:w-64 lg:border-b-0 lg:border-r">
           <div className="flex items-center gap-2 text-sm font-semibold text-[#0B63D1]">
             <span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-[#0B63D1] text-xs font-semibold text-white">
               +
@@ -44,7 +44,7 @@ export default function AssistantPage() {
           </p>
           <div className="mt-3 space-y-2 text-xs text-[#6B7280]">
             <div className="rounded-2xl bg-[#F3F4F6] px-3 py-2">
-              Recherche Ibuprofene
+              Recherche Ibuprofène
             </div>
           </div>
 
@@ -61,7 +61,7 @@ export default function AssistantPage() {
           </div>
         </aside>
 
-        <main className="flex-1 px-8 py-8">
+        <main className="flex-1 px-5 py-6 sm:px-8 sm:py-8">
           <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
             <span>PharmaBot</span>
             <span>Aujourd&apos;hui, 10:23</span>
@@ -73,15 +73,15 @@ export default function AssistantPage() {
                 +
               </div>
               <div className="max-w-2xl rounded-2xl bg-white px-4 py-3 text-sm text-[#1F1D1B] shadow-sm">
-                Bonjour Alex, je suis pret a vous aider a trouver des
-                medicaments ou a analyser vos ordonnances. Comment puis-je vous
+                Bonjour Alex, je suis prêt à vous aider à trouver des
+                médicaments ou à analyser vos ordonnances. Comment puis-je vous
                 aider aujourd&apos;hui ?
               </div>
             </div>
 
             <div className="flex items-start justify-end gap-3">
               <div className="max-w-2xl rounded-2xl bg-[#0B63D1] px-4 py-3 text-sm text-white shadow-sm">
-                Ou puis-je trouver de l&apos;Ibuprofene a moins de 5€ ?
+                Où puis-je trouver de l&apos;Ibuprofène à moins de 5€ ?
               </div>
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F3F4F6] text-xs font-semibold text-[#6B7280]">
                 AJ
@@ -93,9 +93,9 @@ export default function AssistantPage() {
                 +
               </div>
               <div className="max-w-2xl rounded-2xl bg-white px-4 py-3 text-sm text-[#1F1D1B] shadow-sm">
-                J&apos;ai trouve 3 pharmacies a proximite qui ont de
-                l&apos;Ibuprofene 400mg en stock pour moins de 5€. Voici les
-                meilleures options basees sur votre position actuelle :
+                J&apos;ai trouvé 3 pharmacies à proximité qui ont de
+                l&apos;Ibuprofène 400mg en stock pour moins de 5€. Voici les
+                meilleures options basées sur votre position actuelle :
               </div>
             </div>
 
@@ -123,10 +123,10 @@ export default function AssistantPage() {
           </div>
 
           <div className="mt-8 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-xs text-[#9CA3AF]">
-            Posez une question sur les medicaments ou pharmacies...
+            Posez une question sur les médicaments ou pharmacies...
           </div>
           <p className="mt-4 text-center text-[10px] text-[#9CA3AF]">
-            PharmaBot peut faire des erreurs. Veuillez verifier les informations
+            PharmaBot peut faire des erreurs. Veuillez vérifier les informations
             medicales importantes.
           </p>
         </main>

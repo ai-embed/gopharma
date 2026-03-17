@@ -121,7 +121,7 @@ export default function PharmacyLoginPage() {
                 de toutes les pharmacies professionnelles sur notre plateforme.
               </p>
               <button className="mt-3 font-semibold text-[#0B63D1]">
-                Verifier le statut de validation →
+                Vérifier le statut de validation →
               </button>
             </div>
 
