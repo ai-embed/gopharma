@@ -23,6 +23,7 @@ Ce document recense les principales evolutions apportees au frontend.
 - Ajout de la page de connexion pharmacie professionnelle: `pharmacy-login`.
 - Ajout de la page d'inscription pharmacie: `pharmacy-register`.
 - Ajout de l'enregistrement manuel de produit: `pharmacy/inventory/new`.
+- Alignement UI des ecrans inventaire + enregistrement produit selon les maquettes.
 - Ajout de la file de validation admin: `admin/validation-queue`.
 - Ajout de la gestion des pharmacies admin: `admin/pharmacies`.
 - Ajout de la gestion des utilisateurs admin: `admin/users`.

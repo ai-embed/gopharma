@@ -134,7 +134,9 @@ export default function PharmacyLayout({
 
           <nav className="mt-8 space-y-1 text-xs font-semibold">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive =
+                pathname === item.href ||
+                pathname.startsWith(`${item.href}/`);
               return (
                 <Link
                   key={item.href}
