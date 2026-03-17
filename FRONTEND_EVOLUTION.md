@@ -28,6 +28,7 @@ Ce document recense les principales evolutions apportees au frontend.
 - Alignement de l'ecran historique activite pharmacie selon la maquette "Historique d'Activite GoPharma FR".
 - Alignement du tableau de bord admin selon la maquette "Tableau de Bord GoPharma FR-1".
 - Alignement de la page journaux d'audit admin avec le style des maquettes admin.
+- Alignement des pages admin Rapports et Croissance (placeholders visuels coherents).
 - Ajout de la file de validation admin: `admin/validation-queue`.
 - Ajout de la gestion des pharmacies admin: `admin/pharmacies`.
 - Ajout de la gestion des utilisateurs admin: `admin/users`.
