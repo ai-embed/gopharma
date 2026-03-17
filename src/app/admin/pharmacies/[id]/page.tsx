@@ -12,10 +12,26 @@ export default function AdminPharmacyProfilePage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]">
+              <button className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]">
                 Suspendre
               </button>
-              <button className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
+              <button className="inline-flex items-center gap-2 rounded-xl bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
+                <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                  <path
+                    d="M4 16.5V20h3.5L18 9.5l-3.5-3.5L4 16.5z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M13.5 6.5l3 3"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
                 Modifier
               </button>
             </div>
@@ -78,17 +94,47 @@ export default function AdminPharmacyProfilePage() {
             <div className="space-y-6">
               <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
                 <h2 className="text-sm font-semibold">Localisation</h2>
-                <div className="mt-4 rounded-2xl border border-dashed border-[#E5E7EB] bg-[#F8FAFC] p-4 text-xs text-[#6B7280]">
+                <div className="mt-4 rounded-xl border border-dashed border-[#E5E7EB] bg-[#F8FAFC] p-4 text-xs text-[#6B7280]">
                   Apercu carte indisponible
                 </div>
               </div>
 
               <div className="rounded-2xl border border-[#FDE2E2] bg-[#FFF5F5] p-5 text-xs text-[#B91C1C]">
-                <h2 className="text-sm font-semibold">Zone de danger</h2>
+                <div className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FDE2E2] text-[#B91C1C]">
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                      <path
+                        d="M12 5v8"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                      />
+                      <circle cx="12" cy="17" r="1.2" fill="currentColor" />
+                      <path
+                        d="M12 3l9 16H3L12 3z"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <h2 className="text-sm font-semibold">Zone de danger</h2>
+                </div>
                 <p className="mt-2">
                   Desactiver temporairement le compte pharmacie.
                 </p>
-                <button className="mt-4 rounded-full bg-[#DC2626] px-4 py-2 text-xs font-semibold text-white">
+                <button className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#DC2626] px-4 py-2 text-xs font-semibold text-white">
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                    <path
+                      d="M6 12h12"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                    />
+                  </svg>
                   Suspendre la pharmacie
                 </button>
               </div>
