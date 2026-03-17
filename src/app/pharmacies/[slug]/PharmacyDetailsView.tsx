@@ -1,6 +1,6 @@
 "use client";
 
-import { TopNav } from "@/components/TopNav";
+import { PatientShell } from "@/components/PatientShell";
 
 const gallery = [
   "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=600&q=80",
@@ -20,11 +20,8 @@ const services = [
 
 export default function PharmacyDetailPage() {
   return (
-    <div className="min-h-screen bg-[#F3F6F9] px-6 py-10 text-[#1F1D1B]">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <TopNav />
-
-        <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
+    <PatientShell>
+      <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
           <section className="space-y-6">
             <div className="relative overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white">
               <div className="relative h-[220px] bg-[url('https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center">
@@ -157,8 +154,7 @@ export default function PharmacyDetailPage() {
               </p>
             </div>
           </aside>
-        </div>
       </div>
-    </div>
+    </PatientShell>
   );
 }

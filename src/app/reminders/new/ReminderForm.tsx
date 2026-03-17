@@ -1,6 +1,6 @@
 "use client";
 
-import { TopNav } from "@/components/TopNav";
+import { PatientShell } from "@/components/PatientShell";
 
 const days = [
   "Lun",
@@ -14,11 +14,8 @@ const days = [
 
 export default function NewReminderPage() {
   return (
-    <div className="min-h-screen bg-[#F3F6F9] px-6 py-10 text-[#1F1D1B]">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <TopNav />
-
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
+    <PatientShell>
+      <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
           <div className="space-y-2">
             <h1 className="text-lg font-semibold">Nouveau rappel d&apos;ordonnance</h1>
             <p className="text-sm text-[#6B7280]">
@@ -204,8 +201,7 @@ export default function NewReminderPage() {
               </button>
             </div>
           </div>
-        </div>
       </div>
-    </div>
+    </PatientShell>
   );
 }

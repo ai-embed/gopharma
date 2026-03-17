@@ -1,3 +1,5 @@
+import { PatientShell } from "@/components/PatientShell";
+
 export const dynamic = "force-dynamic";
 
 const suggestions = [
@@ -23,8 +25,8 @@ const suggestions = [
 
 export default function AssistantPage() {
   return (
-    <div className="min-h-screen bg-[#F3F4F6] text-[#1F1D1B]">
-      <div className="flex">
+    <PatientShell>
+      <div className="flex min-h-[70vh] rounded-3xl border border-[#E5E7EB] bg-white">
         <aside className="flex w-64 flex-col border-r border-[#E5E7EB] bg-white px-5 py-6">
           <div className="flex items-center gap-2 text-sm font-semibold text-[#0B63D1]">
             <span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-[#0B63D1] text-xs font-semibold text-white">
@@ -129,6 +131,6 @@ export default function AssistantPage() {
           </p>
         </main>
       </div>
-    </div>
+    </PatientShell>
   );
 }

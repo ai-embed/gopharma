@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiJson } from "@/lib/api";
-import { TopNav } from "@/components/TopNav";
+import { PatientShell } from "@/components/PatientShell";
 
 interface SearchResult {
   _id: string;
@@ -154,11 +154,8 @@ export default function SearchPage() {
     queryTokens.length > 0 ? multiResults.length : groupedResults.length;
 
   return (
-    <div className="min-h-screen bg-[#F3F6F9] px-4 py-6 text-[#1F1D1B]">
-      <div className="mx-auto max-w-7xl space-y-5">
-        <TopNav />
-
-        <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
+    <PatientShell>
+      <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
           <aside className="space-y-4">
             <div className="relative rounded-2xl border border-[#E5E7EB] bg-white p-4">
               <div className="flex flex-wrap items-center gap-2">
@@ -415,8 +412,7 @@ export default function SearchPage() {
               6,15€
             </div>
           </section>
-        </div>
       </div>
-    </div>
+    </PatientShell>
   );
 }
