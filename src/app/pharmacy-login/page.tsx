@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 export default function PharmacyLoginPage() {
   return (
-    <div className="min-h-screen bg-[#F3F6F9] px-4 py-10 text-[#1F1D1B] md:py-16">
+    <div className="min-h-screen bg-[#F3F6F9] px-6 py-10 text-[#1F1D1B]">
       <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-[32px] border border-[#E5E7EB] bg-white shadow-sm">
         <div className="grid md:grid-cols-[1.05fr_0.95fr]">
           <div className="px-6 py-10 md:px-10">

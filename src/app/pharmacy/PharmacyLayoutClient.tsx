@@ -190,14 +190,15 @@ export default function PharmacyLayout({
         </aside>
 
         <div className="flex-1 px-6 py-8">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <div />
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]"
-                  aria-hidden="true"
+          <div className="mx-auto w-full max-w-6xl space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div />
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]"
+                    aria-hidden="true"
                 >
                   <circle
                     cx="11"
@@ -252,12 +253,13 @@ export default function PharmacyLayout({
                     Pharmacie CVS #4290
                   </p>
                   <p className="text-[10px] text-[#6B7280]">Gestionnaire</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {children}
+            {children}
+          </div>
         </div>
       </div>
     </div>
