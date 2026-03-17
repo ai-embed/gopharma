@@ -26,6 +26,8 @@ Ce document recense les principales evolutions apportees au frontend.
 - Alignement UI des ecrans inventaire + enregistrement produit selon les maquettes.
 - Alignement de l'ecran horaires pharmacie selon la maquette "Pharmacy Operating Hours Setup".
 - Alignement de l'ecran historique activite pharmacie selon la maquette "Historique d'Activite GoPharma FR".
+- Alignement du tableau de bord admin selon la maquette "Tableau de Bord GoPharma FR-1".
+- Alignement de la page journaux d'audit admin avec le style des maquettes admin.
 - Ajout de la file de validation admin: `admin/validation-queue`.
 - Ajout de la gestion des pharmacies admin: `admin/pharmacies`.
 - Ajout de la gestion des utilisateurs admin: `admin/users`.
