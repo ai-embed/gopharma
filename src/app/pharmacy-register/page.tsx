@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 export default function PharmacyRegisterPage() {
   return (
-    <div className="min-h-screen bg-[#F3F6F9] px-4 py-10 text-[#1F1D1B] md:py-16">
+    <div className="min-h-screen bg-[#F3F6F9] px-6 py-10 text-[#1F1D1B]">
       <div className="mx-auto w-full max-w-4xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
