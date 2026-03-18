@@ -76,7 +76,7 @@ export default function AdminPharmacyProfilePage() {
               </div>
 
               <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
-                <h2 className="text-sm font-semibold">Activite recente</h2>
+                <h2 className="text-sm font-semibold">Activité récente</h2>
                 <div className="mt-4 space-y-3 text-xs text-[#6B7280]">
                   <div className="rounded-2xl border border-[#E5E7EB] px-3 py-2">
                     24 Oct - Mise a jour de stock (Paracetamol 500mg)
@@ -123,7 +123,7 @@ export default function AdminPharmacyProfilePage() {
                   <h2 className="text-sm font-semibold">Zone de danger</h2>
                 </div>
                 <p className="mt-2">
-                  Desactiver temporairement le compte pharmacie.
+                  Désactiver temporairement le compte pharmacie.
                 </p>
                 <button className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#DC2626] px-4 py-2 text-xs font-semibold text-white">
                   <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">

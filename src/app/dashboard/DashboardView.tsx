@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PatientShell } from "@/components/PatientShell";
+import { apiJsonAuth } from "@/lib/api";
 
-const recentSearches = [
+const fallbackSearches = [
   { name: "Doliprane 1000mg", time: "Il y a 2 heures" },
   { name: "Vitamine C 500", time: "Hier" },
 ];
@@ -44,25 +45,54 @@ const services = ["Drive", "Vaccins", "24h/24", "Livraison"];
 
 export default function DashboardPage() {
   const [search, setSearch] = useState("");
+  const [recentSearches, setRecentSearches] = useState(fallbackSearches);
+
+  useEffect(() => {
+    let active = true;
+    apiJsonAuth<
+      { query: string; createdAt: string }[]
+    >("/api/history").then((res) => {
+      if (!active) return;
+      if (res.ok && res.data && res.data.length > 0) {
+        const sorted = [...res.data].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        const formatter = new Intl.DateTimeFormat("fr-FR", {
+          day: "2-digit",
+          month: "short",
+        });
+        setRecentSearches(
+          sorted.slice(0, 2).map((item) => ({
+            name: item.query,
+            time: formatter.format(new Date(item.createdAt)),
+          }))
+        );
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <PatientShell>
-      <section className="relative overflow-hidden rounded-3xl border border-[#0B63D1] bg-[#0B63D1] px-8 py-10 text-white">
+      <section className="relative overflow-hidden rounded-3xl border border-[#0B63D1] bg-[#0B63D1] px-5 py-8 text-white sm:px-8 sm:py-10">
           <div className="absolute -left-10 -top-16 h-48 w-48 rounded-full bg-white/10" />
           <div className="absolute -right-10 -bottom-20 h-56 w-56 rounded-full bg-white/10" />
           <div className="relative z-10 max-w-2xl space-y-4">
             <h1 className="text-2xl font-semibold">
-              Trouvez vos medicaments et pharmacies a proximite
+              Trouvez vos médicaments et pharmacies à proximité
             </h1>
             <p className="text-sm text-white/80">
-              Recherchez des medicaments sur ordonnance, des produits en vente libre,
-              et verifiez la disponibilite des stocks instantanement.
+              Recherchez des médicaments sur ordonnance, des produits en vente libre,
+              et vérifiez la disponibilité des stocks instantanément.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl bg-white px-3 py-3">
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Rechercher un medicament (ex: Amoxicilline) ou une pharmacie..."
+                placeholder="Rechercher un médicament (ex: Amoxicilline) ou une pharmacie..."
                 className="flex-1 border-none bg-transparent text-xs text-[#1F1D1B] outline-none"
               />
               <Link
@@ -77,7 +107,7 @@ export default function DashboardPage() {
 
       <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Recherches recentes</h2>
+            <h2 className="text-sm font-semibold">Recherches récentes</h2>
           </div>
           <div className="rounded-2xl border border-[#E5E7EB] bg-white">
             {recentSearches.map((item) => (
@@ -97,7 +127,7 @@ export default function DashboardPage() {
 
       <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Pharmacies a proximite</h2>
+            <h2 className="text-sm font-semibold">Pharmacies à proximité</h2>
             <Link
               href="/search"
               className="rounded-full border border-[#E5E7EB] px-3 py-2 text-[11px] font-semibold text-[#1F1D1B]"

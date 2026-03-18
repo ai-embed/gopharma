@@ -230,14 +230,14 @@ export default function SearchPage() {
                 Prix: croissant
               </button>
               <button className="rounded-full border border-[#E5E7EB] px-3 py-2">
-                Disponibilite
+                Disponibilité
               </button>
               <select
                 value={category}
                 onChange={(event) => setCategory(event.target.value)}
                 className="rounded-full border border-[#E5E7EB] px-3 py-2 text-xs text-[#6B7280]"
               >
-                <option value="">Toutes les categories</option>
+                <option value="">Toutes les catégories</option>
                 {categories.map((item) => (
                   <option key={item} value={item}>
                     {item}

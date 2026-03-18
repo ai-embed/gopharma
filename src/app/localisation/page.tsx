@@ -29,7 +29,7 @@ export default function LocalisationPage() {
           </button>
           <p className="mt-6 text-[11px] text-[#9CA3AF]">
             Votre localisation est uniquement utilisee pour trouver des
-            resultats.
+            résultats.
           </p>
         </div>
       </div>

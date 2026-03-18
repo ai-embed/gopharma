@@ -35,7 +35,7 @@ function VerifyEmailContent() {
     }
 
     setStatus("success");
-    setMessage("Email verifie avec succes. Vous pouvez vous connecter.");
+    setMessage("Email vérifié avec succès. Vous pouvez vous connecter.");
   };
 
   const resend = async () => {

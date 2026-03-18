@@ -1,6 +1,6 @@
 const stats = [
   {
-    label: "Total Medicaments",
+    label: "Total Médicaments",
     value: "12 450",
     note: "+5% ce mois",
     noteTone: "emerald",
@@ -28,7 +28,7 @@ const stats = [
     ),
   },
   {
-    label: "Categories",
+    label: "Catégories",
     value: "64",
     note: "Catalogues actifs",
     noteTone: "slate",
@@ -43,7 +43,7 @@ const stats = [
     ),
   },
   {
-    label: "Mises a Jour",
+    label: "Mises à jour",
     value: "128",
     note: "Derniers 30 jours",
     noteTone: "slate",
@@ -86,7 +86,7 @@ const stats = [
   {
     label: "Signales",
     value: "9",
-    note: "A verifier",
+    note: "À vérifier",
     noteTone: "rose",
     tone: "rose",
     icon: (
@@ -150,11 +150,11 @@ const medicaments = [
     date: "12 Oct 2023",
   },
   {
-    name: "Ibuprofene 400mg",
-    molecule: "Ibuprofene",
+    name: "Ibuprofène 400mg",
+    molecule: "Ibuprofène",
     form: "Comprime",
     atc: "M01AE01",
-    status: "A verifier",
+    status: "À vérifier",
     date: "09 Oct 2023",
   },
   {
@@ -177,7 +177,7 @@ const medicaments = [
 
 const statusStyles: Record<string, string> = {
   Actif: "bg-emerald-100 text-emerald-600",
-  "A verifier": "bg-amber-100 text-amber-700",
+  "À vérifier": "bg-amber-100 text-amber-700",
   Inactif: "bg-slate-100 text-slate-600",
 };
 
@@ -185,7 +185,7 @@ export default function AdminMedicamentsPage() {
   return (
     <div>
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <h1 className="text-lg font-semibold">Base Medicaments</h1>
+            <h1 className="text-lg font-semibold">Base Médicaments</h1>
             <div className="flex items-center gap-3">
               <div className="relative">
                 <svg
@@ -265,35 +265,36 @@ export default function AdminMedicamentsPage() {
 
           <div className="mt-6 rounded-2xl border border-[#E5E7EB] bg-white">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E5E7EB] px-5 py-4">
-              <h2 className="text-sm font-semibold">Tous les Medicaments</h2>
+              <h2 className="text-sm font-semibold">Tous les Médicaments</h2>
               <div className="flex flex-wrap items-center gap-3">
                 <select className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]">
-                  <option>Toutes les Categories</option>
-                  <option>Analgesiques</option>
+                  <option>Toutes les catégories</option>
+                  <option>Analgésiques</option>
                   <option>Antibiotiques</option>
                 </select>
                 <button className="inline-flex items-center gap-2 rounded-xl bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-sm leading-none">
                     +
                   </span>
-                  Ajouter un medicament
+                  Ajouter un médicament
                 </button>
               </div>
             </div>
 
             <div className="overflow-hidden">
-              <table className="w-full text-xs">
-                <thead className="bg-[#F8FAFC] text-[#6B7280]">
+              <div className="overflow-x-auto">
+                <table className="min-w-[720px] w-full text-xs">
+                  <thead className="bg-[#F8FAFC] text-[#6B7280]">
                   <tr>
                     <th className="px-4 py-3 text-left">
                       <span className="inline-flex h-4 w-4 rounded-full border border-[#D1D5DB]" />
                     </th>
                     <th className="px-4 py-3 text-left">NOM</th>
-                    <th className="px-4 py-3 text-left">MOLECULE</th>
+                    <th className="px-4 py-3 text-left">MOLÉCULE</th>
                     <th className="px-4 py-3 text-left">FORME</th>
                     <th className="px-4 py-3 text-left">ATC</th>
                     <th className="px-4 py-3 text-left">STATUT</th>
-                    <th className="px-4 py-3 text-left">DERNIERE MAJ</th>
+                    <th className="px-4 py-3 text-left">DERNIÈRE MAJ</th>
                     <th className="px-4 py-3 text-left">ACTIONS</th>
                   </tr>
                 </thead>
@@ -325,14 +326,15 @@ export default function AdminMedicamentsPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-xs text-[#6B7280]">
               <span>Affichage 1-5 sur 12 450</span>
               <div className="flex items-center gap-2">
                 <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
-                  Precedent
+                  Précédent
                 </button>
                 <button className="rounded-full bg-[#0B63D1] px-3 py-1 text-white">
                   1

@@ -8,8 +8,8 @@ describe("Notice", () => {
   });
 
   it("renders success tone", () => {
-    render(<Notice tone="success" message="Succes" />);
-    const node = screen.getByText("Succes");
+    render(<Notice tone="success" message="Succès" />);
+    const node = screen.getByText("Succès");
     expect(node).toBeInTheDocument();
     expect(node.className).toContain("border-emerald-200");
   });

@@ -52,7 +52,7 @@ export default function PharmacyRegisterPage() {
                 Nom de la Pharmacie
               </label>
               <input
-                placeholder="ex. Pharmacie de la Sante"
+                placeholder="ex. Pharmacie de la Santé"
                 className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm"
               />
             </div>
@@ -96,13 +96,13 @@ export default function PharmacyRegisterPage() {
           </div>
 
           <div className="mt-6">
-            <h2 className="text-sm font-semibold">Horaires d&apos;Ouverture</h2>
+            <h2 className="text-sm font-semibold">Horaires d&apos;ouverture</h2>
             <div className="mt-3 grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <p className="text-[11px] font-semibold text-[#6B7280]">
                   EN SEMAINE
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <input
                     placeholder="08:00 AM"
                     className="rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm"
@@ -117,7 +117,7 @@ export default function PharmacyRegisterPage() {
                 <p className="text-[11px] font-semibold text-[#6B7280]">
                   WEEK-END
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <input
                     placeholder="09:00 AM"
                     className="rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm"

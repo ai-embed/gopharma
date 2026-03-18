@@ -123,12 +123,12 @@ export default function PharmacyInventoryPage() {
               />
             </svg>
             <input
-              placeholder="Rechercher par nom, reference ou code-barres..."
+              placeholder="Rechercher par nom, référence ou code-barres..."
               className="w-full rounded-full border border-[#E5E7EB] py-2 pl-10 pr-4 text-xs"
             />
           </div>
           <select className="rounded-full border border-[#E5E7EB] px-3 py-2 text-xs font-semibold text-[#1F1D1B]">
-            <option>Toutes Categories</option>
+            <option>Toutes catégories</option>
           </select>
           <button className="inline-flex items-center gap-2 rounded-full border border-[#E5E7EB] px-3 py-2 text-xs font-semibold text-[#1F1D1B]">
             <svg
@@ -149,16 +149,17 @@ export default function PharmacyInventoryPage() {
         </div>
 
         <div className="mt-5 overflow-hidden rounded-2xl border border-[#E5E7EB]">
-          <table className="w-full text-xs">
-            <thead className="bg-[#F8FAFC] text-[#6B7280]">
+          <div className="overflow-x-auto">
+            <table className="min-w-[720px] w-full text-xs">
+              <thead className="bg-[#F8FAFC] text-[#6B7280]">
               <tr>
                 <th className="px-4 py-3 text-left">IMAGE</th>
                 <th className="px-4 py-3 text-left">NOM DU PRODUIT</th>
-                <th className="px-4 py-3 text-left">REFERENCE</th>
-                <th className="px-4 py-3 text-left">CATEGORIE</th>
+                <th className="px-4 py-3 text-left">RÉFÉRENCE</th>
+                <th className="px-4 py-3 text-left">CATÉGORIE</th>
                 <th className="px-4 py-3 text-left">PRIX</th>
                 <th className="px-4 py-3 text-left">STOCK</th>
-                <th className="px-4 py-3 text-left">DISPONIBILITE</th>
+                <th className="px-4 py-3 text-left">DISPONIBILITÉ</th>
               </tr>
             </thead>
             <tbody>
@@ -223,11 +224,12 @@ export default function PharmacyInventoryPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
 
         <div className="mt-4 flex items-center justify-between text-xs text-[#6B7280]">
-          <span>Affichage de 1 a 4 sur 1,284 produits</span>
+          <span>Affichage de 1 à 4 sur 1,284 produits</span>
           <div className="flex items-center gap-2">
             <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
               {"<"}
@@ -258,7 +260,7 @@ export default function PharmacyInventoryPage() {
           </span>
           <div>
             <p className="font-semibold">
-              Alerte Systeme : Niveaux de Stock Critiques
+              Alerte Système : Niveaux de Stock Critiques
             </p>
             <p className="mt-2">
               Il y a 12 articles actuellement sous le seuil de stock de

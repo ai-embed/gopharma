@@ -12,7 +12,7 @@ const specialHours = [
   {
     title: "Jour de Noel",
     date: "25 Dec, 2023",
-    status: "Ferme toute la journee",
+    status: "Fermé toute la journée",
   },
   {
     title: "Reveillon du Nouvel An",
@@ -50,18 +50,19 @@ export default function PharmacyPlanningsPage() {
             </svg>
           </span>
           <h2 className="text-sm font-semibold">
-            Heures d&apos;Ouverture Standard
+            Heures d&apos;ouverture standard
           </h2>
         </div>
         <p className="mt-3 text-xs text-[#6B7280]">
-          Definissez les heures d&apos;ouverture et de fermeture regulieres de
-          votre pharmacie. Activez &quot;Ferme&quot; pour les jours ou la
+          Définissez les heures d&apos;ouverture et de fermeture régulières de
+          votre pharmacie. Activez &quot;Fermé&quot; pour les jours où la
           pharmacie n&apos;est pas ouverte.
         </p>
 
         <div className="mt-5 overflow-hidden rounded-2xl border border-[#E5E7EB]">
-          <table className="w-full text-xs">
-            <thead className="bg-[#F8FAFC] text-[#6B7280]">
+          <div className="overflow-x-auto">
+            <table className="min-w-[720px] w-full text-xs">
+              <thead className="bg-[#F8FAFC] text-[#6B7280]">
               <tr>
                 <th className="px-4 py-3 text-left">JOUR DE LA SEMAINE</th>
                 <th className="px-4 py-3 text-left">STATUT</th>
@@ -167,14 +168,15 @@ export default function PharmacyPlanningsPage() {
                   ) : (
                     <td className="px-4 py-3" colSpan={2}>
                       <span className="text-[11px] text-[#B91C1C]">
-                        Ferme (Ouverture sur Garde)
+                        Fermé (Ouverture sur garde)
                       </span>
                     </td>
                   )}
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PwaRegister from "@/components/PwaRegister";
+import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -32,6 +33,7 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <body className="antialiased" suppressHydrationWarning>
         <PwaRegister />
+        <PwaInstallPrompt />
         {children}
       </body>
     </html>

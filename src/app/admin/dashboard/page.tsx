@@ -78,7 +78,7 @@ const overviewStats = [
     label: "Temps de Reponse Moyen",
     value: "142ms",
     badge: "Stable",
-    note: "Systeme en bonne sante",
+    note: "Système en bonne santé",
     tone: "emerald",
     icon: (
       <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
@@ -141,7 +141,7 @@ const systemStatus = [
   {
     name: "API Principale",
     status: "Operationnel",
-    detail: "Disponibilite 99.9%",
+    detail: "Disponibilité 99.9%",
     bar: 92,
   },
   {
@@ -221,7 +221,7 @@ export default function AdminDashboardPage() {
           <div className="mt-6 flex flex-wrap items-center gap-4">
             <span className="inline-flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-3 py-2 text-xs text-[#6B7280]">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              Derniere mise a jour : A l&apos;instant
+              Dernière mise à jour : À l&apos;instant
             </span>
             <button className="inline-flex items-center gap-2 rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
               <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
@@ -297,7 +297,7 @@ export default function AdminDashboardPage() {
               <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3 text-sm font-semibold">
-                    Verifications de Pharmacie en Attente
+                    Vérifications de Pharmacie en attente
                     <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-semibold text-amber-700">
                       3 EN ATTENTE
                     </span>
@@ -307,8 +307,9 @@ export default function AdminDashboardPage() {
                   </button>
                 </div>
                 <div className="mt-4 overflow-hidden rounded-2xl border border-[#E5E7EB]">
-                  <table className="w-full text-xs">
-                    <thead className="bg-[#F8FAFC] text-[#6B7280]">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-[640px] w-full text-xs">
+                      <thead className="bg-[#F8FAFC] text-[#6B7280]">
                       <tr>
                         <th className="px-4 py-3 text-left">PHARMACIE</th>
                         <th className="px-4 py-3 text-left">LICENCE NO.</th>
@@ -386,7 +387,8 @@ export default function AdminDashboardPage() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                    </table>
+                  </div>
                 </div>
               </div>
 
@@ -428,7 +430,7 @@ export default function AdminDashboardPage() {
 
               <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold">Etat du Systeme</h3>
+                  <h3 className="text-sm font-semibold">État du Système</h3>
                   <button className="text-xs font-semibold text-[#0B63D1]">
                     Actualiser
                   </button>
@@ -461,7 +463,7 @@ export default function AdminDashboardPage() {
 
               <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4 text-xs text-[#6B7280]">
                 <p className="font-semibold text-[#1F1D1B]">
-                  Derniere Sauvegarde
+                  Dernière Sauvegarde
                 </p>
                 <p className="mt-2">Il y a 2 heures</p>
                 <p className="text-[11px] text-[#9CA3AF]">Taille : 2.4 Go</p>

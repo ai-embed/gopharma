@@ -25,10 +25,10 @@ export default function NewReminderPage() {
 
           <div className="mt-6 space-y-5">
             <section className="space-y-4 rounded-2xl border border-[#E5E7EB] p-5">
-              <h2 className="text-sm font-semibold">Informations medicament</h2>
+              <h2 className="text-sm font-semibold">Informations médicament</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 text-xs text-[#6B7280]">
-                  <label className="text-[11px] font-semibold">Nom du medicament</label>
+                  <label className="text-[11px] font-semibold">Nom du médicament</label>
                   <input
                     placeholder="Doliprane"
                     className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-2"
@@ -58,7 +58,7 @@ export default function NewReminderPage() {
                 </div>
               </div>
               <button className="text-xs font-semibold text-[#0B63D1]">
-                + Ajouter un autre medicament
+                + Ajouter un autre médicament
               </button>
             </section>
 
@@ -100,7 +100,7 @@ export default function NewReminderPage() {
             <section className="space-y-4 rounded-2xl border border-[#E5E7EB] p-5">
               <h2 className="text-sm font-semibold">Calendrier et frequence</h2>
               <p className="text-xs text-[#6B7280]">
-                Jours de prise du medicament
+                Jours de prise du médicament
               </p>
               <div className="flex flex-wrap gap-2">
                 {days.map((day, index) => (

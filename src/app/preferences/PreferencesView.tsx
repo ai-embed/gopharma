@@ -23,7 +23,7 @@ export default function PreferencesView() {
                 <p className="text-sm text-[#6B7280]">{email}</p>
                 <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
                   <span className="rounded-full bg-[#E8FFF1] px-3 py-1 text-[#0F9D58]">
-                    Patient Verifie
+                    Patient vérifié
                   </span>
                   <span className="rounded-full bg-[#EAF2FF] px-3 py-1 text-[#0B63D1]">
                     Membre depuis 2021
@@ -64,7 +64,7 @@ export default function PreferencesView() {
               className="rounded-full border border-[#0B63D1] bg-[#EAF2FF] px-4 py-2 text-[#0B63D1]"
               href="/preferences"
             >
-              Preferences
+              Préférences
             </Link>
           </div>
 
@@ -74,15 +74,15 @@ export default function PreferencesView() {
                 Calendrier d&apos;ordonnance
               </h2>
               <p className="text-xs text-[#6B7280]">
-                Acces rapide a votre planification.
+                Accès rapide à votre planification.
               </p>
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#F3F6F9] px-4 py-3 text-xs">
-                <span>Gerer votre calendrier</span>
+                <span>Gérer votre calendrier</span>
                 <Link
                   href="/reminders/new"
                   className="rounded-full bg-[#0B63D1] px-3 py-2 text-[11px] font-semibold text-white"
                 >
-                  Gerer mon calendrier d&apos;ordonnance
+                  Gérer mon calendrier d&apos;ordonnance
                 </Link>
               </div>
             </section>
@@ -90,26 +90,26 @@ export default function PreferencesView() {
             <section className="space-y-4 rounded-2xl border border-[#E5E7EB] p-5">
               <div>
                 <h2 className="text-sm font-semibold">
-                  Parametres de notification
+                  Paramètres de notification
                 </h2>
                 <p className="text-xs text-[#6B7280]">
-                  Gere la facon dont vous recevez les alertes et mises a jour.
+                  Gère la façon dont vous recevez les alertes et mises à jour.
                 </p>
               </div>
               <div className="space-y-3 text-xs text-[#6B7280]">
                 {[
                   {
                     title: "Alertes de stock",
-                    desc: "Recevoir une notification lorsque vos medicaments sont a nouveau en stock.",
+                    desc: "Recevoir une notification lorsque vos médicaments sont à nouveau en stock.",
                     checked: true,
                   },
                   {
                     title: "Rappels d'ordonnance",
-                    desc: "Recevoir des notifications pour votre calendrier de medicaments.",
+                    desc: "Recevoir des notifications pour votre calendrier de médicaments.",
                     checked: true,
                   },
                   {
-                    title: "Actualites & conseils sante",
+                    title: "Actualités & conseils santé",
                     desc: "Newsletter hebdomadaire avec des conseils et des nouvelles de la pharmacie.",
                     checked: false,
                   },
@@ -139,9 +139,9 @@ export default function PreferencesView() {
             </section>
 
             <section className="space-y-3 rounded-2xl border border-[#E5E7EB] p-5">
-              <h2 className="text-sm font-semibold">Securite du compte</h2>
+              <h2 className="text-sm font-semibold">Sécurité du compte</h2>
               <p className="text-xs text-[#6B7280]">
-                Mettez a jour votre mot de passe et securisez votre compte.
+                Mettez à jour votre mot de passe et sécurisez votre compte.
               </p>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -149,7 +149,7 @@ export default function PreferencesView() {
                     Mot de passe
                   </p>
                   <p className="text-xs text-[#6B7280]">
-                    Derniere modification il y a 3 mois
+                    Dernière modification il y a 3 mois
                   </p>
                 </div>
                 <button className="rounded-full border border-[#E5E7EB] px-4 py-2 text-[11px] font-semibold text-[#1F1D1B]">
@@ -159,14 +159,14 @@ export default function PreferencesView() {
             </section>
 
             <section className="space-y-4 rounded-2xl border border-[#E5E7EB] p-5">
-              <h2 className="text-sm font-semibold">Langue et Region</h2>
+              <h2 className="text-sm font-semibold">Langue et Région</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 text-xs text-[#6B7280]">
                   <label className="text-[11px] font-semibold">
                     Langue de l&apos;interface
                   </label>
                   <select className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-2">
-                    <option>Francais (FR)</option>
+                    <option>Français (FR)</option>
                     <option>English (EN)</option>
                   </select>
                 </div>
@@ -185,19 +185,19 @@ export default function PreferencesView() {
 
             <section className="space-y-3 rounded-2xl border border-[#FDE2E2] bg-[#FFF5F5] p-5">
               <h2 className="text-sm font-semibold text-[#B91C1C]">
-                Confidentialite des donnees
+                Confidentialité des données
               </h2>
               <p className="text-xs text-[#B91C1C]">
-                Autorisez GoPharma a utiliser votre historique de recherche
-                anonymise pour ameliorer la prediction de disponibilite des
-                medicaments.
+                Autorisez GoPharma à utiliser votre historique de recherche
+                anonymisé pour améliorer la prédiction de disponibilité des
+                médicaments.
               </p>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <span className="text-xs font-semibold text-[#B91C1C]">
                   Statut: Actif
                 </span>
                 <button className="rounded-full border border-[#FCA5A5] px-4 py-2 text-[11px] font-semibold text-[#B91C1C]">
-                  Desactiver le partage
+                  Désactiver le partage
                 </button>
               </div>
             </section>
@@ -207,12 +207,15 @@ export default function PreferencesView() {
                 Zone de danger
               </h2>
               <p className="text-xs text-[#B91C1C]">
-                Une fois votre compte supprime, il n&apos;y a pas de retour en
-                arriere.
+                Une fois votre compte supprimé, il n&apos;y a pas de retour en
+                arrière.
               </p>
-              <button className="rounded-full border border-[#FCA5A5] px-4 py-2 text-[11px] font-semibold text-[#B91C1C]">
+              <Link
+                href="/account/delete"
+                className="rounded-full border border-[#FCA5A5] px-4 py-2 text-[11px] font-semibold text-[#B91C1C]"
+              >
                 Supprimer le compte
-              </button>
+              </Link>
             </section>
 
             <div className="flex flex-wrap items-center justify-end gap-3">

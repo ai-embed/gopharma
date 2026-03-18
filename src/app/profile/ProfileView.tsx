@@ -26,7 +26,7 @@ export default function ProfileView() {
                 <p className="text-sm text-[#6B7280]">{email}</p>
                 <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
                   <span className="rounded-full bg-[#E8FFF1] px-3 py-1 text-[#0F9D58]">
-                    Patient Verifie
+                    Patient vérifié
                   </span>
                   <span className="rounded-full bg-[#EAF2FF] px-3 py-1 text-[#0B63D1]">
                     Membre depuis 2021
@@ -77,7 +77,7 @@ export default function ProfileView() {
               <div className="grid gap-6 sm:grid-cols-2">
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold text-[#9CA3AF]">
-                    NUMERO DE TELEPHONE
+                    NUMÉRO DE TÉLÉPHONE
                   </p>
                   <div className="flex items-center gap-3 text-sm">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F3F6F9] text-[10px] font-semibold text-[#6B7280]">
@@ -110,8 +110,8 @@ export default function ProfileView() {
                   ADR
                 </div>
                 <div>
-                  <p>123 Avenue des Champs-Elysees</p>
-                  <p className="text-xs text-[#6B7280]">Cotonou, Benin</p>
+                  <p>123 Avenue des Champs-Élysées</p>
+                  <p className="text-xs text-[#6B7280]">Cotonou, Bénin</p>
                 </div>
               </div>
             </section>

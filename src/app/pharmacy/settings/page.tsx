@@ -9,7 +9,7 @@ export default function PharmacySettingsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-lg font-semibold">Parametres de la Pharmacie</h1>
+          <h1 className="text-lg font-semibold">Paramètres de la Pharmacie</h1>
           <p className="mt-1 text-xs text-[#6B7280]">
             Gerer les informations, la securite et les preferences de
             notification.
@@ -108,7 +108,7 @@ export default function PharmacySettingsPage() {
           </div>
 
           <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
-            <h2 className="text-sm font-semibold">Securite du compte</h2>
+            <h2 className="text-sm font-semibold">Sécurité du compte</h2>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div>
                 <p className="text-[11px] text-[#6B7280]">
@@ -179,12 +179,12 @@ export default function PharmacySettingsPage() {
               Zone de danger
             </h2>
             <p className="mt-2">
-              Desactiver temporairement le compte pharmacie ou demander une
+              Désactiver temporairement le compte pharmacie ou demander une
               suppression definitive.
             </p>
             <div className="mt-4 flex flex-col gap-2">
               <button className="rounded-full border border-[#FCA5A5] bg-white px-4 py-2 text-xs font-semibold text-[#B91C1C]">
-                Desactiver le compte
+                Désactiver le compte
               </button>
               <button className="rounded-full bg-[#DC2626] px-4 py-2 text-xs font-semibold text-white">
                 Demander la suppression

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import AppFooter from "@/components/AppFooter";
 
 const navSections = [
   {
@@ -10,7 +11,7 @@ const navSections = [
       { href: "/admin/dashboard", label: "Tableau de bord" },
       { href: "/admin/users", label: "Utilisateurs" },
       { href: "/admin/pharmacies", label: "Pharmacies" },
-      { href: "/admin/medicaments", label: "Base Medicaments" },
+      { href: "/admin/medicaments", label: "Base Médicaments" },
       { href: "/admin/validation-queue", label: "File de validation" },
     ],
   },
@@ -22,9 +23,9 @@ const navSections = [
     ],
   },
   {
-    title: "Systeme",
+    title: "Système",
     items: [
-      { href: "/admin/settings", label: "Parametres" },
+      { href: "/admin/settings", label: "Paramètres" },
       { href: "/admin/audit-logs", label: "Journaux d'audit" },
     ],
   },
@@ -39,8 +40,8 @@ export default function AdminLayoutClient({
 
   return (
     <div className="min-h-screen bg-[#F6F8FA] text-[#1F1D1B]">
-      <div className="flex">
-        <aside className="flex w-64 flex-col border-r border-[#E5E7EB] bg-white px-6 py-6">
+      <div className="flex flex-col md:flex-row">
+        <aside className="flex w-full shrink-0 flex-col border-b border-[#E5E7EB] bg-white px-6 py-6 md:sticky md:top-0 md:h-screen md:w-64 md:border-b-0 md:border-r">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B63D1] text-xs font-semibold text-white">
               +
@@ -93,8 +94,11 @@ export default function AdminLayoutClient({
           </div>
         </aside>
 
-        <main className="flex-1 px-8 py-8">
-          <div className="mx-auto w-full max-w-6xl">{children}</div>
+        <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 md:px-8">
+          <div className="mx-auto w-full max-w-6xl space-y-6">
+            {children}
+            <AppFooter />
+          </div>
         </main>
       </div>
     </div>

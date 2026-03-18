@@ -267,7 +267,7 @@ export default function AdminPharmaciesPage() {
           <div className="mt-6 rounded-2xl border border-[#E5E7EB] bg-white">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E5E7EB] px-5 py-4">
               <h2 className="text-sm font-semibold">
-                Toutes les Pharmacies Enregistrees
+                Toutes les Pharmacies Enregistrées
               </h2>
               <div className="flex flex-wrap items-center gap-3">
                 <select className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]">
@@ -288,16 +288,17 @@ export default function AdminPharmaciesPage() {
             </div>
 
             <div className="overflow-hidden">
-              <table className="w-full text-xs">
-                <thead className="bg-[#F8FAFC] text-[#6B7280]">
+              <div className="overflow-x-auto">
+                <table className="min-w-[720px] w-full text-xs">
+                  <thead className="bg-[#F8FAFC] text-[#6B7280]">
                   <tr>
                     <th className="px-4 py-3 text-left">
                       <span className="inline-flex h-4 w-4 rounded-full border border-[#D1D5DB]" />
                     </th>
-                    <th className="px-4 py-3 text-left">DETAILS PHARMACIE</th>
+                    <th className="px-4 py-3 text-left">DÉTAILS PHARMACIE</th>
                     <th className="px-4 py-3 text-left">LOCALISATION</th>
                     <th className="px-4 py-3 text-left">STATUT</th>
-                    <th className="px-4 py-3 text-left">DATE DE VERIFICATION</th>
+                    <th className="px-4 py-3 text-left">DATE DE VÉRIFICATION</th>
                     <th className="px-4 py-3 text-left">ACTIONS</th>
                   </tr>
                 </thead>
@@ -364,14 +365,15 @@ export default function AdminPharmaciesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-xs text-[#6B7280]">
               <span>Affichage 1-5 sur 156</span>
               <div className="flex items-center gap-2">
                 <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
-                  Precedent
+                  Précédent
                 </button>
                 <button className="rounded-full bg-[#0B63D1] px-3 py-1 text-white">
                   1

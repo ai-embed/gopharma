@@ -33,7 +33,7 @@ export default function AdminNewPharmacyPage() {
               <div>
                 <p className="text-[11px] text-[#6B7280]">Nom de la pharmacie</p>
                 <div className="mt-2 rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-xs">
-                  ex: Pharmacie de la Sante
+                  ex: Pharmacie de la Santé
                 </div>
               </div>
               <div>
