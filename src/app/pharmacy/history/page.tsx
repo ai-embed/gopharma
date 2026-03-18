@@ -14,7 +14,7 @@ const activityRows = [
     id: "#INV-4412",
     date: "23 Oct 2023",
     time: "16:15",
-    action: "Reapprovisionnement",
+    action: "Réapprovisionnement",
     actionTone: "sky",
     product: "Amoxicilline 500mg",
     change: "+500",
@@ -157,7 +157,7 @@ export default function PharmacyHistoryPage() {
             <select className="rounded-xl border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-8 text-xs font-semibold text-[#1F1D1B]">
               <option>Toutes les actions</option>
               <option>Ventes</option>
-              <option>Reapprovisionnement</option>
+              <option>Réapprovisionnement</option>
             </select>
           </div>
         </div>
@@ -323,7 +323,7 @@ export default function PharmacyHistoryPage() {
       </div>
 
       <p className="text-center text-[10px] text-[#9CA3AF]">
-        (c) 2023 PharmaFinder Inc. Panneau de Controle Super Admin v2.4.0
+        © 2023 PharmaFinder Inc. Panneau de Contrôle Super Admin v2.4.0
       </p>
     </div>
   );
