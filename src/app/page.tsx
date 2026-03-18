@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/lib/useUser";
 
@@ -9,7 +9,6 @@ const REDIRECT_DELAY_MS = 2600;
 export default function Home() {
   const router = useRouter();
   const { user, loading } = useUser();
-  const [targetLabel, setTargetLabel] = useState("votre espace");
 
   const targetPath = useMemo(() => {
     const role = user?.role?.toUpperCase() ?? "";
@@ -19,21 +18,23 @@ export default function Home() {
     return "/login";
   }, [user]);
 
+  const targetLabel = useMemo(() => {
+    const role = user?.role?.toUpperCase() ?? "";
+    if (role.includes("ADMIN")) return "l’espace administrateur";
+    if (role.includes("PHARM")) return "l’espace pharmacie";
+    if (role.includes("PATIENT")) return "l’espace patient";
+    return "la connexion";
+  }, [user]);
+
   useEffect(() => {
     if (loading) return;
-
-    const role = user?.role?.toUpperCase() ?? "";
-    if (role.includes("ADMIN")) setTargetLabel("l’espace administrateur");
-    else if (role.includes("PHARM")) setTargetLabel("l’espace pharmacie");
-    else if (role.includes("PATIENT")) setTargetLabel("l’espace patient");
-    else setTargetLabel("la connexion");
 
     const timer = window.setTimeout(() => {
       router.replace(targetPath);
     }, REDIRECT_DELAY_MS);
 
     return () => window.clearTimeout(timer);
-  }, [loading, router, targetPath, user]);
+  }, [loading, router, targetPath]);
 
   return (
     <div className="min-h-screen bg-[#EAF3FF] text-[#1F1D1B]">
