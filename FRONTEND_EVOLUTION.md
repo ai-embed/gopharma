@@ -48,6 +48,9 @@ Ce document recense les principales evolutions apportees au frontend.
 - Branchement donnees reelles (history + favorites + recent searches).
 - Ajout d&apos;un ecran d&apos;accueil/loading sur `/`.
 - Ajout du bouton flottant PharmaBot sur les pages patient.
+- Unification des pages profil patient via `ProfileShell` (Profil, Favoris, Historique, Préférences).
+- Harmonisation des libellés FR sur le périmètre pharmacie (accents + micro-textes).
+- Redirection automatique depuis `/` vers l&apos;espace patient/pharmacie/admin selon le rôle.
 
 ## Stabilite et build
 - Correction `useSearchParams` avec `Suspense` sur `/verify-email`.
