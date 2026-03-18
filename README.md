@@ -14,8 +14,12 @@ Ce projet est une plateforme de recherche et de gestion pharmaceutique bâtie av
 ## Fonctionnalités
 - Authentification complète (Patient & Professionnel)
 - Recherche de médicaments et pharmacies
-- Historique et favoris
-- Profil utilisateur
+- Historique, favoris et préférences patient
+- Tableau de bord patient + pages profil (profil, historique, favoris, préférences)
+- Espace pharmacie (dashboard, inventaire, horaires, historique, paramètres)
+- Espace admin (dashboard, file de validation, utilisateurs, pharmacies, base médicaments, rapports, croissance, journaux d'audit)
+- PWA (manifest + prompt d'installation)
+- PharmaBot flottant sur les pages patient
 
 ## Installation
 
@@ -30,6 +34,15 @@ npm run dev
 ```
 
 Ouvrez [http://localhost:3000](http://localhost:3000) pour voir le résultat.
+
+## Tests
+
+```bash
+npm run test
+npm run test:integration
+npm run lint
+npm run build
+```
 
 ## Structure
 - `src/app`: Routes et pages (App Router)
