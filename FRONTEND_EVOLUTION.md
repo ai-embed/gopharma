@@ -46,6 +46,8 @@ Ce document recense les principales evolutions apportees au frontend.
 - Ajout du prompt d&apos;installation PWA.
 - Ajout d&apos;un footer global (patient, pharmacie, admin, auth).
 - Branchement donnees reelles (history + favorites + recent searches).
+- Ajout d&apos;un ecran d&apos;accueil/loading sur `/`.
+- Ajout du bouton flottant PharmaBot sur les pages patient.
 
 ## Stabilite et build
 - Correction `useSearchParams` avec `Suspense` sur `/verify-email`.

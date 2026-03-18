@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import { TopNav } from "@/components/TopNav";
 import AppFooter from "@/components/AppFooter";
+import FloatingAssistantButton from "@/components/FloatingAssistantButton";
 
 type PatientShellProps = {
   children: ReactNode;
@@ -16,6 +17,7 @@ export function PatientShell({ children }: PatientShellProps) {
         {children}
         <AppFooter />
       </div>
+      <FloatingAssistantButton />
     </div>
   );
 }
