@@ -21,7 +21,7 @@ const stats = [
     tone: "rose",
   },
   {
-    label: "Temps de Reponse Moyen",
+    label: "Temps de Réponse Moyen",
     value: "142ms",
     badge: "Stable",
     note: "Système en bonne santé",
@@ -52,7 +52,7 @@ const pendingVerifications = [
 
 const trends = [
   { label: "Antibiotiques", percent: 45 },
-  { label: "Analgesiques", percent: 32 },
+  { label: "Analgésiques", percent: 32 },
   { label: "Antihistaminiques", percent: 15 },
   { label: "Vitamines", percent: 8 },
 ];
@@ -60,19 +60,19 @@ const trends = [
 const systemStatus = [
   {
     name: "API Principale",
-    status: "Operationnel",
+    status: "Opérationnel",
     detail: "Disponibilité 99.9%",
     bar: 92,
   },
   {
     name: "BD PostgreSQL",
-    status: "Operationnel",
+    status: "Opérationnel",
     detail: "Charge 24%",
     bar: 72,
   },
   {
     name: "Index de Recherche",
-    status: "Operationnel",
+    status: "Opérationnel",
     detail: "Charge CPU serveur 34%",
     bar: 64,
   },
@@ -234,7 +234,7 @@ export default function PharmacyDashboardPage() {
             <div className="flex items-center justify-between text-sm font-semibold">
               <span>Verifications Supplementaires</span>
               <button className="text-xs font-semibold text-[#0B63D1]">
-                Gerer tout
+                Gérer tout
               </button>
             </div>
             <div className="mt-6 rounded-2xl border border-dashed border-[#E5E7EB] px-4 py-6 text-center text-xs text-[#9CA3AF]">

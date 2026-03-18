@@ -67,7 +67,7 @@ export default function PharmacyInventoryNewPage() {
                 </label>
                 <select className="w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm">
                   <option>Selectionner une categorie</option>
-                  <option>Analgesiques</option>
+                  <option>Analgésiques</option>
                   <option>Antibiotiques</option>
                   <option>Respiratoire</option>
                 </select>

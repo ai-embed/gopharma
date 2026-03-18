@@ -11,7 +11,7 @@ export default function PharmacySettingsPage() {
         <div>
           <h1 className="text-lg font-semibold">Paramètres de la Pharmacie</h1>
           <p className="mt-1 text-xs text-[#6B7280]">
-            Gerer les informations, la securite et les preferences de
+            Gérer les informations, la sécurité et les préférences de
             notification.
           </p>
         </div>
@@ -53,7 +53,7 @@ export default function PharmacySettingsPage() {
                 </div>
               </div>
               <div>
-                <p className="text-[11px] text-[#6B7280]">Numero IFU</p>
+                <p className="text-[11px] text-[#6B7280]">Numéro IFU</p>
                 <div className="mt-2 rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-xs">
                   000-000-000
                 </div>
@@ -65,7 +65,7 @@ export default function PharmacySettingsPage() {
                 </div>
               </div>
               <div>
-                <p className="text-[11px] text-[#6B7280]">Telephone</p>
+                <p className="text-[11px] text-[#6B7280]">Téléphone</p>
                 <div className="mt-2 rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-xs">
                   +229 67 00 00 00
                 </div>
@@ -77,7 +77,7 @@ export default function PharmacySettingsPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold">Adresse &amp; Localisation</h2>
               <button className="text-xs font-semibold text-[#0B63D1]">
-                Mettre a jour la carte
+                Mettre à jour la carte
               </button>
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -86,7 +86,7 @@ export default function PharmacySettingsPage() {
                   Adresse de la pharmacie
                 </p>
                 <div className="mt-2 rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-xs">
-                  123 Rue de la Pharmacie, Cotonou, Benin
+                  123 Rue de la Pharmacie, Cotonou, Bénin
                 </div>
               </div>
               <div>
@@ -103,7 +103,7 @@ export default function PharmacySettingsPage() {
               </div>
             </div>
             <div className="mt-4 h-40 rounded-2xl border border-dashed border-[#E5E7EB] bg-[#F8FAFC] text-xs text-[#9CA3AF] flex items-center justify-center">
-              Apercu carte indisponible
+              Aperçu carte indisponible
             </div>
           </div>
 
@@ -134,7 +134,7 @@ export default function PharmacySettingsPage() {
               </div>
             </div>
             <button className="mt-4 rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]">
-              Mettre a jour le mot de passe
+              Mettre à jour le mot de passe
             </button>
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function PharmacySettingsPage() {
           <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
             <h2 className="text-sm font-semibold">Notifications</h2>
             <p className="mt-2 text-xs text-[#6B7280]">
-              Controler les alertes automatiques envoyees par la plateforme.
+              Contrôler les alertes automatiques envoyées par la plateforme.
             </p>
             <div className="mt-4 space-y-3">
               {notificationSettings.map((item) => (
@@ -195,7 +195,7 @@ export default function PharmacySettingsPage() {
       </div>
 
       <p className="text-center text-[10px] text-[#9CA3AF]">
-        (c) 2023 PharmaFinder Inc. Panneau de Controle Super Admin v2.4.0
+        © 2023 PharmaFinder Inc. Panneau de Contrôle Super Admin v2.4.0
       </p>
     </div>
   );

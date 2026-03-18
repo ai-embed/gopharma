@@ -10,12 +10,12 @@ const weekSchedule = [
 
 const specialHours = [
   {
-    title: "Jour de Noel",
+    title: "Jour de Noël",
     date: "25 Dec, 2023",
     status: "Fermé toute la journée",
   },
   {
-    title: "Reveillon du Nouvel An",
+    title: "Réveillon du Nouvel An",
     date: "31 Dec, 2023",
     status: "08:00 - 14:00",
   },

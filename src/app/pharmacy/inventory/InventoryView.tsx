@@ -11,13 +11,13 @@ const stats = [
 
 const products = [
   {
-    name: "Paracetamol 500mg",
+    name: "Paracétamol 500mg",
     ref: "REF-98321",
-    category: "Analgesique",
+    category: "Analgésique",
     price: "$4.50",
     stock: "8",
     status: "BAS",
-    subtitle: "Boite 20 Comprimes",
+    subtitle: "Boîte 20 Comprimés",
     available: true,
   },
   {
@@ -33,7 +33,7 @@ const products = [
   {
     name: "Vitamine C + Zinc",
     ref: "REF-55928",
-    category: "Complements",
+    category: "Compléments",
     price: "$18.25",
     stock: "0",
     status: "VIDE",
@@ -41,13 +41,13 @@ const products = [
     available: false,
   },
   {
-    name: "Sirop Guaifenesine",
+    name: "Sirop Guaifénésine",
     ref: "REF-22345",
     category: "Respiratoire",
     price: "$8.75",
     stock: "45",
     status: "OK",
-    subtitle: "Bouteille 120ml",
+    subtitle: "Bouteille 120 ml",
     available: true,
   },
 ];
@@ -264,8 +264,8 @@ export default function PharmacyInventoryPage() {
             </p>
             <p className="mt-2">
               Il y a 12 articles actuellement sous le seuil de stock de
-              securite. Veuillez examiner les commandes pour eviter les
-              penuries.
+              sécurité. Veuillez examiner les commandes pour éviter les
+              pénuries.
             </p>
             <button className="mt-3 text-xs font-semibold uppercase text-[#B91C1C]">
               Voir le rapport de stock faible
@@ -275,7 +275,7 @@ export default function PharmacyInventoryPage() {
       </div>
 
       <p className="text-center text-[10px] text-[#9CA3AF]">
-        (c) 2024 GoPharma Inc. Tous droits reserves.
+        © 2024 GoPharma Inc. Tous droits réservés.
       </p>
     </div>
   );
