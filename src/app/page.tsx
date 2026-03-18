@@ -1,6 +1,40 @@
-export const dynamic = "force-dynamic";
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/lib/useUser";
+
+const REDIRECT_DELAY_MS = 2600;
 
 export default function Home() {
+  const router = useRouter();
+  const { user, loading } = useUser();
+  const [targetLabel, setTargetLabel] = useState("votre espace");
+
+  const targetPath = useMemo(() => {
+    const role = user?.role?.toUpperCase() ?? "";
+    if (role.includes("ADMIN")) return "/admin/dashboard";
+    if (role.includes("PHARM")) return "/pharmacy/dashboard";
+    if (role.includes("PATIENT")) return "/dashboard";
+    return "/login";
+  }, [user]);
+
+  useEffect(() => {
+    if (loading) return;
+
+    const role = user?.role?.toUpperCase() ?? "";
+    if (role.includes("ADMIN")) setTargetLabel("l’espace administrateur");
+    else if (role.includes("PHARM")) setTargetLabel("l’espace pharmacie");
+    else if (role.includes("PATIENT")) setTargetLabel("l’espace patient");
+    else setTargetLabel("la connexion");
+
+    const timer = window.setTimeout(() => {
+      router.replace(targetPath);
+    }, REDIRECT_DELAY_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [loading, router, targetPath, user]);
+
   return (
     <div className="min-h-screen bg-[#EAF3FF] text-[#1F1D1B]">
       <div className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-4 py-10 text-center">
@@ -33,9 +67,9 @@ export default function Home() {
         </p>
 
         <div className="mt-8 flex flex-col items-center gap-4">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#0B63D1] border-t-transparent animate-spin" />
+          <span className="flex h-12 w-12 animate-spin items-center justify-center rounded-full border-2 border-[#0B63D1] border-t-transparent" />
           <p className="text-sm text-[#0B63D1]">
-            Recherche de pharmacies à proximité...
+            Redirection vers {targetLabel}…
           </p>
         </div>
 
