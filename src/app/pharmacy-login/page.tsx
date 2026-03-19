@@ -1,6 +1,62 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Notice } from "@/components/Notice";
+import { apiJson, apiJsonAuth } from "@/lib/api";
+import { saveTokens } from "@/lib/auth";
+import { getRoleHomePath } from "@/lib/roles";
+
 export const dynamic = "force-dynamic";
 
+type LoginResponse = {
+  accessToken: string;
+  refreshToken: string;
+};
+
+type UserProfile = {
+  role: string;
+};
+
 export default function PharmacyLoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const result = await apiJson<LoginResponse>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password, rememberMe }),
+    });
+
+    if (!result.ok || !result.data) {
+      setLoading(false);
+      setError(result.error ?? "Connexion professionnelle impossible.");
+      return;
+    }
+
+    saveTokens(result.data.accessToken, result.data.refreshToken);
+
+    const meResult = await apiJsonAuth<UserProfile>("/api/users/me");
+    setLoading(false);
+
+    if (!meResult.ok || !meResult.data) {
+      setError("Connexion réussie, mais le profil n’a pas pu être chargé.");
+      router.push("/pharmacy/dashboard");
+      return;
+    }
+
+    router.push(getRoleHomePath(meResult.data.role));
+  };
+
   return (
     <div className="min-h-screen bg-[#F3F6F9] px-6 py-10 text-[#1F1D1B]">
       <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-[32px] border border-[#E5E7EB] bg-white shadow-sm">
@@ -10,28 +66,28 @@ export default function PharmacyLoginPage() {
               <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0B63D1] text-sm font-semibold text-white">
                 +
               </span>
-              <span className="text-sm font-semibold">PharmaFinder</span>
+              <span className="text-sm font-semibold">GoPharma Pro</span>
             </div>
 
             <div className="mt-6 inline-flex rounded-full bg-[#F3F4F6] p-1 text-xs font-semibold text-[#6B7280]">
               <span className="rounded-full bg-white px-4 py-2 text-[#0B63D1]">
-                Connexion Pharmacie
+                Connexion pharmacie
               </span>
             </div>
 
             <h1 className="mt-6 text-2xl font-semibold">Bon retour</h1>
             <p className="mt-2 text-sm text-[#6B7280]">
-              Veuillez saisir vos identifiants professionnels pour acceder a
-              votre tableau de bord.
+              Saisissez vos identifiants professionnels pour accéder à votre
+              tableau de bord.
             </p>
 
-            <div className="mt-6 space-y-4">
+            <form className="mt-6 space-y-4" onSubmit={onSubmit}>
               <div className="space-y-2">
                 <label
                   htmlFor="email"
                   className="text-xs font-semibold text-[#6B7280]"
                 >
-                  Email Professionnel
+                  E-mail professionnel
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]">
@@ -41,7 +97,10 @@ export default function PharmacyLoginPage() {
                     id="email"
                     type="email"
                     placeholder="pharmacie@example.com"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
                     className="w-full rounded-2xl border border-[#E5E7EB] bg-white py-3 pl-9 pr-4 text-sm outline-none transition focus:border-[#0B63D1] focus:ring-4 focus:ring-blue-100"
+                    required
                   />
                 </div>
               </div>
@@ -61,7 +120,10 @@ export default function PharmacyLoginPage() {
                     id="password"
                     type="password"
                     placeholder="••••••••"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
                     className="w-full rounded-2xl border border-[#E5E7EB] bg-white py-3 pl-9 pr-4 text-sm outline-none transition focus:border-[#0B63D1] focus:ring-4 focus:ring-blue-100"
+                    required
                   />
                 </div>
               </div>
@@ -70,17 +132,25 @@ export default function PharmacyLoginPage() {
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
+                    checked={rememberMe}
+                    onChange={(event) => setRememberMe(event.target.checked)}
                     className="h-4 w-4 rounded border-[#CBD5E1] text-[#0B63D1] focus:ring-blue-200"
                   />
                   Se souvenir de moi
                 </label>
-                <button className="font-semibold text-[#0B63D1]">
-                  Mot de passe oublie ?
+                <button type="button" className="font-semibold text-[#0B63D1]">
+                  Mot de passe oublié ?
                 </button>
               </div>
 
-              <button className="w-full rounded-2xl bg-[#0B63D1] py-3 text-sm font-semibold text-white transition hover:bg-[#0A58BA]">
-                Se connecter
+              {error ? <Notice tone="error" message={error} /> : null}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-2xl bg-[#0B63D1] py-3 text-sm font-semibold text-white transition hover:bg-[#0A58BA] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {loading ? "Connexion..." : "Se connecter"}
               </button>
 
               <div className="flex items-center gap-3">
@@ -91,18 +161,24 @@ export default function PharmacyLoginPage() {
                 <div className="h-px flex-1 bg-[#E5E7EB]" />
               </div>
 
-              <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white py-3 text-sm font-semibold text-[#1F2937]">
+              <button
+                type="button"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white py-3 text-sm font-semibold text-[#1F2937]"
+              >
                 <span className="text-base text-[#0B63D1]">G</span>
                 Google
               </button>
 
               <p className="text-center text-xs text-[#6B7280]">
                 Pas encore de compte professionnel ?{" "}
-                <span className="font-semibold text-[#0B63D1]">
-                  Inscrivez votre Pharmacie
-                </span>
+                <Link
+                  href="/pharmacy-register"
+                  className="font-semibold text-[#0B63D1]"
+                >
+                  Inscrire votre pharmacie
+                </Link>
               </p>
-            </div>
+            </form>
           </div>
 
           <div className="relative flex flex-col justify-between bg-gradient-to-b from-[#F1F8FF] via-[#F7FBFF] to-white px-6 py-10 md:px-10">
@@ -112,41 +188,38 @@ export default function PharmacyLoginPage() {
                   i
                 </span>
                 <p className="font-semibold text-[#1F1D1B]">
-                  Validation de Compte Requise
+                  Validation du compte requise
                 </p>
               </div>
               <p className="mt-2">
-                Votre compte doit etre valide par un administrateur avant votre
-                premiere connexion. Cela garantit la securite et la verification
-                de toutes les pharmacies professionnelles sur notre plateforme.
+                Votre compte doit être validé par un administrateur avant votre
+                première connexion complète. Cela sécurise la plateforme et la
+                vérification des pharmacies professionnelles.
               </p>
-              <button className="mt-3 font-semibold text-[#0B63D1]">
-                Vérifier le statut de validation →
-              </button>
             </div>
 
             <div className="mt-8 space-y-4">
               <h2 className="text-xl font-semibold">
-                Gerez votre pharmacie efficacement
+                Gérez votre pharmacie efficacement
               </h2>
               <div className="space-y-3 text-sm text-[#6B7280]">
                 <div className="flex items-center gap-3">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                     ✓
                   </span>
-                  Gestion des stocks en temps reel
+                  Gestion des stocks en temps réel
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-100 text-violet-600">
                     o
                   </span>
-                  Mise a jour instantanee des horaires &amp; disponibilites
+                  Mise à jour instantanée des horaires et disponibilités
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-700">
                     *
                   </span>
-                  Verification IFU &amp; Professionnelle
+                  Vérification IFU et conformité professionnelle
                 </div>
               </div>
             </div>

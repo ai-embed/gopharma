@@ -27,13 +27,48 @@ Ce projet est une plateforme de recherche et de gestion pharmaceutique bâtie av
 npm install
 ```
 
+## Connexion au backend
+
+Le frontend utilise maintenant un proxy Next.js pour relayer ` /api/* ` vers le backend GoPharma. Cela évite les problèmes de CORS et garde les appels front sur la même origine.
+
+Créez un fichier `.env.local` dans le frontend avec :
+
+```bash
+API_PROXY_TARGET=http://localhost:3000
+```
+
+Le backend NestJS doit exposer ses routes sous `http://localhost:3000/api/*`.
+
+Le flux de connexion patient/professionnel est branché sur les endpoints réels :
+- `POST /api/auth/login`
+- `GET /api/users/me`
+
+Le flux d’inscription est partiellement branché :
+- patient : `POST /api/auth/register-patient`
+- pharmacie : `POST /api/auth/register-pharmacy`
+
+Après connexion, le frontend redirige automatiquement selon le rôle :
+- `ADMIN` → `/admin/dashboard`
+- `PHARMACY_MANAGER` → `/pharmacy/dashboard`
+- `PATIENT` → `/dashboard`
+
+Les écrans encore majoritairement en UI mockée pourront ensuite être reliés endpoint par endpoint.
+
+Option avancée :
+- `NEXT_PUBLIC_API_URL` peut être défini si vous voulez forcer des appels directs vers une URL externe.
+- Si `NEXT_PUBLIC_API_URL` est vide, le frontend passe automatiquement par le proxy Next.
+
 ## Démarrage
 
 ```bash
 npm run dev
 ```
 
-Ouvrez [http://localhost:3000](http://localhost:3000) pour voir le résultat.
+Ouvrez l’URL indiquée par Next.js dans le terminal. En local, ce sera souvent :
+- `http://localhost:3000` si ce port est libre
+- `http://localhost:3001` si le backend utilise déjà `3000`
+
+Si le backend tourne aussi sur la machine locale, relancez Next.js après modification de `.env.local`.
 
 ## Tests
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { getRoleHomePath, getRoleTargetLabel } from "@/lib/roles";
 import { useUser } from "@/lib/useUser";
 
 const REDIRECT_DELAY_MS = 2600;
@@ -10,21 +11,9 @@ export default function Home() {
   const router = useRouter();
   const { user, loading } = useUser();
 
-  const targetPath = useMemo(() => {
-    const role = user?.role?.toUpperCase() ?? "";
-    if (role.includes("ADMIN")) return "/admin/dashboard";
-    if (role.includes("PHARM")) return "/pharmacy/dashboard";
-    if (role.includes("PATIENT")) return "/dashboard";
-    return "/login";
-  }, [user]);
+  const targetPath = useMemo(() => getRoleHomePath(user?.role), [user?.role]);
 
-  const targetLabel = useMemo(() => {
-    const role = user?.role?.toUpperCase() ?? "";
-    if (role.includes("ADMIN")) return "l’espace administrateur";
-    if (role.includes("PHARM")) return "l’espace pharmacie";
-    if (role.includes("PATIENT")) return "l’espace patient";
-    return "la connexion";
-  }, [user]);
+  const targetLabel = useMemo(() => getRoleTargetLabel(user?.role), [user?.role]);
 
   useEffect(() => {
     if (loading) return;
