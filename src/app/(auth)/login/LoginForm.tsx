@@ -3,13 +3,18 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { apiJson } from "@/lib/api";
+import { apiJson, apiJsonAuth } from "@/lib/api";
 import { saveTokens } from "@/lib/auth";
+import { getRoleHomePath } from "@/lib/roles";
 import { Notice } from "@/components/Notice";
 
 type LoginResponse = {
   accessToken: string;
   refreshToken: string;
+};
+
+type UserProfile = {
+  role: string;
 };
 
 export default function LoginForm() {
@@ -38,7 +43,13 @@ export default function LoginForm() {
     }
 
     saveTokens(result.data.accessToken, result.data.refreshToken);
-    router.push("/search");
+
+    const meResult = await apiJsonAuth<UserProfile>("/api/users/me");
+    const nextPath = meResult.ok && meResult.data
+      ? getRoleHomePath(meResult.data.role)
+      : "/dashboard";
+
+    router.push(nextPath);
   };
 
   return (

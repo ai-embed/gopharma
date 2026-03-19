@@ -3,12 +3,24 @@
 import { useEffect, useState } from "react";
 import { apiJsonAuth } from "./api";
 
-type UserProfile = {
+type UserPreferences = {
+  language: string;
+  timezone: string;
+  channels: string[];
+  alertsEnabled: boolean;
+};
+
+export type UserProfile = {
   _id: string;
   firstName: string;
   lastName: string;
   email: string;
   role: string;
+  country?: string;
+  accountStatus?: string;
+  isActive?: boolean;
+  emailVerifiedAt?: string | null;
+  preferences?: UserPreferences;
 };
 
 export function useUser() {
