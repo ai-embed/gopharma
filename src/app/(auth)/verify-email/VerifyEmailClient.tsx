@@ -12,19 +12,18 @@ function VerifyEmailContent() {
   const initialEmail = useMemo(() => params.get("email") ?? "", [params]);
 
   const [token, setToken] = useState("");
-  const [email, setEmail] = useState(initialEmail);
+  const [email] = useState(() => {
+    if (typeof window === "undefined") {
+      return initialEmail;
+    }
+    const storedEmail = window.localStorage.getItem("gp.pendingEmail");
+    return initialEmail || storedEmail || "";
+  });
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const storedEmail =
-      typeof window !== "undefined"
-        ? window.localStorage.getItem("gp.pendingEmail")
-        : null;
-    if (!email && storedEmail) {
-      setEmail(storedEmail);
-    }
     if (email && typeof window !== "undefined") {
       window.localStorage.setItem("gp.pendingEmail", email);
     }
