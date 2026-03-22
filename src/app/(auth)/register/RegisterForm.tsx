@@ -24,10 +24,27 @@ export default function RegisterForm() {
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const passwordChecks = {
+    length: password.length >= 8,
+    upper: /[A-Z]/.test(password),
+    lower: /[a-z]/.test(password),
+    digit: /\d/.test(password),
+    special: /[^A-Za-z\d]/.test(password),
+  };
+  const isPasswordValid = Object.values(passwordChecks).every(Boolean);
+  const passwordsMatch = password === confirmPassword || confirmPassword.length === 0;
+
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     setSuccess(null);
+
+    if (!isPasswordValid) {
+      setError(
+        "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial."
+      );
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Les mots de passe ne correspondent pas.");
@@ -43,14 +60,19 @@ export default function RegisterForm() {
         email,
         password,
         country,
-        language: "fr",
       }),
     });
 
     setLoading(false);
 
     if (!result.ok || !result.data) {
-      setError(result.error ?? "Une erreur est survenue.");
+      if (result.error?.toLowerCase().includes("données invalides")) {
+        setError(
+          "Données invalides. Vérifiez les champs et le mot de passe (8+ caractères, majuscule, minuscule, chiffre, caractère spécial)."
+        );
+      } else {
+        setError(result.error ?? "Une erreur est survenue.");
+      }
       return;
     }
 
@@ -63,7 +85,12 @@ export default function RegisterForm() {
       result.data.message ??
         "Un code de vérification a été envoyé. Vérifiez votre boîte email."
     );
-    router.push("/verify-email");
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("gp.pendingEmail", email);
+    }
+    const params = new URLSearchParams();
+    params.set("email", email);
+    router.push(`/verify-email?${params.toString()}`);
   };
 
   return (
@@ -140,6 +167,23 @@ export default function RegisterForm() {
           className="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#0B63D1] focus:ring-4 focus:ring-blue-100"
           required
         />
+        <div className="grid gap-2 rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] px-4 py-3 text-[11px] text-[#6B7280] sm:grid-cols-2">
+          <span className={passwordChecks.length ? "text-[#0B63D1]" : ""}>
+            8+ caractères
+          </span>
+          <span className={passwordChecks.upper ? "text-[#0B63D1]" : ""}>
+            1 majuscule
+          </span>
+          <span className={passwordChecks.lower ? "text-[#0B63D1]" : ""}>
+            1 minuscule
+          </span>
+          <span className={passwordChecks.digit ? "text-[#0B63D1]" : ""}>
+            1 chiffre
+          </span>
+          <span className={passwordChecks.special ? "text-[#0B63D1]" : ""}>
+            1 caractère spécial
+          </span>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -159,6 +203,11 @@ export default function RegisterForm() {
           className="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#0B63D1] focus:ring-4 focus:ring-blue-100"
           required
         />
+        {!passwordsMatch ? (
+          <p className="text-[11px] text-[#D14343]">
+            Les mots de passe ne correspondent pas.
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-2">

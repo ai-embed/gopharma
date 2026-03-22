@@ -29,24 +29,26 @@ export default function AuthLayout({
           </p>
         </div>
 
-        <div className="mt-6 flex border-b border-[#E5E7EB] text-sm">
-          {tabs.map((tab) => {
-            const isActive = pathname === tab.href;
-            return (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                className={`flex-1 pb-3 text-center font-medium transition ${
-                  isActive
-                    ? "border-b-2 border-[#0B63D1] text-[#0B63D1]"
-                    : "text-[#8A8F98]"
-                }`}
-              >
-                {tab.label}
-              </Link>
-            );
-          })}
-        </div>
+        {pathname !== "/verify-email" ? (
+          <div className="mt-6 flex border-b border-[#E5E7EB] text-sm">
+            {tabs.map((tab) => {
+              const isActive = pathname === tab.href;
+              return (
+                <Link
+                  key={tab.href}
+                  href={tab.href}
+                  className={`flex-1 pb-3 text-center font-medium transition ${
+                    isActive
+                      ? "border-b-2 border-[#0B63D1] text-[#0B63D1]"
+                      : "text-[#8A8F98]"
+                  }`}
+                >
+                  {tab.label}
+                </Link>
+              );
+            })}
+          </div>
+        ) : null}
 
         <div className="mt-6">{children}</div>
       </div>

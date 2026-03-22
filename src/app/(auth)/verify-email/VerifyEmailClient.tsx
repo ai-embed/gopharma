@@ -1,20 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { apiJson } from "@/lib/api";
 import { Notice } from "@/components/Notice";
 
 function VerifyEmailContent() {
   const params = useSearchParams();
-  const initialToken = useMemo(() => params.get("token") ?? "", [params]);
-  const email = useMemo(() => params.get("email") ?? "", [params]);
+  const router = useRouter();
+  const initialEmail = useMemo(() => params.get("email") ?? "", [params]);
 
-  const [token, setToken] = useState(initialToken);
+  const [token, setToken] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const storedEmail =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem("gp.pendingEmail")
+        : null;
+    if (!email && storedEmail) {
+      setEmail(storedEmail);
+    }
+    if (email && typeof window !== "undefined") {
+      window.localStorage.setItem("gp.pendingEmail", email);
+    }
+  }, [email]);
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -35,13 +49,18 @@ function VerifyEmailContent() {
     }
 
     setStatus("success");
-    setMessage("Email vérifié avec succès. Vous pouvez vous connecter.");
+    setMessage("Email vérifié avec succès. Redirection vers la connexion...");
+    window.setTimeout(() => {
+      router.push("/login");
+    }, 1200);
   };
 
   const resend = async () => {
     if (!email) {
       setStatus("error");
-      setMessage("Veuillez renseigner votre email pour renvoyer le code.");
+      setMessage(
+        "Email introuvable. Veuillez reprendre l'inscription pour générer un nouveau code."
+      );
       return;
     }
 
@@ -65,7 +84,9 @@ function VerifyEmailContent() {
     }
 
     setStatus("success");
-    setMessage("Un nouveau code a ete envoye a votre email.");
+    setMessage(
+      "Un nouveau code a ete envoye a votre email. Pensez a verifier vos spams ou promotions."
+    );
   };
 
   return (
@@ -77,6 +98,11 @@ function VerifyEmailContent() {
         <p className="text-sm text-[#6B7280]">
           Saisissez le code recu par email pour activer votre compte patient.
         </p>
+        {email ? (
+          <p className="text-xs text-[#6B7280]">
+            Code envoyé à <span className="font-semibold">{email}</span>
+          </p>
+        ) : null}
       </div>
 
       <form onSubmit={submit} className="space-y-4">
@@ -121,6 +147,10 @@ function VerifyEmailContent() {
         >
           Renvoyer le code
         </button>
+        <p className="text-center text-[11px] text-[#6B7280]">
+          Si vous ne recevez rien, verifiez les spams/promotions ou patientez
+          quelques minutes.
+        </p>
         <Link
           href="/login"
           className="text-center text-xs font-semibold text-[#0B63D1]"
