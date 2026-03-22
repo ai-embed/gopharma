@@ -43,7 +43,7 @@ export default function PharmacyLoginPage() {
       return;
     }
 
-    saveTokens(result.data.accessToken, result.data.refreshToken);
+    saveTokens(result.data.accessToken, result.data.refreshToken, rememberMe);
 
     const meResult = await apiJsonAuth<UserProfile>("/api/users/me");
     setLoading(false);

@@ -25,6 +25,11 @@ export default function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const startGoogleAuth = () => {
+    if (typeof window === "undefined") return;
+    window.location.assign("/api/auth/google");
+  };
+
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
@@ -42,7 +47,7 @@ export default function LoginForm() {
       return;
     }
 
-    saveTokens(result.data.accessToken, result.data.refreshToken);
+    saveTokens(result.data.accessToken, result.data.refreshToken, rememberMe);
 
     const meResult = await apiJsonAuth<UserProfile>("/api/users/me");
     const nextPath = meResult.ok && meResult.data
@@ -125,18 +130,13 @@ export default function LoginForm() {
         <div className="h-px flex-1 bg-[#E5E7EB]" />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3">
         <button
           type="button"
+          onClick={startGoogleAuth}
           className="rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold text-[#1F2937]"
         >
           Google
-        </button>
-        <button
-          type="button"
-          className="rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold text-[#1F2937]"
-        >
-          Apple
         </button>
       </div>
 

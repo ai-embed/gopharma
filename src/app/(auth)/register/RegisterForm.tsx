@@ -24,6 +24,11 @@ export default function RegisterForm() {
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const startGoogleAuth = () => {
+    if (typeof window === "undefined") return;
+    window.location.assign("/api/auth/google");
+  };
+
   const passwordChecks = {
     length: password.length >= 8,
     upper: /[A-Z]/.test(password),
@@ -240,6 +245,24 @@ export default function RegisterForm() {
       >
         {loading ? "Inscription..." : "S'inscrire"}
       </button>
+
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-[#E5E7EB]" />
+        <span className="text-[11px] uppercase tracking-[0.2em] text-[#9CA3AF]">
+          Ou continuer avec
+        </span>
+        <div className="h-px flex-1 bg-[#E5E7EB]" />
+      </div>
+
+      <div className="grid gap-3">
+        <button
+          type="button"
+          onClick={startGoogleAuth}
+          className="rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold text-[#1F2937]"
+        >
+          Google
+        </button>
+      </div>
 
       <p className="text-center text-xs text-[#9CA3AF]">
         Deja un compte ?{" "}
