@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import PwaRegister from "@/components/PwaRegister";
 import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 import "./globals.css";
@@ -7,7 +7,6 @@ export const metadata: Metadata = {
   title: "GoPharma",
   description: "Plateforme de recherche et de gestion pharmaceutique",
   manifest: "/manifest.webmanifest",
-  themeColor: "#0B63D1",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -20,6 +19,10 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0B63D1",
 };
 
 export const dynamic = "force-dynamic";
