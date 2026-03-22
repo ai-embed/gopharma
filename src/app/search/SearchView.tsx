@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { apiJson } from "@/lib/api";
 import { PatientShell } from "@/components/PatientShell";
 
@@ -43,6 +44,9 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [autoQuery, setAutoQuery] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const initialQuery = useMemo(() => searchParams.get("q") ?? "", [searchParams]);
 
   useEffect(() => {
     apiJson<string[]>("/api/search/categories").then((res) => {
@@ -51,6 +55,21 @@ export default function SearchPage() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (!initialQuery) return;
+    const tokens = initialQuery
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    if (tokens.length > 1) {
+      setQueryTokens(tokens);
+      setQueryInput("");
+    } else {
+      setQueryInput(tokens[0] ?? "");
+    }
+    setAutoQuery(initialQuery);
+  }, [initialQuery]);
 
   useEffect(() => {
     if (!queryInput || queryInput.length < 2) {
@@ -90,7 +109,7 @@ export default function SearchPage() {
     setQueryTokens((prev) => prev.filter((token) => token !== value));
   };
 
-  const runSearch = async () => {
+  const runSearch = useCallback(async () => {
     setLoading(true);
     setError(null);
     const params = new URLSearchParams();
@@ -125,7 +144,14 @@ export default function SearchPage() {
 
     setResults(res.data ?? []);
     setMultiResults([]);
-  };
+  }, [category, openNow, queryInput, queryTokens]);
+
+  useEffect(() => {
+    if (!autoQuery) return;
+    if (queryTokens.length === 0 && queryInput === "") return;
+    runSearch();
+    setAutoQuery(null);
+  }, [autoQuery, queryInput, queryTokens, runSearch]);
 
   const groupedResults = useMemo(() => {
     const map = new Map<

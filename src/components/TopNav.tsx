@@ -28,7 +28,7 @@ export function TopNav() {
   return (
     <header className="flex flex-wrap items-center justify-between gap-6 rounded-3xl border border-[#E5E7EB] bg-white px-4 py-3 sm:px-6 sm:py-4">
       <div className="flex flex-wrap items-center gap-6">
-        <Link href="/search" className="flex items-center gap-3">
+        <Link href="/dashboard" className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B63D1] text-white">
             +
           </div>
