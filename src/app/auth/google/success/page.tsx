@@ -5,6 +5,17 @@ import { useRouter } from "next/navigation";
 import { saveTokens } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 
+type GoogleAuthPayload =
+  | {
+      error: string;
+    }
+  | {
+      accessToken: string;
+      refreshToken: string;
+      role: string | null;
+      error: null;
+    };
+
 function parseHashParams() {
   if (typeof window === "undefined") {
     return new URLSearchParams();
@@ -15,7 +26,7 @@ function parseHashParams() {
 
 export default function GoogleSuccessPage() {
   const router = useRouter();
-  const authPayload = useMemo(() => {
+  const authPayload = useMemo<GoogleAuthPayload>(() => {
     const params = parseHashParams();
     const accessToken = params.get("accessToken");
     const refreshToken = params.get("refreshToken");
@@ -34,17 +45,18 @@ export default function GoogleSuccessPage() {
       error: null,
     };
   }, []);
+  const validPayload = authPayload.error === null ? authPayload : null;
 
   useEffect(() => {
-    if (authPayload.error) {
+    if (!validPayload) {
       return;
     }
 
-    saveTokens(authPayload.accessToken, authPayload.refreshToken, true);
+    saveTokens(validPayload.accessToken, validPayload.refreshToken, true);
 
-    const nextPath = getRoleHomePath(authPayload.role);
+    const nextPath = getRoleHomePath(validPayload.role);
     router.replace(nextPath);
-  }, [authPayload, router]);
+  }, [router, validPayload]);
 
   if (authPayload.error) {
     return (
