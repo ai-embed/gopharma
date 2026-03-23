@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
 
 :root {
   --background: #f6f3ee;
@@ -30,4 +31,46 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.gp-map-badge {
+  display: inline-flex;
+  min-width: 72px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
+}
+
+.gp-map-badge-open {
+  background: #0b63d1;
+  color: #ffffff;
+}
+
+.gp-map-badge-closed {
+  background: #ffffff;
+  color: #1f1d1b;
+}
+
+.gp-current-location {
+  display: flex;
+  height: 54px;
+  width: 54px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.gp-current-location span {
+  display: block;
+  height: 16px;
+  width: 16px;
+  border-radius: 999px;
+  border: 3px solid #ffffff;
+  background: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
 }
