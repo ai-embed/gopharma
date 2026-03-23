@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { saveTokens } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
@@ -15,31 +15,43 @@ function parseHashParams() {
 
 export default function GoogleSuccessPage() {
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
+  const authPayload = useMemo(() => {
     const params = parseHashParams();
     const accessToken = params.get("accessToken");
     const refreshToken = params.get("refreshToken");
     const role = params.get("role");
 
     if (!accessToken || !refreshToken) {
-      setError("Impossible de finaliser la connexion Google.");
+      return {
+        error: "Impossible de finaliser la connexion Google.",
+      };
+    }
+
+    return {
+      accessToken,
+      refreshToken,
+      role,
+      error: null,
+    };
+  }, []);
+
+  useEffect(() => {
+    if (authPayload.error) {
       return;
     }
 
-    saveTokens(accessToken, refreshToken, true);
+    saveTokens(authPayload.accessToken, authPayload.refreshToken, true);
 
-    const nextPath = getRoleHomePath(role);
+    const nextPath = getRoleHomePath(authPayload.role);
     router.replace(nextPath);
-  }, [router]);
+  }, [authPayload, router]);
 
-  if (error) {
+  if (authPayload.error) {
     return (
       <div className="min-h-screen bg-[#F3F6F9] px-4 py-10 text-[#1E1E1E]">
         <div className="mx-auto w-full max-w-[480px] rounded-[28px] bg-white p-8 text-center shadow-[0_18px_60px_-40px_rgba(15,23,42,0.6)]">
           <div className="text-lg font-semibold">Connexion Google</div>
-          <p className="mt-3 text-sm text-[#6B7280]">{error}</p>
+          <p className="mt-3 text-sm text-[#6B7280]">{authPayload.error}</p>
           <button
             type="button"
             onClick={() => router.push("/login")}

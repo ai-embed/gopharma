@@ -11,12 +11,14 @@ const fallbackSearches = [
   { name: "Vitamine C 500", time: "Hier" },
 ];
 
-const services = ["Drive", "Vaccins", "24h/24", "Livraison"];
-
 type Pharmacy = {
   _id: string;
   name: string;
   address: string;
+  description?: string;
+  email?: string;
+  services?: string[];
+  isSeeded?: boolean;
   location?: { coordinates: [number, number] };
   openNow?: boolean;
   operationalStatus?: "OUVERT" | "FERME";
@@ -83,7 +85,7 @@ export default function DashboardPage() {
   useEffect(() => {
     let active = true;
 
-    const loadPharmacies = async (coords?: Coordinates) => {
+    const loadPharmacies = async (coords?: Coordinates, allowFallback = true) => {
       setPharmacyLoading(true);
       setPharmacyError(null);
 
@@ -91,8 +93,9 @@ export default function DashboardPage() {
       if (coords) {
         params.set("lat", coords.lat.toString());
         params.set("lng", coords.lng.toString());
-        params.set("radiusKm", "10");
+        params.set("radiusKm", "50");
       }
+      params.set("seedOnly", "true");
 
       const res = await apiJson<Pharmacy[]>(
         `/api/pharmacies${params.toString() ? `?${params.toString()}` : ""}`
@@ -107,7 +110,13 @@ export default function DashboardPage() {
         return;
       }
 
-      setPharmacies(res.data ?? []);
+      const data = res.data ?? [];
+      if (coords && data.length === 0 && allowFallback) {
+        await loadPharmacies(undefined, false);
+        return;
+      }
+
+      setPharmacies(data);
       setPharmacyLoading(false);
     };
 
@@ -267,24 +276,30 @@ export default function DashboardPage() {
                         <p className="text-xs text-[#6B7280]">
                           {pharmacy.address} • {distance}
                         </p>
-                        <div className="mt-2 flex items-center gap-2 text-xs text-[#6B7280]">
-                          <span>Services</span>
-                        </div>
-                        <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-[#6B7280]">
-                          {services.slice(0, 2).map((service) => (
-                            <span
-                              key={service}
-                              className="rounded-full bg-[#F3F6F9] px-2 py-1"
-                            >
-                              {service}
-                            </span>
-                          ))}
-                        </div>
+                        {pharmacy.description ? (
+                          <p className="mt-2 text-xs text-[#6B7280]">
+                            {pharmacy.description}
+                          </p>
+                        ) : null}
+                        {pharmacy.services && pharmacy.services.length > 0 ? (
+                          <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-[#6B7280]">
+                            {pharmacy.services.slice(0, 3).map((service) => (
+                              <span
+                                key={service}
+                                className="rounded-full bg-[#F3F6F9] px-2 py-1"
+                              >
+                                {service}
+                              </span>
+                            ))}
+                          </div>
+                        ) : pharmacy.email ? (
+                          <p className="mt-2 text-xs text-[#6B7280]">{pharmacy.email}</p>
+                        ) : null}
                         <Link
                           href={`/pharmacies/${pharmacy._id}`}
                           className="mt-4 inline-flex w-full items-center justify-center rounded-full border border-[#0B63D1] px-3 py-2 text-xs font-semibold text-[#0B63D1]"
                         >
-                          Voir details
+                          Voir détails
                         </Link>
                       </div>
                     </div>
