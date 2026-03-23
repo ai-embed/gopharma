@@ -1,13 +1,9 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { PatientShell } from "@/components/PatientShell";
-
-const gallery = [
-  "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1580281657521-2f1c0a91f1b7?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1580281658629-81a3a364c0fa?auto=format&fit=crop&w=600&q=80",
-];
+import { apiJson } from "@/lib/api";
 
 const services = [
   { title: "Vaccinations", desc: "Grippe, COVID-19, Voyage" },
@@ -18,21 +14,89 @@ const services = [
   { title: "Accès PMR", desc: "Rampe et assistance" },
 ];
 
+type PharmacyDetails = {
+  _id: string;
+  name: string;
+  address: string;
+  email?: string;
+  description?: string;
+  photoFileId?: string;
+  openNow?: boolean;
+  operationalStatus?: "OUVERT" | "FERME";
+  availabilitySource?: "manual" | "schedule";
+  matchedRule?: string;
+  location?: { coordinates: [number, number] };
+};
+
 export default function PharmacyDetailPage() {
+  const params = useParams<{ slug: string }>();
+  const pharmacyId = params?.slug;
+  const [pharmacy, setPharmacy] = useState<PharmacyDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!pharmacyId) return;
+    let active = true;
+
+    apiJson<PharmacyDetails>(`/api/pharmacies/${pharmacyId}`).then((res) => {
+      if (!active) return;
+      if (!res.ok || !res.data) {
+        setError(res.error ?? "Pharmacie introuvable.");
+        setLoading(false);
+        return;
+      }
+      setPharmacy(res.data);
+      setLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [pharmacyId]);
+
+  const coords = pharmacy?.location?.coordinates;
+  const lat = coords?.[1];
+  const lng = coords?.[0];
+
+  const heroImage = useMemo(() => {
+    if (pharmacy?.photoFileId) {
+      return `/api/files/${pharmacy.photoFileId}`;
+    }
+    return "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=1200&q=80";
+  }, [pharmacy?.photoFileId]);
+
+  const statusLabel = pharmacy?.openNow ? "Ouvert" : "Fermé";
+  const mapsUrl = lat && lng
+    ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+    : null;
+
   return (
     <PatientShell>
-      <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
+      {loading ? (
+        <p className="text-sm text-[#6B7280]">Chargement de la pharmacie...</p>
+      ) : error ? (
+        <p className="text-sm text-red-600">{error}</p>
+      ) : pharmacy ? (
+        <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
           <section className="space-y-6">
             <div className="relative overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white">
-              <div className="relative h-[220px] bg-[url('https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center">
+              <div
+                className="relative h-[220px] bg-cover bg-center"
+                style={{ backgroundImage: `url('${heroImage}')` }}
+              >
                 <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
                 <div className="absolute bottom-4 left-4 text-white">
-                  <h1 className="text-xl font-semibold">Pharmacie du Centre</h1>
+                  <h1 className="text-xl font-semibold">{pharmacy.name}</h1>
                   <div className="mt-2 flex items-center gap-3 text-xs">
-                    <span className="rounded-full bg-emerald-500/80 px-2 py-1">
-                      Ouvert
+                    <span
+                      className={`rounded-full px-2 py-1 ${
+                        pharmacy.openNow ? "bg-emerald-500/80" : "bg-rose-500/80"
+                      }`}
+                    >
+                      {statusLabel}
                     </span>
-                    <span>4.8 (120 avis)</span>
+                    <span>Statut {pharmacy.operationalStatus ?? "N/A"}</span>
                   </div>
                 </div>
               </div>
@@ -42,17 +106,17 @@ export default function PharmacyDetailPage() {
               {[
                 {
                   title: "Adresse",
-                  value: "123 Boulevard de la Santé, Suite 100",
-                  sub: "Cotonou, Bénin",
+                  value: pharmacy.address,
+                  sub: "",
                 },
                 {
                   title: "Téléphone",
-                  value: "+229 67 12 34 56 78",
-                  sub: "Ligne principale",
+                  value: "Non renseigné",
+                  sub: "",
                 },
                 {
                   title: "E-mail",
-                  value: "contact@pharmaciecentre.fr",
+                  value: pharmacy.email ?? "Non renseigné",
                   sub: "",
                 },
               ].map((item) => (
@@ -70,32 +134,10 @@ export default function PharmacyDetailPage() {
             </div>
 
             <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5">
-              <h2 className="text-sm font-semibold">Galerie</h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-4">
-                {gallery.map((src, index) => (
-                  <div
-                    key={src}
-                    className="h-24 rounded-2xl bg-cover bg-center"
-                    style={{ backgroundImage: `url(${src})` }}
-                    aria-label={`Photo ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5">
               <h2 className="text-sm font-semibold">À propos de nous</h2>
               <p className="mt-3 text-xs text-[#6B7280]">
-                La Pharmacie du Centre est un partenaire de santé de confiance
-                dans la communauté de Metropolis depuis plus de 20 ans. Nous
-                nous engageons à fournir des soins pharmaceutiques humains,
-                en veillant à ce que chaque patient comprenne ses médicaments
-                et son plan de traitement.
-              </p>
-              <p className="mt-3 text-xs text-[#6B7280]">
-                Nous proposons des conseils personnalisés, des médicaments
-                difficiles à trouver et des solutions de soins à domicile.
-                Votre santé est notre priorité.
+                {pharmacy.description ||
+                  "Aucune description n’est disponible pour le moment."}
               </p>
             </div>
 
@@ -117,28 +159,49 @@ export default function PharmacyDetailPage() {
 
           <aside className="space-y-4">
             <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5">
-              <button className="w-full rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
-                Obtenir l&apos;itinéraire
-              </button>
-              <button className="mt-3 w-full rounded-full border border-[#E5E7EB] px-4 py-2 text-xs font-semibold text-[#1F1D1B]">
+              {mapsUrl ? (
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex w-full items-center justify-center rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
+                >
+                  Obtenir l&apos;itinéraire
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full rounded-full bg-[#CBD5E1] px-4 py-2 text-xs font-semibold text-white"
+                >
+                  Itinéraire indisponible
+                </button>
+              )}
+              <button
+                type="button"
+                disabled
+                className="mt-3 w-full rounded-full border border-[#E5E7EB] px-4 py-2 text-xs font-semibold text-[#1F1D1B]"
+              >
                 Appeler maintenant
               </button>
 
               <div className="mt-5 space-y-2 text-xs text-[#6B7280]">
-                <p className="text-xs font-semibold text-[#1F1D1B]">Horaires d&apos;ouverture</p>
-                {[
-                  ["Lun - Vend", "08:00 - 20:00"],
-                  ["Samedi", "09:00 - 17:00"],
-                  ["Dimanche", "Fermé"],
-                ].map(([day, time]) => (
-                  <div key={day} className="flex items-center justify-between">
-                    <span>{day}</span>
-                    <span className="text-[#1F1D1B]">{time}</span>
-                  </div>
-                ))}
-                <p className="text-[11px] text-[#9CA3AF]">
-                  Les horaires peuvent varier. Veuillez appeler pour confirmer.
-                </p>
+                <p className="text-xs font-semibold text-[#1F1D1B]">Statut</p>
+                <div className="flex items-center justify-between">
+                  <span>Ouverture</span>
+                  <span className="text-[#1F1D1B]">{statusLabel}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Source</span>
+                  <span className="text-[#1F1D1B]">
+                    {pharmacy.availabilitySource ?? "manual"}
+                  </span>
+                </div>
+                {pharmacy.matchedRule ? (
+                  <p className="text-[11px] text-[#9CA3AF]">
+                    Règle: {pharmacy.matchedRule}
+                  </p>
+                ) : null}
               </div>
             </div>
 
@@ -146,15 +209,18 @@ export default function PharmacyDetailPage() {
               <h2 className="text-sm font-semibold">Localisation</h2>
               <div className="mt-3 h-40 rounded-2xl bg-[#E5E7EB]">
                 <div className="flex h-full items-center justify-center text-xs text-[#6B7280]">
-                  Carte
+                  {lat && lng ? `${lat.toFixed(4)}, ${lng.toFixed(4)}` : "Carte"}
                 </div>
               </div>
               <p className="mt-3 text-xs text-[#6B7280]">
-                Situé près de l&apos;Hôpital Central, en face du Grand Parc.
+                {lat && lng
+                  ? "Coordonnées basées sur la fiche pharmacie."
+                  : "Coordonnées non disponibles."}
               </p>
             </div>
           </aside>
-      </div>
+        </div>
+      ) : null}
     </PatientShell>
   );
 }

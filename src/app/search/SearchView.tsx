@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { apiJson } from "@/lib/api";
 import { PatientShell } from "@/components/PatientShell";
 
@@ -32,9 +33,28 @@ interface MultiResult {
   matchedProducts: string[];
 }
 
+function parseInitialQuery(rawQuery: string) {
+  const tokens = rawQuery
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (tokens.length > 1) {
+    return { queryInput: "", queryTokens: tokens };
+  }
+
+  return {
+    queryInput: tokens[0] ?? "",
+    queryTokens: [] as string[],
+  };
+}
+
 export default function SearchPage() {
-  const [queryInput, setQueryInput] = useState("");
-  const [queryTokens, setQueryTokens] = useState<string[]>([]);
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams?.get("q") ?? "";
+  const initialState = useMemo(() => parseInitialQuery(initialQuery), [initialQuery]);
+  const [queryInput, setQueryInput] = useState(initialState.queryInput);
+  const [queryTokens, setQueryTokens] = useState<string[]>(initialState.queryTokens);
   const [openNow, setOpenNow] = useState(true);
   const [category, setCategory] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
@@ -43,6 +63,7 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const shouldAutoSearchRef = useRef(Boolean(initialQuery));
 
   useEffect(() => {
     apiJson<string[]>("/api/search/categories").then((res) => {
@@ -90,7 +111,7 @@ export default function SearchPage() {
     setQueryTokens((prev) => prev.filter((token) => token !== value));
   };
 
-  const runSearch = async () => {
+  const runSearch = useCallback(async () => {
     setLoading(true);
     setError(null);
     const params = new URLSearchParams();
@@ -125,7 +146,17 @@ export default function SearchPage() {
 
     setResults(res.data ?? []);
     setMultiResults([]);
-  };
+  }, [category, openNow, queryInput, queryTokens]);
+
+  useEffect(() => {
+    if (!shouldAutoSearchRef.current) return;
+    if (queryTokens.length === 0 && queryInput === "") return;
+    shouldAutoSearchRef.current = false;
+    const timer = window.setTimeout(() => {
+      void runSearch();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [queryInput, queryTokens, runSearch]);
 
   const groupedResults = useMemo(() => {
     const map = new Map<

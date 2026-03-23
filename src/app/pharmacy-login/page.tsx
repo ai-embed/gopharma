@@ -23,7 +23,7 @@ export default function PharmacyLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -43,7 +43,7 @@ export default function PharmacyLoginPage() {
       return;
     }
 
-    saveTokens(result.data.accessToken, result.data.refreshToken);
+    saveTokens(result.data.accessToken, result.data.refreshToken, rememberMe);
 
     const meResult = await apiJsonAuth<UserProfile>("/api/users/me");
     setLoading(false);
