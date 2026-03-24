@@ -5,33 +5,42 @@ import { useParams } from "next/navigation";
 import { PatientShell } from "@/components/PatientShell";
 import { apiJson } from "@/lib/api";
 
-const services = [
-  { title: "Vaccinations", desc: "Grippe, COVID-19, Voyage" },
-  { title: "Livraison à domicile", desc: "Gratuite dans le secteur" },
-  { title: "Suivi de santé", desc: "Tension, Diabète, Poids" },
-  { title: "Préparations magistrales", desc: "Dosages personnalisés" },
-  { title: "Synchro. médicaments", desc: "Renouvellement automatique" },
-  { title: "Accès PMR", desc: "Rampe et assistance" },
-];
+const dayLabels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
 type PharmacyDetails = {
   _id: string;
   name: string;
   address: string;
+  ifu?: string;
   email?: string;
   description?: string;
+  services?: string[];
   photoFileId?: string;
   openNow?: boolean;
   operationalStatus?: "OUVERT" | "FERME";
   availabilitySource?: "manual" | "schedule";
   matchedRule?: string;
+  validationDate?: string;
   location?: { coordinates: [number, number] };
+};
+
+type WeeklySlot = {
+  dayOfWeek: number;
+  openTime?: string;
+  closeTime?: string;
+  isClosed: boolean;
+  onDuty?: boolean;
+};
+
+type PharmacySchedule = {
+  weekly: WeeklySlot[];
 };
 
 export default function PharmacyDetailPage() {
   const params = useParams<{ slug: string }>();
   const pharmacyId = params?.slug;
   const [pharmacy, setPharmacy] = useState<PharmacyDetails | null>(null);
+  const [schedule, setSchedule] = useState<PharmacySchedule | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,16 +48,26 @@ export default function PharmacyDetailPage() {
     if (!pharmacyId) return;
     let active = true;
 
-    apiJson<PharmacyDetails>(`/api/pharmacies/${pharmacyId}`).then((res) => {
+    const run = async () => {
+      const [detailsRes, scheduleRes] = await Promise.all([
+        apiJson<PharmacyDetails>(`/api/pharmacies/${pharmacyId}`),
+        apiJson<PharmacySchedule>(`/api/pharmacies/${pharmacyId}/schedule`),
+      ]);
+
       if (!active) return;
-      if (!res.ok || !res.data) {
-        setError(res.error ?? "Pharmacie introuvable.");
+
+      if (!detailsRes.ok || !detailsRes.data) {
+        setError(detailsRes.error ?? "Pharmacie introuvable.");
         setLoading(false);
         return;
       }
-      setPharmacy(res.data);
+
+      setPharmacy(detailsRes.data);
+      setSchedule(scheduleRes.ok && scheduleRes.data ? scheduleRes.data : null);
       setLoading(false);
-    });
+    };
+
+    void run();
 
     return () => {
       active = false;
@@ -70,6 +89,35 @@ export default function PharmacyDetailPage() {
   const mapsUrl = lat && lng
     ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
     : null;
+  const embedMapUrl = lat && lng
+    ? `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`
+    : null;
+
+  const services = useMemo(() => {
+    const source = pharmacy?.services ?? [];
+    return source.map((name) => ({
+      title: name,
+      desc: "Service disponible dans cette pharmacie",
+    }));
+  }, [pharmacy?.services]);
+
+  const weeklySchedule = useMemo(() => {
+    const slots = schedule?.weekly ?? [];
+    if (slots.length === 0) {
+      return [] as Array<{ label: string; value: string }>;
+    }
+
+    const byDay = new Map<number, WeeklySlot>();
+    slots.forEach((slot) => byDay.set(slot.dayOfWeek, slot));
+
+    return dayLabels.map((label, dayOfWeek) => {
+      const slot = byDay.get(dayOfWeek);
+      if (!slot || slot.isClosed || !slot.openTime || !slot.closeTime) {
+        return { label, value: "Fermé" };
+      }
+      return { label, value: `${slot.openTime} - ${slot.closeTime}` };
+    });
+  }, [schedule]);
 
   return (
     <PatientShell>
@@ -96,7 +144,6 @@ export default function PharmacyDetailPage() {
                     >
                       {statusLabel}
                     </span>
-                    <span>Statut {pharmacy.operationalStatus ?? "N/A"}</span>
                   </div>
                 </div>
               </div>
@@ -143,22 +190,46 @@ export default function PharmacyDetailPage() {
 
             <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5">
               <h2 className="text-sm font-semibold">Nos services</h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {services.map((service) => (
-                  <div
-                    key={service.title}
-                    className="rounded-2xl border border-[#E5E7EB] px-4 py-3 text-xs"
-                  >
-                    <p className="text-sm font-semibold">{service.title}</p>
-                    <p className="text-xs text-[#6B7280]">{service.desc}</p>
-                  </div>
-                ))}
-              </div>
+              {services.length > 0 ? (
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {services.map((service) => (
+                    <div
+                      key={service.title}
+                      className="rounded-2xl border border-[#E5E7EB] px-4 py-3 text-xs"
+                    >
+                      <p className="text-sm font-semibold">{service.title}</p>
+                      <p className="text-xs text-[#6B7280]">{service.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-3 text-xs text-[#6B7280]">
+                  Aucun service renseigné pour le moment.
+                </p>
+              )}
             </div>
+
           </section>
 
           <aside className="space-y-4">
             <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5">
+              <div className="mb-4 rounded-2xl border border-[#E5E7EB] bg-[#FAFBFF] p-3">
+                <p className="text-xs font-semibold text-[#1F1D1B]">Horaires</p>
+                {weeklySchedule.length > 0 ? (
+                  <div className="mt-2 grid gap-1 text-xs text-[#6B7280]">
+                    {weeklySchedule.map((item) => (
+                      <div key={item.label} className="flex items-center justify-between">
+                        <span>{item.label}</span>
+                        <span className="font-medium text-[#1F1D1B]">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-xs text-[#6B7280]">
+                    Horaires non renseignés pour cette pharmacie.
+                  </p>
+                )}
+              </div>
               {mapsUrl ? (
                 <a
                   href={mapsUrl}
@@ -185,32 +256,24 @@ export default function PharmacyDetailPage() {
                 Appeler maintenant
               </button>
 
-              <div className="mt-5 space-y-2 text-xs text-[#6B7280]">
-                <p className="text-xs font-semibold text-[#1F1D1B]">Statut</p>
-                <div className="flex items-center justify-between">
-                  <span>Ouverture</span>
-                  <span className="text-[#1F1D1B]">{statusLabel}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Source</span>
-                  <span className="text-[#1F1D1B]">
-                    {pharmacy.availabilitySource ?? "manual"}
-                  </span>
-                </div>
-                {pharmacy.matchedRule ? (
-                  <p className="text-[11px] text-[#9CA3AF]">
-                    Règle: {pharmacy.matchedRule}
-                  </p>
-                ) : null}
-              </div>
             </div>
 
             <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5">
               <h2 className="text-sm font-semibold">Localisation</h2>
-              <div className="mt-3 h-40 rounded-2xl bg-[#E5E7EB]">
-                <div className="flex h-full items-center justify-center text-xs text-[#6B7280]">
-                  {lat && lng ? `${lat.toFixed(4)}, ${lng.toFixed(4)}` : "Carte"}
-                </div>
+              <div className="mt-3 h-40 overflow-hidden rounded-2xl bg-[#E5E7EB]">
+                {embedMapUrl ? (
+                  <iframe
+                    title={`Carte ${pharmacy.name}`}
+                    src={embedMapUrl}
+                    className="h-full w-full border-0"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-xs text-[#6B7280]">
+                    Coordonnées non disponibles
+                  </div>
+                )}
               </div>
               <p className="mt-3 text-xs text-[#6B7280]">
                 {lat && lng
