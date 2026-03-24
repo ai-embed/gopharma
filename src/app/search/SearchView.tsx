@@ -47,18 +47,20 @@ interface SearchResult {
   isAvailable: boolean;
 }
 
-interface MultiResult {
-  pharmacy: PublicPharmacy;
-  matchedCount: number;
-  matchedProducts: string[];
-}
-
 type SearchPanelPharmacy = PublicPharmacy & {
   badgeLabel?: string;
   secondaryLabel?: string;
 };
 
 type SortMode = "priceAsc" | "priceDesc";
+
+type GroupedPharmacyResult = {
+  pharmacy: PublicPharmacy;
+  items: SearchResult[];
+  matchedProductCount: number;
+  availableCount: number;
+  totalPrice: number;
+};
 
 function parseInitialQuery(rawQuery: string) {
   const tokens = rawQuery
@@ -125,6 +127,14 @@ const buildDirectionsUrl = (pharmacy: PublicPharmacy) => {
   return null;
 };
 
+const formatCompactMoney = (value: number) => `${value.toLocaleString("fr-FR")} F`;
+
+const getOpenStatusPill = (isOpen?: boolean) =>
+  isOpen ? "◔ Ouvert jusqu'à 21h" : "◔ Fermé";
+
+const baseFilterPillClass =
+  "rounded-full border border-[#DCE5F0] bg-white px-3.5 py-2 text-[11px] font-semibold text-[#374151] shadow-[0_4px_10px_rgba(15,23,42,0.03)] transition";
+
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams?.get("q") ?? "";
@@ -138,14 +148,19 @@ export default function SearchPage() {
   const [category, setCategory] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [multiResults, setMultiResults] = useState<MultiResult[]>([]);
   const [pharmacyMatches, setPharmacyMatches] = useState<PublicPharmacy[]>([]);
   const [nearbyPharmacies, setNearbyPharmacies] = useState<PublicPharmacy[]>([]);
   const [userCoords, setUserCoords] = useState<Coordinates | null>(null);
+  const [selectedPharmacyId, setSelectedPharmacyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const shouldAutoSearchRef = useRef(Boolean(initialQuery));
+  const runSearchRef = useRef<(() => Promise<void>) | null>(null);
+  const hasSearchInputRef = useRef(
+    initialState.queryTokens.length > 0 || initialState.queryInput.trim() !== ""
+  );
+  const resultCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     let active = true;
@@ -270,6 +285,17 @@ export default function SearchPage() {
     setQueryTokens((prev) => prev.filter((token) => token !== value));
   };
 
+  const clearSearch = () => {
+    setQueryInput("");
+    setQueryTokens([]);
+    setSuggestions([]);
+    setResults([]);
+    setPharmacyMatches(nearbyPharmacies);
+    setSelectedPharmacyId(null);
+    setError(null);
+    setLoading(false);
+  };
+
   const runSearch = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -288,29 +314,35 @@ export default function SearchPage() {
     baseParams.set("radiusKm", radiusKm.toString());
 
     if (queryTokens.length > 0) {
-      baseParams.set("q", queryTokens.join(", "));
-      const res = await apiJson<MultiResult[]>(
-        `/api/search/products/multi?${baseParams.toString()}`
+      const productResponses = await Promise.all(
+        queryTokens.map(async (term) => {
+          const params = new URLSearchParams(baseParams.toString());
+          params.set("q", term);
+          return apiJson<SearchResult[]>(`/api/search/products?${params.toString()}`);
+        })
       );
 
-      setLoading(false);
-
-      if (!res.ok) {
-        setError(res.error ?? "Recherche multi-produits impossible.");
+      const failingResponse = productResponses.find((response) => !response.ok);
+      if (failingResponse) {
+        setLoading(false);
+        setError(failingResponse.error ?? "Recherche multi-produits impossible.");
         return;
       }
 
-      setMultiResults(res.data ?? []);
-      setResults([]);
+      const mergedResults = productResponses.flatMap((response) => response.data ?? []);
+
+      setResults(mergedResults);
       setPharmacyMatches([]);
+      setSelectedPharmacyId(null);
+      setLoading(false);
       return;
     }
 
     const trimmedQuery = queryInput.trim();
     if (!trimmedQuery) {
       setResults([]);
-      setMultiResults([]);
       setPharmacyMatches(nearbyPharmacies);
+      setSelectedPharmacyId(null);
       setLoading(false);
       return;
     }
@@ -329,8 +361,8 @@ export default function SearchPage() {
     const productData = productRes.data ?? [];
     if (productData.length > 0) {
       setResults(productData);
-      setMultiResults([]);
       setPharmacyMatches([]);
+      setSelectedPharmacyId(null);
       setLoading(false);
       return;
     }
@@ -356,9 +388,17 @@ export default function SearchPage() {
     }
 
     setResults([]);
-    setMultiResults([]);
     setPharmacyMatches(pharmacyRes.data ?? []);
+    setSelectedPharmacyId(null);
   }, [category, nearbyPharmacies, openNow, queryInput, queryTokens, radiusKm, userCoords]);
+
+  useEffect(() => {
+    runSearchRef.current = runSearch;
+  }, [runSearch]);
+
+  useEffect(() => {
+    hasSearchInputRef.current = queryTokens.length > 0 || queryInput.trim() !== "";
+  }, [queryInput, queryTokens]);
 
   useEffect(() => {
     if (!shouldAutoSearchRef.current) return;
@@ -370,17 +410,49 @@ export default function SearchPage() {
     return () => window.clearTimeout(timer);
   }, [queryInput, queryTokens, runSearch]);
 
+  useEffect(() => {
+    if (!hasSearchInputRef.current) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      const run = runSearchRef.current;
+      if (run) {
+        void run();
+      }
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [category, openNow, radiusKm]);
+
+  useEffect(() => {
+    if (!selectedPharmacyId) {
+      return;
+    }
+
+    const target = resultCardRefs.current[selectedPharmacyId];
+    if (!target) {
+      return;
+    }
+
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, [selectedPharmacyId]);
+
   const filteredResults = useMemo(
     () => (stockOnly ? results.filter((item) => item.isAvailable) : results),
     [results, stockOnly]
   );
 
-  const groupedResults = useMemo(() => {
+  const groupedResults = useMemo<GroupedPharmacyResult[]>(() => {
     const map = new Map<
       string,
       {
         pharmacy: PublicPharmacy;
-        items: SearchResult[];
+        items: Map<string, SearchResult>;
+        matchedProducts: Set<string>;
       }
     >();
 
@@ -390,37 +462,90 @@ export default function SearchPage() {
       if (!map.has(key)) {
         map.set(key, {
           pharmacy,
-          items: [],
+          items: new Map<string, SearchResult>(),
+          matchedProducts: new Set<string>(),
         });
       }
-      map.get(key)?.items.push(item);
+
+      const entry = map.get(key);
+      if (!entry) {
+        return;
+      }
+
+      entry.items.set(item._id, item);
+      entry.matchedProducts.add(item.productId.name);
     });
 
-    return Array.from(map.values()).sort((a, b) => {
-      const priceA = a.items.reduce((sum, item) => sum + item.price, 0);
-      const priceB = b.items.reduce((sum, item) => sum + item.price, 0);
-      return sortMode === "priceAsc" ? priceA - priceB : priceB - priceA;
-    });
-  }, [filteredResults, sortMode]);
-
-  const visiblePharmacies = useMemo<SearchPanelPharmacy[]>(() => {
-    if (queryTokens.length > 0) {
-      return multiResults.map((item) => ({
-        ...item.pharmacy,
-        badgeLabel: `${item.matchedCount} produits`,
-        secondaryLabel: item.matchedProducts.slice(0, 2).join(" • "),
-      }));
-    }
-
-    if (groupedResults.length > 0) {
-      return groupedResults.map((group) => {
-        const totalPrice = group.items.reduce((sum, item) => sum + item.price, 0);
-        const availableCount = group.items.filter((item) => item.isAvailable).length;
+    return Array.from(map.values())
+      .map((entry) => {
+        const items = Array.from(entry.items.values()).sort((a, b) =>
+          a.productId.name.localeCompare(b.productId.name)
+        );
+        const availableCount = items.filter((item) => item.isAvailable).length;
+        const totalPrice = items.reduce((sum, item) => sum + item.price, 0);
 
         return {
+          pharmacy: entry.pharmacy,
+          items,
+          matchedProductCount: entry.matchedProducts.size,
+          availableCount,
+          totalPrice,
+        };
+      })
+      .sort((a, b) => {
+        if (queryTokens.length > 0 && b.availableCount !== a.availableCount) {
+          return b.availableCount - a.availableCount;
+        }
+
+        if (queryTokens.length > 0 && b.matchedProductCount !== a.matchedProductCount) {
+          return b.matchedProductCount - a.matchedProductCount;
+        }
+
+        if (sortMode === "priceAsc" && a.totalPrice !== b.totalPrice) {
+          return a.totalPrice - b.totalPrice;
+        }
+
+        if (sortMode === "priceDesc" && a.totalPrice !== b.totalPrice) {
+          return b.totalPrice - a.totalPrice;
+        }
+
+        if (userCoords) {
+          const distanceA = getDistanceKm(userCoords, a.pharmacy) ?? Number.POSITIVE_INFINITY;
+          const distanceB = getDistanceKm(userCoords, b.pharmacy) ?? Number.POSITIVE_INFINITY;
+          if (distanceA !== distanceB) {
+            return distanceA - distanceB;
+          }
+        }
+
+        return a.pharmacy.name.localeCompare(b.pharmacy.name);
+      });
+  }, [filteredResults, queryTokens.length, sortMode, userCoords]);
+
+  const totalPriceByPharmacy = useMemo(() => {
+    const totals = new Map<string, number>();
+
+    results.forEach((item) => {
+      const pharmacyId = item.pharmacyId?._id;
+      if (!pharmacyId) {
+        return;
+      }
+
+      totals.set(pharmacyId, (totals.get(pharmacyId) ?? 0) + item.price);
+    });
+
+    return totals;
+  }, [results]);
+
+  const visiblePharmacies = useMemo<SearchPanelPharmacy[]>(() => {
+    if (groupedResults.length > 0) {
+      return groupedResults.map((group) => {
+        return {
           ...group.pharmacy,
-          badgeLabel: `${totalPrice.toLocaleString("fr-FR")} XOF`,
-          secondaryLabel: `${availableCount}/${group.items.length} produits disponibles`,
+          badgeLabel: `${group.totalPrice.toLocaleString("fr-FR")} XOF`,
+          secondaryLabel:
+            queryTokens.length > 0
+              ? `${group.matchedProductCount}/${queryTokens.length} produits disponibles`
+              : `${group.availableCount}/${group.items.length} produits disponibles`,
         };
       });
     }
@@ -435,9 +560,8 @@ export default function SearchPage() {
           const distanceB = getDistanceKm(userCoords, b) ?? Number.POSITIVE_INFINITY;
           return distanceA - distanceB;
         })
-        .map((pharmacy) => ({
+      .map((pharmacy) => ({
         ...pharmacy,
-        badgeLabel: pharmacy.openNow ? "Ouvert" : "Fermé",
         secondaryLabel:
           pharmacy.services?.slice(0, 2).join(" • ") ??
           pharmacy.description ??
@@ -455,62 +579,87 @@ export default function SearchPage() {
         return distanceA - distanceB;
       })
       .map((pharmacy) => ({
-      ...pharmacy,
-      badgeLabel: pharmacy.openNow ? "Ouvert" : "Fermé",
-      secondaryLabel:
-        pharmacy.services?.slice(0, 2).join(" • ") ??
-        pharmacy.description ??
-        pharmacy.email,
-    }));
-  }, [groupedResults, multiResults, nearbyPharmacies, pharmacyMatches, queryTokens.length, userCoords]);
+        ...pharmacy,
+        secondaryLabel:
+          pharmacy.services?.slice(0, 2).join(" • ") ??
+          pharmacy.description ??
+          pharmacy.email,
+      }));
+  }, [groupedResults, nearbyPharmacies, pharmacyMatches, queryTokens.length, userCoords]);
 
   const pharmacyCount = visiblePharmacies.length;
+  const locationLabel = userCoords ? "près de vous" : "dans votre zone";
+  const hasComparedProducts = groupedResults.length > 0;
 
   return (
     <PatientShell>
-      <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
-        <aside className="space-y-4">
-          <div className="relative rounded-2xl border border-[#E5E7EB] bg-white p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              {queryTokens.map((token) => (
-                <span
-                  key={token}
-                  className="flex items-center gap-2 rounded-full bg-[#EAF2FF] px-3 py-1 text-xs font-semibold text-[#0B63D1]"
-                >
-                  {token}
-                  <button
-                    type="button"
-                    onClick={() => removeToken(token)}
-                    className="text-[10px] font-semibold"
+      <div className="grid gap-6 xl:grid-cols-[560px_minmax(0,1fr)]">
+        <aside className="space-y-5">
+          <div className="relative overflow-visible rounded-[28px] border border-[#DCE5F0] bg-white p-3 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+            <div className="rounded-[20px] border border-[#DCE5F0] bg-[#FBFCFE] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[18px] leading-none text-[#98A2B3]">⌕</span>
+                {queryTokens.map((token) => (
+                  <span
+                    key={token}
+                    className="flex items-center gap-2 rounded-[10px] bg-[#1CA6E8] px-3 py-1.5 text-[10px] font-semibold text-white shadow-[0_6px_16px_rgba(22,163,224,0.18)]"
                   >
-                    x
-                  </button>
-                </span>
-              ))}
-              <input
-                value={queryInput}
-                onChange={(event) => setQueryInput(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === ",") {
-                    event.preventDefault();
-                    commitToken(queryInput);
-                  }
-                }}
-                placeholder="Ajouter un produit..."
-                className="min-w-[140px] flex-1 border-none bg-transparent text-xs outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  void runSearch();
-                }}
-                className="rounded-full bg-[#0B63D1] px-3 py-2 text-[11px] font-semibold text-white"
-              >
-                Rechercher
-              </button>
+                    {token}
+                    <button
+                      type="button"
+                      onClick={() => removeToken(token)}
+                      className="text-xs font-bold text-white/90"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                <input
+                  value={queryInput}
+                  onChange={(event) => setQueryInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      if (queryInput.trim()) {
+                        if (queryTokens.length > 0) {
+                          commitToken(queryInput);
+                        } else {
+                          void runSearch();
+                        }
+                      } else {
+                        void runSearch();
+                      }
+                    }
+
+                    if (event.key === ",") {
+                      event.preventDefault();
+                      commitToken(queryInput);
+                    }
+                  }}
+                  placeholder="Ajouter un produit..."
+                  className="min-w-[180px] flex-1 border-none bg-transparent text-[14px] leading-6 text-[#4B5563] outline-none placeholder:text-[#9CA3AF]"
+                />
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="ml-auto text-[18px] leading-none text-[#667085] transition hover:text-[#111827]"
+                  aria-label="Effacer la recherche"
+                >
+                  ×
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void runSearch();
+                  }}
+                  className="rounded-full bg-[#0B63D1] px-5 py-2 text-[10px] font-semibold text-white shadow-[0_10px_24px_rgba(11,99,209,0.18)] transition hover:bg-[#0A58B8]"
+                >
+                  Rechercher
+                </button>
+              </div>
             </div>
             {visibleSuggestions.length > 0 ? (
-              <div className="absolute left-4 right-4 top-full z-10 mt-2 rounded-2xl border border-[#E5E7EB] bg-white p-2 text-sm shadow">
+              <div className="absolute left-5 right-5 top-full z-10 mt-3 rounded-[22px] border border-[#E5E7EB] bg-white p-2 text-sm shadow-[0_16px_32px_rgba(15,23,42,0.12)]">
                 {visibleSuggestions.map((item) => (
                   <button
                     type="button"
@@ -518,7 +667,7 @@ export default function SearchPage() {
                     onClick={() => {
                       commitToken(item);
                     }}
-                    className="block w-full rounded-xl px-3 py-2 text-left hover:bg-[#F3F6F9]"
+                  className="block w-full rounded-xl px-3 py-2 text-left text-[13px] hover:bg-[#F3F6F9]"
                   >
                     {item}
                   </button>
@@ -527,53 +676,60 @@ export default function SearchPage() {
             ) : null}
           </div>
 
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <h2 className="text-2xl font-semibold text-[#1F1D1B]">
-                Résultats de recherche
-              </h2>
-              <p className="mt-1 text-sm text-[#6B7280]">
-                {pharmacyCount} pharmacies trouvées
-                {userCoords ? ` près de vous (${radiusKm} km)` : ""}
-              </p>
-            </div>
+          <div className="flex flex-wrap items-end justify-between gap-3 px-1 pt-1">
+            <h2 className="text-[18px] font-semibold tracking-[-0.02em] text-[#111827]">
+              Résultats de recherche
+            </h2>
+            <p className="text-[13px] text-[#6B7280]">
+              {pharmacyCount} pharmacies trouvées {locationLabel}
+            </p>
           </div>
 
-          <div className="flex flex-wrap gap-2 text-xs font-semibold text-[#6B7280]">
-            <button className="rounded-full border border-[#E5E7EB] px-3 py-2">
-              Tous les filtres
+          {!hasComparedProducts ? (
+            <p className="px-1 text-[12px] text-[#6B7280]">
+              Ajoutez un ou plusieurs produits pour comparer les prix par pharmacie.
+            </p>
+          ) : null}
+
+          <div className="flex flex-wrap gap-2 text-[11px] font-semibold text-[#374151]">
+            <button className="rounded-full bg-[#0B63D1] px-3.5 py-2 text-white shadow-[0_10px_20px_rgba(11,99,209,0.18)]">
+              ✣ Tous les filtres
             </button>
             <button
               type="button"
               onClick={() => setOpenNow((value) => !value)}
-              className={`rounded-full px-3 py-2 ${
-                openNow ? "bg-[#EAF2FF] text-[#0B63D1]" : "border border-[#E5E7EB]"
+              className={`${baseFilterPillClass} ${
+                openNow
+                  ? "bg-[#EFF6FF] text-[#0B63D1] ring-1 ring-[#BFDBFE]"
+                  : "hover:border-[#BFDBFE] hover:text-[#0B63D1]"
               }`}
-              >
-                Ouvert maintenant
-              </button>
+            >
+              Ouvert maintenant
+            </button>
             <button
               type="button"
               onClick={() =>
                 setSortMode((value) => (value === "priceAsc" ? "priceDesc" : "priceAsc"))
               }
-              className="rounded-full border border-[#E5E7EB] px-3 py-2"
+              className={baseFilterPillClass}
             >
               Prix: {sortMode === "priceAsc" ? "croissant" : "décroissant"}
             </button>
             <button
               type="button"
               onClick={() => setStockOnly((value) => !value)}
-              className={`rounded-full px-3 py-2 ${
-                stockOnly ? "bg-[#EAF2FF] text-[#0B63D1]" : "border border-[#E5E7EB]"
+              className={`${baseFilterPillClass} ${
+                stockOnly
+                  ? "bg-[#EFF6FF] text-[#0B63D1] ring-1 ring-[#BFDBFE]"
+                  : "hover:border-[#BFDBFE] hover:text-[#0B63D1]"
               }`}
             >
-              {stockOnly ? "En stock seulement" : "Tous les stocks"}
+              {stockOnly ? "Disponibilité complète" : "Tous les stocks"}
             </button>
             <select
               value={String(radiusKm)}
               onChange={(event) => setRadiusKm(Number(event.target.value))}
-              className="rounded-full border border-[#E5E7EB] px-3 py-2 text-xs text-[#6B7280]"
+              className={`${baseFilterPillClass} pr-8 text-[11px] text-[#6B7280]`}
             >
               <option value="5">Rayon 5 km</option>
               <option value="10">Rayon 10 km</option>
@@ -583,7 +739,7 @@ export default function SearchPage() {
             <select
               value={category}
               onChange={(event) => setCategory(event.target.value)}
-              className="rounded-full border border-[#E5E7EB] px-3 py-2 text-xs text-[#6B7280]"
+              className={`${baseFilterPillClass} pr-8 text-[11px] text-[#6B7280]`}
             >
               <option value="">Toutes les catégories</option>
               {categories.map((item) => (
@@ -594,158 +750,133 @@ export default function SearchPage() {
             </select>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-[#6B7280]">
-            <span>
-              {pharmacyCount} pharmacies trouvées
-              {userCoords ? ` dans ${radiusKm} km` : ""}
-            </span>
-            <span className="rounded-full border border-[#E5E7EB] px-3 py-1">
-              {queryTokens.length > 0 || groupedResults.length > 0
-                ? "Vue produits"
-                : "Vue pharmacies"}
-            </span>
-          </div>
-
           {loading ? (
             <p className="text-sm text-[#6B7280]">Recherche en cours...</p>
           ) : error ? (
             <p className="text-sm text-red-600">{error}</p>
-          ) : queryTokens.length > 0 ? (
-            <div className="space-y-4">
-              {multiResults.map((item) => {
-                const directionsUrl = buildDirectionsUrl(item.pharmacy);
-
-                return (
-                  <div
-                    key={item.pharmacy._id}
-                    className="rounded-2xl border border-[#E5E7EB] bg-white p-4"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="text-sm font-semibold">{item.pharmacy.name}</h3>
-                        <p className="text-xs text-[#6B7280]">
-                          {item.pharmacy.address ?? "Adresse non renseignée"}
-                        </p>
-                        {userCoords && item.pharmacy.location?.coordinates ? (
-                          <p className="mt-1 text-[11px] text-[#0B63D1]">
-                            {formatDistance(userCoords, {
-                              lat: item.pharmacy.location.coordinates[1],
-                              lng: item.pharmacy.location.coordinates[0],
-                            })}
-                          </p>
-                        ) : null}
-                        <p className="mt-2 text-[11px] text-[#6B7280]">
-                          {item.matchedCount} produits disponibles
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-                          {item.matchedProducts.map((product) => (
-                            <span
-                              key={product}
-                              className="rounded-full bg-[#F3F6F9] px-2 py-1 text-[#6B7280]"
-                            >
-                              {product}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <Link
-                          href={`/pharmacies/${item.pharmacy._id}`}
-                          className="rounded-full border border-[#E5E7EB] px-3 py-2 text-[11px] font-semibold text-[#1F1D1B]"
-                        >
-                          Voir détails
-                        </Link>
-                        {directionsUrl ? (
-                          <a
-                            href={directionsUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="rounded-full bg-[#0B63D1] px-3 py-2 text-center text-[11px] font-semibold text-white"
-                          >
-                            Itinéraire
-                          </a>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           ) : groupedResults.length > 0 ? (
             <div className="space-y-4">
-              {groupedResults.map((group) => {
-                const availableCount = group.items.filter((item) => item.isAvailable).length;
-                const totalPrice = group.items.reduce((sum, item) => sum + item.price, 0);
+              {groupedResults.map((group, index) => {
                 const directionsUrl = buildDirectionsUrl(group.pharmacy);
+                const isSelected = selectedPharmacyId === group.pharmacy._id;
+                const isBestPrice =
+                  sortMode === "priceAsc" &&
+                  index === 0 &&
+                  (groupedResults.length === 1 ||
+                    group.totalPrice < groupedResults[1].totalPrice);
+                const statusLabel = getOpenStatusPill(group.pharmacy.openNow);
+                const distanceLabel =
+                  userCoords && group.pharmacy.location?.coordinates
+                    ? formatDistance(userCoords, {
+                        lat: group.pharmacy.location.coordinates[1],
+                        lng: group.pharmacy.location.coordinates[0],
+                      })
+                    : null;
 
                 return (
                   <div
                     key={group.pharmacy._id}
-                    className="rounded-2xl border border-[#E5E7EB] bg-white p-4"
+                    ref={(node) => {
+                      resultCardRefs.current[group.pharmacy._id] = node;
+                    }}
+                    onClick={() => setSelectedPharmacyId(group.pharmacy._id)}
+                    className={`cursor-pointer rounded-[20px] bg-white p-4 transition hover:-translate-y-0.5 ${
+                      isSelected || isBestPrice
+                        ? "border-2 border-[#CBE8FA] shadow-[0_18px_38px_rgba(34,157,227,0.14)]"
+                        : "border border-[#DCE5F0] shadow-[0_10px_24px_rgba(15,23,42,0.05)] hover:border-[#CBE8FA] hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]"
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-2">
+                      <div className="min-w-0 flex-1 space-y-3">
                         <div>
-                          <h3 className="text-sm font-semibold">{group.pharmacy.name}</h3>
-                          <p className="text-xs text-[#6B7280]">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Link
+                              href={`/pharmacies/${group.pharmacy._id}`}
+                              onClick={(event) => event.stopPropagation()}
+                              className="text-sm font-semibold text-[#111827] hover:text-[#0B63D1]"
+                            >
+                              {group.pharmacy.name}
+                            </Link>
+                            {isBestPrice ? (
+                              <span className="rounded-[4px] bg-[#E8F0FF] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.03em] text-[#275CDB]">
+                                Meilleur prix
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-[#6B7280]">
+                            <span className="text-[11px] text-[#6B7280]">📍</span>
+                            {distanceLabel ? `${distanceLabel} • ` : ""}
                             {group.pharmacy.address ?? "Adresse non renseignée"}
                           </p>
-                          {userCoords && group.pharmacy.location?.coordinates ? (
-                            <p className="mt-1 text-[11px] text-[#0B63D1]">
-                              {formatDistance(userCoords, {
-                                lat: group.pharmacy.location.coordinates[1],
-                                lng: group.pharmacy.location.coordinates[0],
-                              })}
-                            </p>
-                          ) : null}
                         </div>
-                        <p className="text-[11px] text-[#6B7280]">
-                          {availableCount}/{group.items.length} produits disponibles
+                        <p className="inline-flex rounded-full bg-[#EAFBF0] px-3 py-1 text-xs font-semibold text-[#1B8E48]">
+                          {queryTokens.length > 0
+                            ? `${group.availableCount}/${queryTokens.length} produits disponibles`
+                            : `${group.availableCount}/${group.items.length} produits disponibles`}
                         </p>
-                        <div className="space-y-1 text-[11px] text-[#6B7280]">
+                        <div className="space-y-1.5 text-[13px] text-[#374151]">
                           {group.items.map((item) => (
                             <div
                               key={item._id}
-                              className="flex items-center justify-between gap-2"
+                              className="flex items-center justify-between gap-3"
                             >
                               <div className="flex items-center gap-2">
                                 <span
-                                  className={`h-2 w-2 rounded-full ${
-                                    item.isAvailable ? "bg-emerald-500" : "bg-rose-500"
+                                  className={`flex h-4.5 w-4.5 items-center justify-center rounded-full text-[10px] font-bold ${
+                                    item.isAvailable
+                                      ? "bg-[#DCFCE7] text-[#17A34A]"
+                                      : "bg-[#FEE2E2] text-[#DC2626]"
                                   }`}
-                                />
-                                <span>{item.productId.name}</span>
+                                >
+                                  {item.isAvailable ? "✓" : "×"}
+                                </span>
+                                <span className="text-[#1F2937]">
+                                  {item.productId.name} :{" "}
+                                  <span
+                                    className={
+                                      item.isAvailable ? "text-[#16A34A]" : "text-[#DC2626]"
+                                    }
+                                  >
+                                    {item.isAvailable ? "En stock" : "Indisponible"}
+                                  </span>
+                                </span>
                               </div>
-                              <span className="text-[#1F1D1B]">
-                                {item.price.toLocaleString("fr-FR")} XOF
+                              <span className="min-w-[72px] text-right text-[13px] font-semibold text-[#1F1D1B]">
+                                {formatCompactMoney(item.price)}
                               </span>
                             </div>
                           ))}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-[#0B63D1]">
-                          {totalPrice.toLocaleString("fr-FR")} XOF
+                      <div className="min-w-[96px] text-right">
+                        <p className="text-[18px] font-semibold tracking-[-0.02em] text-[#16A3E0]">
+                          {formatCompactMoney(group.totalPrice)}
                         </p>
-                        <p className="text-[11px] text-[#6B7280]">Total estimé</p>
-                        <div className="mt-3 flex flex-col gap-2">
-                          <Link
-                            href={`/pharmacies/${group.pharmacy._id}`}
-                            className="rounded-full border border-[#E5E7EB] px-3 py-2 text-[11px] font-semibold text-[#1F1D1B]"
+                        <p className="text-[11px] text-[#6B7280]">Total panier</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 border-t border-[#E5E7EB] pt-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1.5 text-xs font-medium ${
+                            group.pharmacy.openNow
+                              ? "bg-[#ECFDF3] text-[#15803D]"
+                              : "bg-[#FEF2F2] text-[#B91C1C]"
+                          }`}
+                        >
+                          {statusLabel}
+                        </span>
+                        {directionsUrl ? (
+                          <a
+                            href={directionsUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(event) => event.stopPropagation()}
+                            className="rounded-[12px] bg-[#18A8EA] px-4 py-2 text-[12px] font-semibold text-white shadow-[0_10px_24px_rgba(22,163,224,0.22)] transition hover:bg-[#1099DA]"
                           >
-                            Voir détails
-                          </Link>
-                          {directionsUrl ? (
-                            <a
-                              href={directionsUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="rounded-full bg-[#0B63D1] px-3 py-2 text-center text-[11px] font-semibold text-white"
-                            >
-                              Itinéraire
-                            </a>
-                          ) : null}
-                        </div>
+                            ⟡ Itinéraire
+                          </a>
+                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -759,30 +890,59 @@ export default function SearchPage() {
               {visiblePharmacies.map((pharmacy) => {
                 const directionsUrl = buildDirectionsUrl(pharmacy);
                 const services = pharmacy.services?.slice(0, 3) ?? [];
+                const isSelected = selectedPharmacyId === pharmacy._id;
+                const distanceLabel =
+                  userCoords && pharmacy.location?.coordinates
+                    ? formatDistance(userCoords, {
+                        lat: pharmacy.location.coordinates[1],
+                        lng: pharmacy.location.coordinates[0],
+                      })
+                    : null;
+                const bottomStatus = getOpenStatusPill(pharmacy.openNow);
+                const totalPrice = totalPriceByPharmacy.get(pharmacy._id);
 
                 return (
                   <div
                     key={pharmacy._id}
-                    className="rounded-2xl border border-[#E5E7EB] bg-white p-4"
+                    ref={(node) => {
+                      resultCardRefs.current[pharmacy._id] = node;
+                    }}
+                    onClick={() => setSelectedPharmacyId(pharmacy._id)}
+                    className={`cursor-pointer rounded-[20px] bg-white p-4 transition hover:-translate-y-0.5 ${
+                      isSelected
+                        ? "border-2 border-[#CBE8FA] shadow-[0_18px_38px_rgba(34,157,227,0.14)]"
+                        : "border border-[#DCE5F0] shadow-[0_10px_24px_rgba(15,23,42,0.05)] hover:border-[#CBE8FA] hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]"
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-2">
+                      <div className="min-w-0 flex-1 space-y-3">
                         <div>
-                          <h3 className="text-sm font-semibold">{pharmacy.name}</h3>
-                          <p className="text-xs text-[#6B7280]">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Link
+                              href={`/pharmacies/${pharmacy._id}`}
+                              onClick={(event) => event.stopPropagation()}
+                              className="text-sm font-semibold text-[#111827] hover:text-[#0B63D1]"
+                            >
+                              {pharmacy.name}
+                            </Link>
+                            <span
+                              className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
+                                pharmacy.openNow
+                                  ? "bg-[#DCFCE7] text-[#15803D]"
+                                  : "bg-[#FEE2E2] text-[#B91C1C]"
+                              }`}
+                            >
+                              {pharmacy.openNow ? "Ouvert" : "Fermé"}
+                            </span>
+                          </div>
+                          <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-[#6B7280]">
+                            <span className="text-[11px] text-[#6B7280]">📍</span>
+                            {distanceLabel ? `${distanceLabel} • ` : ""}
                             {pharmacy.address ?? "Adresse non renseignée"}
                           </p>
-                          {userCoords && pharmacy.location?.coordinates ? (
-                            <p className="mt-1 text-[11px] text-[#0B63D1]">
-                              {formatDistance(userCoords, {
-                                lat: pharmacy.location.coordinates[1],
-                                lng: pharmacy.location.coordinates[0],
-                              })}
-                            </p>
-                          ) : null}
                         </div>
                         {pharmacy.secondaryLabel ? (
-                          <p className="text-[11px] text-[#6B7280]">
+                          <p className="inline-flex rounded-full bg-[#EAFBF0] px-3 py-1 text-xs font-semibold text-[#1B8E48]">
                             {pharmacy.secondaryLabel}
                           </p>
                         ) : null}
@@ -791,7 +951,7 @@ export default function SearchPage() {
                             {services.map((service) => (
                               <span
                                 key={service}
-                                className="rounded-full bg-[#F3F6F9] px-2 py-1 text-[#6B7280]"
+                                className="rounded-full bg-[#F3F4F6] px-3 py-1.5 text-[#6B7280]"
                               >
                                 {service}
                               </span>
@@ -799,16 +959,29 @@ export default function SearchPage() {
                           </div>
                         ) : null}
                       </div>
-                      <div className="text-right">
-                        {pharmacy.badgeLabel ? (
-                          <p className="text-sm font-semibold text-[#0B63D1]">
-                            {pharmacy.badgeLabel}
-                          </p>
-                        ) : null}
-                        <div className="mt-3 flex flex-col gap-2">
+                      <div className="min-w-[88px] text-right">
+                        <p className="text-[18px] font-semibold tracking-[-0.02em] text-[#16A3E0]">
+                          {totalPrice !== undefined ? formatCompactMoney(totalPrice) : "—"}
+                        </p>
+                        <p className="text-[11px] text-[#6B7280]">Total panier</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 border-t border-[#E5E7EB] pt-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1.5 text-xs font-medium ${
+                            pharmacy.openNow
+                              ? "bg-[#ECFDF3] text-[#15803D]"
+                              : "bg-[#FEF2F2] text-[#B91C1C]"
+                          }`}
+                        >
+                          {bottomStatus}
+                        </span>
+                        <div className="flex flex-wrap gap-2">
                           <Link
                             href={`/pharmacies/${pharmacy._id}`}
-                            className="rounded-full border border-[#E5E7EB] px-3 py-2 text-[11px] font-semibold text-[#1F1D1B]"
+                            onClick={(event) => event.stopPropagation()}
+                            className="rounded-[12px] border border-[#D1D5DB] px-4 py-2 text-center text-[12px] font-semibold text-[#1F1D1B]"
                           >
                             Voir détails
                           </Link>
@@ -817,9 +990,10 @@ export default function SearchPage() {
                               href={directionsUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className="rounded-full bg-[#0B63D1] px-3 py-2 text-center text-[11px] font-semibold text-white"
+                              onClick={(event) => event.stopPropagation()}
+                              className="rounded-[12px] bg-[#18A8EA] px-4 py-2 text-[12px] font-semibold text-white shadow-[0_10px_24px_rgba(22,163,224,0.22)] transition hover:bg-[#1099DA]"
                             >
-                              Itinéraire
+                              ⟡ Itinéraire
                             </a>
                           ) : null}
                         </div>
@@ -832,7 +1006,12 @@ export default function SearchPage() {
           )}
         </aside>
 
-        <SearchResultsMap pharmacies={visiblePharmacies} userCoords={userCoords} />
+        <SearchResultsMap
+          pharmacies={visiblePharmacies}
+          userCoords={userCoords}
+          selectedPharmacyId={selectedPharmacyId}
+          onPharmacySelect={setSelectedPharmacyId}
+        />
       </div>
     </PatientShell>
   );

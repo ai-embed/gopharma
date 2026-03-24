@@ -34,6 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
+      <head />
       <body className="antialiased" suppressHydrationWarning>
         <PwaRegister />
         <PwaInstallPrompt />
