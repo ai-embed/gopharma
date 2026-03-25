@@ -20,12 +20,14 @@ export default function ProfileShell({
   activeTab: ProfileTab;
   children: React.ReactNode;
 }) {
-  const { user } = useUser();
+  const { user, loading } = useUser();
 
   const displayName = user
     ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "Utilisateur"
     : "Utilisateur";
   const email = user?.email ?? "utilisateur@example.com";
+  const isEmailVerified = Boolean(user?.emailVerifiedAt);
+  const memberSince = getMemberSinceLabel(user?._id, user?.emailVerifiedAt);
 
   return (
     <PatientShell>
@@ -37,11 +39,17 @@ export default function ProfileShell({
               <h1 className="text-lg font-semibold">{displayName}</h1>
               <p className="text-sm text-[#6B7280]">{email}</p>
               <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
-                <span className="rounded-full bg-[#E8FFF1] px-3 py-1 text-[#0F9D58]">
-                  Patient vérifié
+                <span
+                  className={`rounded-full px-3 py-1 ${
+                    isEmailVerified
+                      ? "bg-[#E8FFF1] text-[#0F9D58]"
+                      : "bg-[#FFF5F5] text-[#C0392B]"
+                  }`}
+                >
+                  {isEmailVerified ? "Patient vérifié" : "E-mail non vérifié"}
                 </span>
                 <span className="rounded-full bg-[#EAF2FF] px-3 py-1 text-[#0B63D1]">
-                  Membre depuis 2021
+                  {loading ? "Chargement..." : memberSince}
                 </span>
               </div>
             </div>
@@ -79,4 +87,20 @@ export default function ProfileShell({
       </div>
     </PatientShell>
   );
+}
+
+function getMemberSinceLabel(userId?: string, emailVerifiedAt?: string | null) {
+  const fromObjectId = userId?.slice(0, 8);
+  if (fromObjectId && /^[a-fA-F0-9]{8}$/.test(fromObjectId)) {
+    const timestamp = Number.parseInt(fromObjectId, 16) * 1000;
+    const year = new Date(timestamp).getUTCFullYear();
+    if (Number.isFinite(year) && year > 2000) return `Membre depuis ${year}`;
+  }
+
+  if (emailVerifiedAt) {
+    const year = new Date(emailVerifiedAt).getUTCFullYear();
+    if (Number.isFinite(year)) return `Membre depuis ${year}`;
+  }
+
+  return "Membre récent";
 }

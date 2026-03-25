@@ -1,53 +1,46 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Notice } from "@/components/Notice";
 import ProfileShell from "@/components/ProfileShell";
-import { apiJson, apiJsonAuth } from "@/lib/api";
+import { apiJson } from "@/lib/api";
+import { FavoriteItem, useFavorites } from "@/lib/useFavorites";
+
+type DisplayFavorite = {
+  id: string;
+  label: string;
+  subtitle: string;
+  type: "PHARMACY" | "PRODUCT";
+  targetHref?: string;
+};
 
 export default function FavoritesView() {
-  const [favorites, setFavorites] = useState<
-    {
-      id: string;
-      label: string;
-      subtitle: string;
-      type: "PHARMACY" | "PRODUCT";
-    }[]
-  >([]);
-  const [loading, setLoading] = useState(true);
+  const { favorites, loading, error, mutating, removeFavorite } = useFavorites();
+  const [displayFavorites, setDisplayFavorites] = useState<DisplayFavorite[]>([]);
 
   useEffect(() => {
     let active = true;
-    apiJsonAuth<
-      {
-        _id: string;
-        targetType: "PHARMACY" | "PRODUCT";
-        pharmacyId?: string;
-        productId?: string;
-      }[]
-    >("/api/favorites").then(async (res) => {
-      if (!active) return;
-      if (!res.ok || !res.data) {
-        setLoading(false);
-        return;
-      }
 
-      const pharmacyIds = res.data
-        .filter((item) => item.targetType === "PHARMACY" && item.pharmacyId)
-        .map((item) => item.pharmacyId as string);
-
+    const mapFavorites = async (source: FavoriteItem[]) => {
+      const pharmacyFavorites = source.filter(
+        (item) => item.targetType === "PHARMACY" && item.pharmacyId
+      );
       const pharmacyMap = new Map<string, { name: string; address?: string }>();
+
       await Promise.all(
-        pharmacyIds.map(async (id) => {
+        pharmacyFavorites.map(async (item) => {
+          if (!item.pharmacyId) return;
           const detail = await apiJson<{ name: string; address?: string }>(
-            `/api/pharmacies/${id}`
+            `/api/pharmacies/${item.pharmacyId}`
           );
           if (detail.ok && detail.data) {
-            pharmacyMap.set(id, detail.data);
+            pharmacyMap.set(item.pharmacyId, detail.data);
           }
         })
       );
 
-      const mapped = res.data.map((fav) => {
+      const mapped = source.map((fav) => {
         if (fav.targetType === "PHARMACY" && fav.pharmacyId) {
           const info = pharmacyMap.get(fav.pharmacyId);
           return {
@@ -55,8 +48,10 @@ export default function FavoritesView() {
             label: info?.name ?? "Pharmacie favorite",
             subtitle: info?.address ?? `ID: ${fav.pharmacyId}`,
             type: "PHARMACY" as const,
+            targetHref: `/pharmacies/${fav.pharmacyId}`,
           };
         }
+
         return {
           id: fav._id,
           label: "Produit favori",
@@ -65,37 +60,62 @@ export default function FavoritesView() {
         };
       });
 
-      setFavorites(mapped);
-      setLoading(false);
-    });
+      if (active) {
+        setDisplayFavorites(mapped);
+      }
+    };
 
+    void mapFavorites(favorites);
     return () => {
       active = false;
     };
-  }, []);
+  }, [favorites]);
 
-  const hasFavorites = favorites.length > 0;
+  const hasFavorites = displayFavorites.length > 0;
 
   return (
     <ProfileShell activeTab="favorites">
+      {error ? <Notice tone="error" message={error} /> : null}
+
       {loading ? (
         <p className="text-center text-xs text-[#6B7280]">
           Chargement des favoris...
         </p>
       ) : hasFavorites ? (
         <div className="space-y-3">
-          {favorites.map((fav) => (
+          {displayFavorites.map((fav) => (
             <div
               key={fav.id}
               className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm"
             >
-              <div>
+              <div className="min-w-[220px]">
                 <p className="text-sm font-semibold">{fav.label}</p>
                 <p className="text-xs text-[#6B7280]">{fav.subtitle}</p>
               </div>
-              <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-[11px] font-semibold text-[#6B7280]">
-                {fav.type === "PHARMACY" ? "Pharmacie" : "Produit"}
-              </span>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-[11px] font-semibold text-[#6B7280]">
+                  {fav.type === "PHARMACY" ? "Pharmacie" : "Produit"}
+                </span>
+                {fav.targetHref ? (
+                  <Link
+                    href={fav.targetHref}
+                    className="rounded-full border border-[#D1D5DB] px-3 py-1 text-[11px] font-semibold text-[#374151]"
+                  >
+                    Voir
+                  </Link>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => {
+                    void removeFavorite(fav.id);
+                  }}
+                  disabled={mutating}
+                  className="rounded-full border border-[#FECACA] bg-[#FEF2F2] px-3 py-1 text-[11px] font-semibold text-[#B91C1C] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  Retirer
+                </button>
+              </div>
             </div>
           ))}
         </div>

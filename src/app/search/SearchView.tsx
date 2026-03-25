@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiJson } from "@/lib/api";
 import { PatientShell } from "@/components/PatientShell";
+import { useFavorites } from "@/lib/useFavorites";
 
 const SearchResultsMap = dynamic(() => import("@/components/SearchResultsMap"), {
   ssr: false,
@@ -155,6 +156,8 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const { isPharmacyFavorite, togglePharmacyFavorite, mutating: favoriteMutating } =
+    useFavorites();
   const shouldAutoSearchRef = useRef(Boolean(initialQuery));
   const runSearchRef = useRef<(() => Promise<void>) | null>(null);
   const hasSearchInputRef = useRef(
@@ -853,6 +856,21 @@ export default function SearchPage() {
                           {formatCompactMoney(group.totalPrice)}
                         </p>
                         <p className="text-[11px] text-[#6B7280]">Total panier</p>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void togglePharmacyFavorite(group.pharmacy._id);
+                          }}
+                          disabled={favoriteMutating}
+                          className={`mt-2 rounded-full px-3 py-1 text-[10px] font-semibold ${
+                            isPharmacyFavorite(group.pharmacy._id)
+                              ? "border border-[#BFDBFE] bg-[#EFF6FF] text-[#0B63D1]"
+                              : "border border-[#E5E7EB] bg-white text-[#6B7280]"
+                          } disabled:cursor-not-allowed disabled:opacity-70`}
+                        >
+                          {isPharmacyFavorite(group.pharmacy._id) ? "★ Favori" : "☆ Favori"}
+                        </button>
                       </div>
                     </div>
                     <div className="mt-3 border-t border-[#E5E7EB] pt-3">
@@ -964,6 +982,21 @@ export default function SearchPage() {
                           {totalPrice !== undefined ? formatCompactMoney(totalPrice) : "—"}
                         </p>
                         <p className="text-[11px] text-[#6B7280]">Total panier</p>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void togglePharmacyFavorite(pharmacy._id);
+                          }}
+                          disabled={favoriteMutating}
+                          className={`mt-2 rounded-full px-3 py-1 text-[10px] font-semibold ${
+                            isPharmacyFavorite(pharmacy._id)
+                              ? "border border-[#BFDBFE] bg-[#EFF6FF] text-[#0B63D1]"
+                              : "border border-[#E5E7EB] bg-white text-[#6B7280]"
+                          } disabled:cursor-not-allowed disabled:opacity-70`}
+                        >
+                          {isPharmacyFavorite(pharmacy._id) ? "★ Favori" : "☆ Favori"}
+                        </button>
                       </div>
                     </div>
                     <div className="mt-3 border-t border-[#E5E7EB] pt-3">

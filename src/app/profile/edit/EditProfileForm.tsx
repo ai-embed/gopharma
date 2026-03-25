@@ -12,6 +12,7 @@ type UpdateMeResponse = {
   lastName: string;
   email: string;
   country?: string;
+  phoneNumber?: string;
 };
 
 export default function EditProfileForm() {
@@ -51,6 +52,7 @@ export default function EditProfileForm() {
           initialLastName={user?.lastName ?? ""}
           initialEmail={user?.email ?? ""}
           initialCountry={user?.country ?? "BENIN"}
+          initialPhoneNumber={user?.phoneNumber ?? ""}
           userLoading={userLoading}
         />
       </div>
@@ -63,18 +65,21 @@ function EditProfileFields({
   initialLastName,
   initialEmail,
   initialCountry,
+  initialPhoneNumber,
   userLoading,
 }: {
   initialFirstName: string;
   initialLastName: string;
   initialEmail: string;
   initialCountry: string;
+  initialPhoneNumber: string;
   userLoading: boolean;
 }) {
   const [firstName, setFirstName] = useState(initialFirstName);
   const [lastName, setLastName] = useState(initialLastName);
   const [email, setEmail] = useState(initialEmail);
   const [country, setCountry] = useState(initialCountry);
+  const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -92,6 +97,7 @@ function EditProfileFields({
         lastName,
         email,
         country,
+        phoneNumber: phoneNumber.trim() || undefined,
       }),
     });
 
@@ -170,12 +176,19 @@ function EditProfileFields({
             <option value="SENEGAL">Sénégal</option>
           </select>
         </div>
-      </div>
-
-      <div className="mt-6 rounded-2xl border border-dashed border-[#E5E7EB] bg-[#F8FAFC] px-4 py-3 text-xs text-[#6B7280]">
-        Les champs téléphone et adresse complète ne sont pas encore exposés par
-        l’API utilisateur. On les branchera dès qu’ils seront disponibles côté
-        backend.
+        <div className="space-y-2 text-xs text-[#6B7280] sm:col-span-2">
+          <label htmlFor="phoneNumber" className="text-[11px] font-semibold">
+            Numéro de téléphone
+          </label>
+          <input
+            id="phoneNumber"
+            value={phoneNumber}
+            onChange={(event) => setPhoneNumber(event.target.value)}
+            className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-2"
+            disabled={userLoading || saving}
+            placeholder="+229 01 00 00 00 00"
+          />
+        </div>
       </div>
 
       {error ? (
