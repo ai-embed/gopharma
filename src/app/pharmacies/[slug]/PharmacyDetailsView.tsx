@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { PatientShell } from "@/components/PatientShell";
 import { apiJson } from "@/lib/api";
+import { useFavorites } from "@/lib/useFavorites";
 
 const dayLabels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
@@ -43,6 +44,8 @@ export default function PharmacyDetailPage() {
   const [schedule, setSchedule] = useState<PharmacySchedule | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isPharmacyFavorite, togglePharmacyFavorite, mutating: favoriteMutating } =
+    useFavorites();
 
   useEffect(() => {
     if (!pharmacyId) return;
@@ -255,6 +258,24 @@ export default function PharmacyDetailPage() {
               >
                 Appeler maintenant
               </button>
+              {pharmacy?._id ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    void togglePharmacyFavorite(pharmacy._id);
+                  }}
+                  disabled={favoriteMutating}
+                  className={`mt-3 w-full rounded-full border px-4 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-70 ${
+                    isPharmacyFavorite(pharmacy._id)
+                      ? "border-[#BFDBFE] bg-[#EFF6FF] text-[#0B63D1]"
+                      : "border-[#E5E7EB] bg-white text-[#1F1D1B]"
+                  }`}
+                >
+                  {isPharmacyFavorite(pharmacy._id)
+                    ? "Retirer des favoris"
+                    : "Ajouter aux favoris"}
+                </button>
+              ) : null}
 
             </div>
 
