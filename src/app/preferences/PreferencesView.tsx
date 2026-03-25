@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Notice } from "@/components/Notice";
 import ProfileShell from "@/components/ProfileShell";
-import { apiJsonAuth } from "@/lib/api";
+import { apiJson, apiJsonAuth } from "@/lib/api";
 import { useUser } from "@/lib/useUser";
 
 type UpdatePreferencesResponse = {
@@ -35,12 +35,14 @@ const CHANNELS = [
 ] as const;
 
 export default function PreferencesView() {
-  const { user, loading: userLoading } = useUser();
+  const { user, loading: userLoading, error: userError } = useUser();
 
   return (
     <ProfileShell activeTab="preferences">
+      {userError ? <Notice tone="error" message={userError} /> : null}
       <PreferencesForm
         key={user?._id ?? "guest"}
+        email={user?.email ?? ""}
         initialLanguage={user?.preferences?.language ?? "fr"}
         initialTimezone={user?.preferences?.timezone ?? "Africa/Porto-Novo"}
         initialChannels={user?.preferences?.channels ?? ["IN_APP", "EMAIL"]}
@@ -52,12 +54,14 @@ export default function PreferencesView() {
 }
 
 function PreferencesForm({
+  email,
   initialLanguage,
   initialTimezone,
   initialChannels,
   initialAlertsEnabled,
   userLoading,
 }: {
+  email: string;
   initialLanguage: string;
   initialTimezone: string;
   initialChannels: string[];
@@ -69,6 +73,7 @@ function PreferencesForm({
   const [channels, setChannels] = useState<string[]>(initialChannels);
   const [alertsEnabled, setAlertsEnabled] = useState(initialAlertsEnabled);
   const [saving, setSaving] = useState(false);
+  const [passwordResetLoading, setPasswordResetLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -106,6 +111,34 @@ function PreferencesForm({
     }
 
     setSuccess("Préférences mises à jour avec succès.");
+  };
+
+  const onRequestPasswordReset = async () => {
+    if (!email) {
+      setError("Adresse e-mail introuvable pour ce compte.");
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+    setPasswordResetLoading(true);
+
+    const result = await apiJson<{ success: boolean; message?: string }>(
+      "/api/auth/forgot-password",
+      {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      }
+    );
+
+    setPasswordResetLoading(false);
+
+    if (!result.ok) {
+      setError(result.error ?? "Impossible d'envoyer le lien de réinitialisation.");
+      return;
+    }
+
+    setSuccess("E-mail de réinitialisation envoyé. Vérifiez votre boîte mail.");
   };
 
   return (
@@ -226,10 +259,15 @@ function PreferencesForm({
       <section className="space-y-3 rounded-2xl border border-[#E5E7EB] p-5">
         <h2 className="text-sm font-semibold">Sécurité du compte</h2>
         <p className="text-xs text-[#6B7280]">
-          Le changement de mot de passe sera branché avec le flux backend dédié.
+          Utilisez le flux sécurisé de réinitialisation mot de passe par e-mail.
         </p>
-        <button className="rounded-full border border-[#E5E7EB] px-4 py-2 text-[11px] font-semibold text-[#1F1D1B]">
-          Changer le mot de passe
+        <button
+          type="button"
+          onClick={onRequestPasswordReset}
+          disabled={userLoading || saving || passwordResetLoading}
+          className="rounded-full border border-[#E5E7EB] px-4 py-2 text-[11px] font-semibold text-[#1F1D1B] disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {passwordResetLoading ? "Envoi..." : "Changer le mot de passe"}
         </button>
       </section>
 
