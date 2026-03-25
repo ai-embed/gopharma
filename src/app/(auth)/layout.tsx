@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import AppFooter from "@/components/AppFooter";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { apiJsonAuth } from "@/lib/api";
+import { clearTokens, getAccessToken } from "@/lib/auth";
+import { getRoleHomePath } from "@/lib/roles";
 
 const tabs = [
   { href: "/login", label: "Connexion" },
@@ -15,6 +19,32 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (pathname !== "/login" && pathname !== "/register") return;
+    if (!getAccessToken()) return;
+
+    let cancelled = false;
+
+    const checkSession = async () => {
+      const meResult = await apiJsonAuth<{ role?: string }>("/api/users/me");
+      if (cancelled) return;
+
+      if (meResult.ok && meResult.data?.role) {
+        router.replace(getRoleHomePath(meResult.data.role));
+        return;
+      }
+
+      clearTokens();
+    };
+
+    void checkSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname, router]);
 
   return (
     <div className="min-h-screen bg-[#F3F6F9] px-4 py-6 text-[#1E1E1E] sm:px-6 sm:py-10">
