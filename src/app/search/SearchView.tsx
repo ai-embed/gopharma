@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { apiJson } from "@/lib/api";
+import { apiJson, apiJsonAuth } from "@/lib/api";
 import { PatientShell } from "@/components/PatientShell";
 import { useFavorites } from "@/lib/useFavorites";
 
@@ -164,6 +164,23 @@ export default function SearchPage() {
     initialState.queryTokens.length > 0 || initialState.queryInput.trim() !== ""
   );
   const resultCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const recordHistory = useCallback(
+    (query: string, searchType: "PRODUIT" | "PHARMACIE", resultCount: number) => {
+      const cleanQuery = query.trim();
+      if (!cleanQuery) return;
+
+      void apiJsonAuth("/api/history", {
+        method: "POST",
+        body: JSON.stringify({
+          query: cleanQuery,
+          searchType,
+          resultCount,
+        }),
+      });
+    },
+    []
+  );
 
   useEffect(() => {
     let active = true;
@@ -337,6 +354,10 @@ export default function SearchPage() {
       setResults(mergedResults);
       setPharmacyMatches([]);
       setSelectedPharmacyId(null);
+      queryTokens.forEach((term, index) => {
+        const count = productResponses[index]?.data?.length ?? 0;
+        recordHistory(term, "PRODUIT", count);
+      });
       setLoading(false);
       return;
     }
@@ -366,6 +387,7 @@ export default function SearchPage() {
       setResults(productData);
       setPharmacyMatches([]);
       setSelectedPharmacyId(null);
+      recordHistory(trimmedQuery, "PRODUIT", productData.length);
       setLoading(false);
       return;
     }
@@ -393,7 +415,17 @@ export default function SearchPage() {
     setResults([]);
     setPharmacyMatches(pharmacyRes.data ?? []);
     setSelectedPharmacyId(null);
-  }, [category, nearbyPharmacies, openNow, queryInput, queryTokens, radiusKm, userCoords]);
+    recordHistory(trimmedQuery, "PHARMACIE", pharmacyRes.data?.length ?? 0);
+  }, [
+    category,
+    nearbyPharmacies,
+    openNow,
+    queryInput,
+    queryTokens,
+    radiusKm,
+    recordHistory,
+    userCoords,
+  ]);
 
   useEffect(() => {
     runSearchRef.current = runSearch;

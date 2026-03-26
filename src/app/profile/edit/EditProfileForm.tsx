@@ -84,20 +84,45 @@ function EditProfileFields({
   const [success, setSuccess] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const normalizePhoneNumber = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    const hasPlus = trimmed.startsWith("+");
+    const digitsOnly = trimmed.replace(/\D/g, "");
+    return hasPlus ? `+${digitsOnly}` : digitsOnly;
+  };
+
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     setSuccess(null);
+
+    const cleanFirstName = firstName.trim();
+    const cleanLastName = lastName.trim();
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanCountry = country.trim();
+    const cleanPhoneNumber = normalizePhoneNumber(phoneNumber);
+
+    if (!cleanFirstName || !cleanLastName || !cleanEmail || !cleanCountry) {
+      setError("Veuillez renseigner les champs obligatoires.");
+      return;
+    }
+
+    if (cleanPhoneNumber && (cleanPhoneNumber.length < 6 || cleanPhoneNumber.length > 30)) {
+      setError("Numéro de téléphone invalide. Format attendu: +2290100000000.");
+      return;
+    }
+
     setSaving(true);
 
     const result = await apiJsonAuth<UpdateMeResponse>("/api/users/me", {
       method: "PATCH",
       body: JSON.stringify({
-        firstName,
-        lastName,
-        email,
-        country,
-        phoneNumber: phoneNumber.trim() || undefined,
+        firstName: cleanFirstName,
+        lastName: cleanLastName,
+        email: cleanEmail,
+        country: cleanCountry,
+        phoneNumber: cleanPhoneNumber || undefined,
       }),
     });
 

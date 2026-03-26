@@ -1,308 +1,284 @@
-const stats = [
-  {
-    label: "Utilisateurs Totaux",
-    value: "24 592",
-    delta: "+12%",
-    note: "Vs mois dernier",
-    tone: "emerald",
-  },
-  {
-    label: "Pharmacies Actives",
-    value: "843",
-    delta: "+5%",
-    note: "Vs mois dernier",
-    tone: "emerald",
-  },
-  {
-    label: "Recherches Quotidiennes",
-    value: "3 205",
-    delta: "-2.1%",
-    note: "Vs hier",
-    tone: "rose",
-  },
-  {
-    label: "Temps de Réponse Moyen",
-    value: "142ms",
-    badge: "Stable",
-    note: "Système en bonne santé",
-    tone: "emerald",
-  },
-];
+"use client";
 
-const pendingVerifications = [
-  {
-    name: "GreenCross Pharma",
-    license: "LIC-992831",
-    submitted: "24 Oct 2023",
-    status: "En cours",
-  },
-  {
-    name: "CityCare Meds",
-    license: "LIC-110294",
-    submitted: "23 Oct 2023",
-    status: "Attente",
-  },
-  {
-    name: "Wellness Club",
-    license: "LIC-445821",
-    submitted: "23 Oct 2023",
-    status: "Attente",
-  },
-];
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Notice } from "@/components/Notice";
+import { apiJsonAuth } from "@/lib/api";
 
-const trends = [
-  { label: "Antibiotiques", percent: 45 },
-  { label: "Analgésiques", percent: 32 },
-  { label: "Antihistaminiques", percent: 15 },
-  { label: "Vitamines", percent: 8 },
-];
+type ManagerPharmacy = {
+  _id: string;
+  name: string;
+  address: string;
+  accountStatus: string;
+  operationalStatus: "OUVERT" | "FERME";
+  createdAt?: string;
+};
 
-const systemStatus = [
-  {
-    name: "API Principale",
-    status: "Opérationnel",
-    detail: "Disponibilité 99.9%",
-    bar: 92,
-  },
-  {
-    name: "BD PostgreSQL",
-    status: "Opérationnel",
-    detail: "Charge 24%",
-    bar: 72,
-  },
-  {
-    name: "Index de Recherche",
-    status: "Opérationnel",
-    detail: "Charge CPU serveur 34%",
-    bar: 64,
-  },
-];
+type ManagerProduct = {
+  inventoryId: string;
+  price: number;
+  stockQuantity: number;
+  alertThreshold: number;
+  isAvailable: boolean;
+  product: {
+    _id: string;
+    name: string;
+    category?: string;
+  };
+};
+
+type VisitStats = {
+  total: number;
+  last7Days: number;
+  last30Days: number;
+};
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
 
 export default function PharmacyDashboardPage() {
+  const [pharmacy, setPharmacy] = useState<ManagerPharmacy | null>(null);
+  const [products, setProducts] = useState<ManagerProduct[]>([]);
+  const [visits, setVisits] = useState<VisitStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadDashboard = useCallback(async () => {
+    setError(null);
+    setLoading(true);
+
+    const [pharmacyResult, productsResult, visitsResult] = await Promise.all([
+      apiJsonAuth<ManagerPharmacy>("/api/manager/pharmacy"),
+      apiJsonAuth<ManagerProduct[]>("/api/manager/products"),
+      apiJsonAuth<VisitStats>("/api/manager/stats/visits"),
+    ]);
+
+    if (!pharmacyResult.ok || !pharmacyResult.data) {
+      setError(
+        pharmacyResult.error ??
+          "Impossible de charger le tableau de bord de la pharmacie."
+      );
+      setLoading(false);
+      return;
+    }
+
+    setPharmacy(pharmacyResult.data);
+    setProducts(productsResult.ok && productsResult.data ? productsResult.data : []);
+    setVisits(visitsResult.ok && visitsResult.data ? visitsResult.data : null);
+
+    if (!productsResult.ok) {
+      setError(
+        productsResult.error ?? "Les statistiques de stock n'ont pas pu être chargées."
+      );
+    } else if (!visitsResult.ok) {
+      setError(
+        visitsResult.error ?? "Les statistiques de visites n'ont pas pu être chargées."
+      );
+    }
+
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadDashboard();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [loadDashboard]);
+
+  const stats = useMemo(() => {
+    const availableCount = products.filter(
+      (item) => item.isAvailable && item.stockQuantity > 0
+    ).length;
+    const lowStockCount = products.filter(
+      (item) => item.stockQuantity > 0 && item.stockQuantity <= item.alertThreshold
+    ).length;
+    const outOfStockCount = products.filter((item) => item.stockQuantity <= 0).length;
+    const stockValue = products.reduce((sum, item) => {
+      if (item.stockQuantity <= 0) return sum;
+      return sum + item.price * item.stockQuantity;
+    }, 0);
+
+    return {
+      totalProducts: products.length,
+      availableCount,
+      lowStockCount,
+      outOfStockCount,
+      stockValue,
+    };
+  }, [products]);
+
+  const lowStockProducts = useMemo(
+    () =>
+      products
+        .filter(
+          (item) => item.stockQuantity > 0 && item.stockQuantity <= item.alertThreshold
+        )
+        .sort((a, b) => a.stockQuantity - b.stockQuantity)
+        .slice(0, 6),
+    [products]
+  );
+
+  if (loading) {
+    return (
+      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 text-sm text-[#6B7280]">
+        Chargement du tableau de bord pharmacie...
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-lg font-semibold">
-            Vue d&apos;ensemble du Tableau de Bord
-          </h1>
+          <h1 className="text-lg font-semibold">Tableau de bord pharmacie</h1>
+          <p className="mt-1 text-xs text-[#6B7280]">
+            {pharmacy?.name ?? "Pharmacie"} · {pharmacy?.address ?? "Adresse non renseignée"}
+          </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-3 py-2 text-[11px] text-[#6B7280]">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            Dernière mise à jour : À l&apos;instant
-          </span>
-          <button className="inline-flex items-center gap-2 rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
-            <svg
-              viewBox="0 0 24 24"
-              className="h-4 w-4"
-              aria-hidden="true"
+        <button
+          type="button"
+          onClick={() => void loadDashboard()}
+          className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]"
+        >
+          Actualiser
+        </button>
+      </div>
+
+      {error ? <Notice tone="error" message={error} /> : null}
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <p className="text-xs text-[#6B7280]">Produits au catalogue</p>
+          <p className="mt-2 text-xl font-semibold">{stats.totalProducts}</p>
+          <p className="mt-2 text-[11px] text-[#9CA3AF]">
+            {stats.availableCount} produits disponibles
+          </p>
+        </div>
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <p className="text-xs text-[#6B7280]">Stock faible</p>
+          <p className="mt-2 text-xl font-semibold text-amber-600">
+            {stats.lowStockCount}
+          </p>
+          <p className="mt-2 text-[11px] text-[#9CA3AF]">
+            {stats.outOfStockCount} produits en rupture
+          </p>
+        </div>
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <p className="text-xs text-[#6B7280]">Visites</p>
+          <p className="mt-2 text-xl font-semibold">{visits?.last7Days ?? 0}</p>
+          <p className="mt-2 text-[11px] text-[#9CA3AF]">
+            7 jours · {visits?.last30Days ?? 0} sur 30 jours
+          </p>
+        </div>
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <p className="text-xs text-[#6B7280]">Valeur du stock</p>
+          <p className="mt-2 text-xl font-semibold">{formatCurrency(stats.stockValue)}</p>
+          <p className="mt-2 text-[11px] text-[#9CA3AF]">
+            Total visites: {visits?.total ?? 0}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold">Alertes stock faible</h2>
+            <Link
+              href="/pharmacy/inventory"
+              className="text-xs font-semibold text-[#0B63D1]"
             >
-              <path
-                d="M12 4v10"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-              <path
-                d="M8.5 10.5L12 14l3.5-3.5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M5 19h14"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-            Exporter les Donnees
-          </button>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-2xl border border-[#E5E7EB] bg-white p-4"
-          >
-            <p className="text-xs text-[#6B7280]">{stat.label}</p>
-            <div className="mt-2 flex items-center gap-2">
-              <span className="text-xl font-semibold">{stat.value}</span>
-              {stat.delta ? (
-                <span
-                  className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
-                    stat.tone === "emerald"
-                      ? "bg-emerald-100 text-emerald-600"
-                      : "bg-rose-100 text-rose-600"
-                  }`}
-                >
-                  {stat.delta}
-                </span>
-              ) : null}
-              {stat.badge ? (
-                <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-semibold text-emerald-600">
-                  {stat.badge}
-                </span>
-              ) : null}
-            </div>
-            <p className="mt-2 text-[11px] text-[#9CA3AF]">{stat.note}</p>
+              Gérer l&apos;inventaire
+            </Link>
           </div>
-        ))}
-      </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
-        <div className="space-y-6">
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3 text-sm font-semibold">
-                Vérifications de Pharmacie en attente
-                <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-semibold text-amber-600">
-                  3 EN ATTENTE
-                </span>
-              </div>
-              <button className="text-xs font-semibold text-[#0B63D1]">
-                Voir toutes les demandes
-              </button>
-            </div>
-
+          {lowStockProducts.length === 0 ? (
+            <p className="mt-4 rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] px-4 py-3 text-xs text-[#6B7280]">
+              Aucun produit sous seuil d&apos;alerte.
+            </p>
+          ) : (
             <div className="mt-4 overflow-hidden rounded-2xl border border-[#E5E7EB]">
               <div className="overflow-x-auto">
-                <table className="min-w-[640px] w-full text-xs">
+                <table className="w-full min-w-[620px] text-xs">
                   <thead className="bg-[#F8FAFC] text-[#6B7280]">
-                  <tr>
-                    <th className="px-4 py-3 text-left">PHARMACIE</th>
-                    <th className="px-4 py-3 text-left">LICENCE NO.</th>
-                    <th className="px-4 py-3 text-left">SOUMIS LE</th>
-                    <th className="px-4 py-3 text-left">STATUT</th>
-                    <th className="px-4 py-3 text-left">ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pendingVerifications.map((item) => (
-                    <tr key={item.license} className="border-t border-[#E5E7EB]">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EAF2FF] text-[11px] font-semibold text-[#0B63D1]">
-                            {item.name[0]}
-                          </span>
-                          <span className="font-semibold">{item.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-[#6B7280]">
-                        {item.license}
-                      </td>
-                      <td className="px-4 py-3 text-[#6B7280]">
-                        {item.submitted}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
-                            item.status === "En cours"
-                              ? "bg-emerald-100 text-emerald-600"
-                              : "bg-amber-100 text-amber-600"
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2 text-[11px] font-semibold">
-                          <button className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                            OK
-                          </button>
-                          <button className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-600">
-                            X
-                          </button>
-                        </div>
-                      </td>
+                    <tr>
+                      <th className="px-4 py-3 text-left">Produit</th>
+                      <th className="px-4 py-3 text-left">Catégorie</th>
+                      <th className="px-4 py-3 text-left">Stock</th>
+                      <th className="px-4 py-3 text-left">Seuil</th>
+                      <th className="px-4 py-3 text-left">Prix</th>
                     </tr>
-                  ))}
-                </tbody>
+                  </thead>
+                  <tbody>
+                    {lowStockProducts.map((item) => (
+                      <tr key={item.inventoryId} className="border-t border-[#E5E7EB]">
+                        <td className="px-4 py-3 font-semibold">{item.product.name}</td>
+                        <td className="px-4 py-3 text-[#6B7280]">
+                          {item.product.category ?? "-"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-semibold text-amber-700">
+                            {item.stockQuantity}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-[#6B7280]">{item.alertThreshold}</td>
+                        <td className="px-4 py-3 font-semibold">
+                          {formatCurrency(item.price)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
                 </table>
               </div>
             </div>
-          </div>
-
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
-            <div className="flex items-center justify-between text-sm font-semibold">
-              <span>Verifications Supplementaires</span>
-              <button className="text-xs font-semibold text-[#0B63D1]">
-                Gérer tout
-              </button>
-            </div>
-            <div className="mt-6 rounded-2xl border border-dashed border-[#E5E7EB] px-4 py-6 text-center text-xs text-[#9CA3AF]">
-              File d&apos;attente secondaire active
-            </div>
-          </div>
+          )}
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
-            <h3 className="text-sm font-semibold">Tendances de Recherche</h3>
-            <div className="mt-4 space-y-3 text-xs text-[#6B7280]">
-              {trends.map((trend) => (
-                <div key={trend.label}>
-                  <div className="flex items-center justify-between">
-                    <span>{trend.label}</span>
-                    <span className="font-semibold text-[#1F1D1B]">
-                      {trend.percent}%
-                    </span>
-                  </div>
-                  <div className="mt-2 h-2 w-full rounded-full bg-[#E5E7EB]">
-                    <div
-                      className="h-2 rounded-full bg-[#0B63D1]"
-                      style={{ width: `${trend.percent}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+            <h2 className="text-sm font-semibold">État du compte</h2>
+            <div className="mt-3 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[#6B7280]">Statut validation</span>
+                <span className="font-semibold">{pharmacy?.accountStatus ?? "-"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#6B7280]">Ouverture</span>
+                <span className="font-semibold">{pharmacy?.operationalStatus ?? "-"}</span>
+              </div>
             </div>
           </div>
 
           <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">État du Système</h3>
-              <button className="text-xs font-semibold text-[#0B63D1]">
-                Actualiser
-              </button>
+            <h2 className="text-sm font-semibold">Actions rapides</h2>
+            <div className="mt-3 flex flex-col gap-2">
+              <Link
+                href="/pharmacy/inventory/new"
+                className="rounded-full bg-[#0B63D1] px-3 py-2 text-center text-xs font-semibold text-white"
+              >
+                Ajouter un produit
+              </Link>
+              <Link
+                href="/pharmacy/plannings"
+                className="rounded-full border border-[#E5E7EB] px-3 py-2 text-center text-xs font-semibold text-[#1F1D1B]"
+              >
+                Mettre à jour les horaires
+              </Link>
+              <Link
+                href="/pharmacy/settings"
+                className="rounded-full border border-[#E5E7EB] px-3 py-2 text-center text-xs font-semibold text-[#1F1D1B]"
+              >
+                Modifier le profil pharmacie
+              </Link>
             </div>
-            <div className="mt-4 space-y-4 text-xs text-[#6B7280]">
-              {systemStatus.map((item) => (
-                <div
-                  key={item.name}
-                  className="rounded-2xl border border-[#E5E7EB] p-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[#1F1D1B]">
-                      {item.name}
-                    </span>
-                    <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-semibold text-emerald-600">
-                      {item.status}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[11px]">{item.detail}</p>
-                  <div className="mt-2 h-2 w-full rounded-full bg-[#E5E7EB]">
-                    <div
-                      className="h-2 rounded-full bg-emerald-500"
-                      style={{ width: `${item.bar}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4 text-xs text-[#6B7280]">
-            <p className="font-semibold text-[#1F1D1B]">Dernière Sauvegarde</p>
-            <p className="mt-2">Il y a 2 heures</p>
-            <p className="text-[11px] text-[#9CA3AF]">Taille : 2.4 Go</p>
           </div>
         </div>
       </div>
