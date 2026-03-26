@@ -8,6 +8,12 @@ vi.mock("@/components/TopNav", () => ({
   TopNav: () => <div data-testid="topnav" />,
 }));
 
+vi.mock("@/components/PatientShell", () => ({
+  PatientShell: ({ children }: { children: unknown }) => (
+    <div data-testid="patient-shell">{children}</div>
+  ),
+}));
+
 vi.mock("@/lib/api", () => ({
   apiJson: vi.fn(),
   apiJsonAuth: vi.fn(),

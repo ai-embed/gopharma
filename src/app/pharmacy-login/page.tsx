@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Notice } from "@/components/Notice";
 import { apiJson, apiJsonAuth } from "@/lib/api";
-import { saveTokens } from "@/lib/auth";
+import { clearTokens, getAccessToken, saveTokens } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
@@ -25,11 +25,37 @@ export default function PharmacyLoginPage() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+
+  useEffect(() => {
+    if (!getAccessToken()) return;
+    let cancelled = false;
+
+    const check = async () => {
+      const meResult = await apiJsonAuth<UserProfile>("/api/users/me");
+      if (cancelled) return;
+
+      if (!meResult.ok || !meResult.data) {
+        clearTokens();
+        return;
+      }
+
+      router.replace(getRoleHomePath(meResult.data.role));
+    };
+
+    void check();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+    setInfo(null);
     setLoading(true);
 
     const result = await apiJson<LoginResponse>("/api/auth/login", {
@@ -55,6 +81,34 @@ export default function PharmacyLoginPage() {
     }
 
     router.push(getRoleHomePath(meResult.data.role));
+  };
+
+  const onForgotPassword = async () => {
+    setError(null);
+    setInfo(null);
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      setError("Renseignez votre e-mail pour recevoir le lien de réinitialisation.");
+      return;
+    }
+
+    setForgotLoading(true);
+    const result = await apiJson<{ success: boolean; message?: string }>(
+      "/api/auth/forgot-password",
+      {
+        method: "POST",
+        body: JSON.stringify({ email: cleanEmail }),
+      }
+    );
+    setForgotLoading(false);
+
+    if (!result.ok) {
+      setError(result.error ?? "Impossible d'envoyer le lien de réinitialisation.");
+      return;
+    }
+
+    setInfo("E-mail de réinitialisation envoyé.");
   };
 
   return (
@@ -138,12 +192,18 @@ export default function PharmacyLoginPage() {
                   />
                   Se souvenir de moi
                 </label>
-                <button type="button" className="font-semibold text-[#0B63D1]">
-                  Mot de passe oublié ?
+                <button
+                  type="button"
+                  onClick={onForgotPassword}
+                  disabled={forgotLoading || loading}
+                  className="font-semibold text-[#0B63D1] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {forgotLoading ? "Envoi..." : "Mot de passe oublié ?"}
                 </button>
               </div>
 
               {error ? <Notice tone="error" message={error} /> : null}
+              {info ? <Notice tone="success" message={info} /> : null}
 
               <button
                 type="submit"
@@ -151,22 +211,6 @@ export default function PharmacyLoginPage() {
                 className="w-full rounded-2xl bg-[#0B63D1] py-3 text-sm font-semibold text-white transition hover:bg-[#0A58BA] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {loading ? "Connexion..." : "Se connecter"}
-              </button>
-
-              <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-[#E5E7EB]" />
-                <span className="text-[11px] uppercase tracking-[0.2em] text-[#9CA3AF]">
-                  Ou continuer avec
-                </span>
-                <div className="h-px flex-1 bg-[#E5E7EB]" />
-              </div>
-
-              <button
-                type="button"
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#E5E7EB] bg-white py-3 text-sm font-semibold text-[#1F2937]"
-              >
-                <span className="text-base text-[#0B63D1]">G</span>
-                Google
               </button>
 
               <p className="text-center text-xs text-[#6B7280]">

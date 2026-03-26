@@ -3,8 +3,13 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import AppFooter from "@/components/AppFooter";
+import { clearTokens, getAccessToken } from "@/lib/auth";
+import { getRoleHomePath } from "@/lib/roles";
+import { useUser } from "@/lib/useUser";
 
 const navItems = [
   {
@@ -118,6 +123,45 @@ export default function PharmacyLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading } = useUser();
+  const hasToken = Boolean(getAccessToken());
+  const roleHome = user ? getRoleHomePath(user.role) : null;
+  const canRender = hasToken && !loading && roleHome === "/pharmacy/dashboard";
+
+  const logout = () => {
+    clearTokens();
+    router.push("/pharmacy-login");
+  };
+
+  useEffect(() => {
+    if (!hasToken) {
+      router.replace("/pharmacy-login");
+      return;
+    }
+
+    if (loading) return;
+
+    if (!user) {
+      clearTokens();
+      router.replace("/pharmacy-login");
+      return;
+    }
+
+    if (roleHome && roleHome !== "/pharmacy/dashboard") {
+      router.replace(roleHome);
+    }
+  }, [hasToken, loading, roleHome, router, user]);
+
+  if (!canRender) {
+    return (
+      <div className="min-h-screen bg-[#F3F6F9] px-4 py-6 text-[#1F1D1B] sm:px-6 sm:py-10">
+        <div className="mx-auto flex max-w-6xl items-center justify-center rounded-3xl border border-[#E5E7EB] bg-white py-16 text-sm text-[#6B7280]">
+          Vérification de session…
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F3F6F9] text-[#1F1D1B]">
@@ -168,7 +212,11 @@ export default function PharmacyLayout({
             </div>
           </div>
 
-          <button className="mt-4 flex items-center gap-2 text-left text-xs font-semibold text-[#6B7280]">
+          <button
+            type="button"
+            onClick={logout}
+            className="mt-4 flex items-center gap-2 text-left text-xs font-semibold text-[#6B7280]"
+          >
             <span className="flex h-5 w-5 items-center justify-center rounded-md border border-[#E5E7EB] bg-white">
               <svg viewBox="0 0 24 24" className="h-3 w-3" aria-hidden="true">
                 <path
