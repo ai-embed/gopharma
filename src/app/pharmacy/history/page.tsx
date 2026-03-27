@@ -1,223 +1,395 @@
-const activityRows = [
-  {
-    id: "#TRX-8902",
-    date: "24 Oct 2023",
-    time: "09:42",
-    action: "Vente",
-    actionTone: "emerald",
-    product: "Panadol Extra",
-    change: "-2",
-    changeTone: "rose",
-    user: "Jean Dupont",
-  },
-  {
-    id: "#INV-4412",
-    date: "23 Oct 2023",
-    time: "16:15",
-    action: "Réapprovisionnement",
-    actionTone: "sky",
-    product: "Amoxicilline 500mg",
-    change: "+500",
-    changeTone: "emerald",
-    user: "Sarah Admin",
-  },
-  {
-    id: "#LOG-3321",
-    date: "23 Oct 2023",
-    time: "14:30",
-    action: "Changement de prix",
-    actionTone: "violet",
-    product: "Vitamine C Complexe",
-    change: "--",
-    changeTone: "slate",
-    user: "Michel Ross",
-  },
-  {
-    id: "#TRX-8899",
-    date: "23 Oct 2023",
-    time: "11:20",
-    action: "Vente",
-    actionTone: "emerald",
-    product: "Ibuprofène 200mg",
-    change: "-1",
-    changeTone: "rose",
-    user: "Jean Dupont",
-  },
-  {
-    id: "#EXP-0012",
-    date: "22 Oct 2023",
-    time: "09:00",
-    action: "Alerte expiration",
-    actionTone: "amber",
-    product: "Sirop Toux Enfant",
-    change: "--",
-    changeTone: "slate",
-    user: "Système",
-  },
-  {
-    id: "#TRX-8850",
-    date: "21 Oct 2023",
-    time: "18:45",
-    action: "Vente",
-    actionTone: "emerald",
-    product: "Comprimes Allergie",
-    change: "-1",
-    changeTone: "rose",
-    user: "Lisa W.",
-  },
-];
+"use client";
 
-const actionStyles: Record<string, string> = {
-  emerald: "bg-emerald-100 text-emerald-600",
-  sky: "bg-sky-100 text-sky-600",
-  violet: "bg-violet-100 text-violet-600",
-  amber: "bg-amber-100 text-amber-700",
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Notice } from "@/components/Notice";
+import { apiJsonAuth } from "@/lib/api";
+
+type ManagerProduct = {
+  inventoryId: string;
+  product: {
+    _id: string;
+    name: string;
+  };
 };
 
-const changeStyles: Record<string, string> = {
-  emerald: "text-emerald-600",
-  rose: "text-rose-600",
-  slate: "text-slate-400",
+type StockMovementType =
+  | "ENTREE"
+  | "SORTIE"
+  | "AJUSTEMENT"
+  | "CREER"
+  | "SUPPRIMER"
+  | "MODIFIER";
+
+type StockMovement = {
+  _id: string;
+  productId: string;
+  type: StockMovementType;
+  quantityDelta: number;
+  previousPrice?: number;
+  nextPrice?: number;
+  description?: string;
+  actorUserId?: string;
+  date: string;
 };
+
+type AuditActivityItem = {
+  _id: string;
+  method: "POST" | "PUT" | "PATCH" | "DELETE";
+  path: string;
+  outcome: "SUCCESS" | "ERROR";
+  statusCode: number;
+  metadata?: {
+    params?: Record<string, string | number | boolean>;
+    query?: Record<string, string | number | boolean | string[]>;
+  };
+  createdAt: string;
+};
+
+type AuditActivityResponse = {
+  items: AuditActivityItem[];
+  page: number;
+  limit: number;
+  total: number;
+};
+
+type HistoryEntryKind = "movement" | "schedule";
+
+type HistoryEntry = {
+  id: string;
+  kind: HistoryEntryKind;
+  date: string;
+  actionCode: StockMovementType | "SCHEDULE";
+  actionLabel: string;
+  actionToneClass: string;
+  targetLabel: string;
+  changeLabel: string;
+  description: string;
+  searchBlob: string;
+};
+
+const typeLabels: Record<StockMovementType, string> = {
+  ENTREE: "Entrée",
+  SORTIE: "Sortie",
+  AJUSTEMENT: "Ajustement",
+  CREER: "Création",
+  SUPPRIMER: "Suppression",
+  MODIFIER: "Modification",
+};
+
+const typeTone: Record<StockMovementType, string> = {
+  ENTREE: "bg-emerald-100 text-emerald-700",
+  SORTIE: "bg-rose-100 text-rose-700",
+  AJUSTEMENT: "bg-sky-100 text-sky-700",
+  CREER: "bg-violet-100 text-violet-700",
+  SUPPRIMER: "bg-slate-200 text-slate-700",
+  MODIFIER: "bg-amber-100 text-amber-700",
+};
+
+const scheduleTone = {
+  success: "bg-indigo-100 text-indigo-700",
+  error: "bg-rose-100 text-rose-700",
+};
+
+function formatDateTime(value: string) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return { date: "-", time: "-" };
+  return {
+    date: parsed.toLocaleDateString("fr-FR"),
+    time: parsed.toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  };
+}
+
+function formatCurrency(value?: number) {
+  if (value === undefined || value === null) return "-";
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format(value);
+}
+
+function mapScheduleAction(activity: AuditActivityItem): {
+  actionLabel: string;
+  changeLabel: string;
+  description: string;
+} {
+  const path = activity.path;
+
+  if (activity.method === "PUT" && path.includes("/manager/schedules/weekly")) {
+    return {
+      actionLabel: "Horaires",
+      changeLabel: "Mise à jour hebdomadaire",
+      description: "Horaires hebdomadaires mis à jour.",
+    };
+  }
+
+  if (activity.method === "POST" && path.includes("/manager/schedules/exceptions")) {
+    return {
+      actionLabel: "Garde",
+      changeLabel: "Ajout d'exception",
+      description: "Période de garde/exception ajoutée.",
+    };
+  }
+
+  if (activity.method === "DELETE" && path.includes("/manager/schedules/exceptions")) {
+    const index = activity.path.split("/").at(-1);
+    return {
+      actionLabel: "Garde",
+      changeLabel: "Suppression d'exception",
+      description: index
+        ? `Exception supprimée (index ${index}).`
+        : "Exception supprimée.",
+    };
+  }
+
+  return {
+    actionLabel: "Planning",
+    changeLabel: `${activity.method} ${activity.statusCode}`,
+    description: activity.path,
+  };
+}
 
 export default function PharmacyHistoryPage() {
+  const [entries, setEntries] = useState<HistoryEntry[]>([]);
+  const [query, setQuery] = useState("");
+  const [period, setPeriod] = useState("30");
+  const [actionFilter, setActionFilter] = useState<
+    "ALL" | StockMovementType | "SCHEDULE"
+  >("ALL");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [referenceNow, setReferenceNow] = useState<number>(0);
+
+  const loadData = useCallback(async () => {
+    setError(null);
+    setLoading(true);
+
+    const [productsResult, movementsResult, activityResult] = await Promise.all([
+      apiJsonAuth<ManagerProduct[]>("/api/manager/products"),
+      apiJsonAuth<StockMovement[]>("/api/manager/products/movements"),
+      apiJsonAuth<AuditActivityResponse>("/api/history/activity?page=1&limit=100"),
+    ]);
+
+    if (!movementsResult.ok || !movementsResult.data) {
+      setError(movementsResult.error ?? "Impossible de charger l'historique.");
+      setEntries([]);
+      setLoading(false);
+      return;
+    }
+
+    const productsMap: Record<string, string> = {};
+    if (productsResult.ok && productsResult.data) {
+      for (const entry of productsResult.data) {
+        if (entry.product?._id) {
+          productsMap[entry.product._id] = entry.product.name;
+        }
+      }
+    }
+
+    const movementEntries: HistoryEntry[] = movementsResult.data.map((entry) => {
+      const productName =
+        productsMap[entry.productId] ?? `Produit ${entry.productId.slice(-6)}`;
+
+      const changeLabel =
+        entry.type === "MODIFIER"
+          ? `${formatCurrency(entry.previousPrice)} -> ${formatCurrency(entry.nextPrice)}`
+          : `${entry.quantityDelta > 0 ? "+" : ""}${entry.quantityDelta}`;
+
+      return {
+        id: entry._id,
+        kind: "movement",
+        date: entry.date,
+        actionCode: entry.type,
+        actionLabel: typeLabels[entry.type],
+        actionToneClass: typeTone[entry.type],
+        targetLabel: productName,
+        changeLabel,
+        description: entry.description ?? "Mouvement de stock.",
+        searchBlob: [
+          productName,
+          typeLabels[entry.type],
+          entry.description ?? "",
+          entry.actorUserId ?? "",
+        ]
+          .join(" ")
+          .toLowerCase(),
+      };
+    });
+
+    const scheduleEntries: HistoryEntry[] =
+      activityResult.ok && activityResult.data
+        ? activityResult.data.items
+            .filter((item) => item.path.includes("/manager/schedules"))
+            .map((item) => {
+              const mapped = mapScheduleAction(item);
+              const tone =
+                item.outcome === "SUCCESS"
+                  ? scheduleTone.success
+                  : scheduleTone.error;
+
+              return {
+                id: item._id,
+                kind: "schedule",
+                date: item.createdAt,
+                actionCode: "SCHEDULE",
+                actionLabel: mapped.actionLabel,
+                actionToneClass: tone,
+                targetLabel: "Planning pharmacie",
+                changeLabel: mapped.changeLabel,
+                description: mapped.description,
+                searchBlob: [
+                  mapped.actionLabel,
+                  mapped.changeLabel,
+                  mapped.description,
+                  item.path,
+                ]
+                  .join(" ")
+                  .toLowerCase(),
+              };
+            })
+        : [];
+
+    const merged = [...movementEntries, ...scheduleEntries].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    setEntries(merged);
+    setReferenceNow(Date.now());
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadData();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadData]);
+
+  const filteredEntries = useMemo(() => {
+    const periodDays = Number(period);
+    const queryNormalized = query.trim().toLowerCase();
+
+    return entries.filter((entry) => {
+      if (actionFilter === "SCHEDULE" && entry.kind !== "schedule") {
+        return false;
+      }
+
+      if (
+        actionFilter !== "ALL" &&
+        actionFilter !== "SCHEDULE" &&
+        entry.actionCode !== actionFilter
+      ) {
+        return false;
+      }
+
+      if (Number.isFinite(periodDays) && periodDays > 0 && referenceNow > 0) {
+        const entryDate = new Date(entry.date).getTime();
+        const diffDays = (referenceNow - entryDate) / (1000 * 60 * 60 * 24);
+        if (diffDays > periodDays) return false;
+      }
+
+      if (!queryNormalized) return true;
+
+      return entry.searchBlob.includes(queryNormalized);
+    });
+  }, [actionFilter, entries, period, query, referenceNow]);
+
+  const exportCsv = () => {
+    const rows = filteredEntries.map((entry) => {
+      const { date, time } = formatDateTime(entry.date);
+      return [
+        entry.id,
+        date,
+        time,
+        entry.actionLabel,
+        entry.targetLabel,
+        entry.changeLabel,
+        entry.description,
+      ];
+    });
+
+    const csvLines = [
+      ["ID", "Date", "Heure", "Action", "Cible", "Changement", "Description"],
+      ...rows,
+    ]
+      .map((line) =>
+        line
+          .map((item) => `"${String(item).replaceAll('"', '""')}"`)
+          .join(",")
+      )
+      .join("\n");
+
+    const blob = new Blob([csvLines], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "historique-pharmacie.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-lg font-semibold">
-          Historique d&apos;activité de la Pharmacie
-        </h1>
+        <h1 className="text-lg font-semibold">Historique d&apos;activité</h1>
       </div>
+
+      {error ? <Notice tone="error" message={error} /> : null}
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <svg
-              viewBox="0 0 24 24"
-              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]"
-              aria-hidden="true"
-            >
-              <path
-                d="M4 7h16M7 12h10M10 17h4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-            <input
-              placeholder="Filtrer par produit ou utilisateur..."
-              className="w-64 rounded-xl border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-4 text-xs"
-            />
-          </div>
-          <div className="relative">
-            <svg
-              viewBox="0 0 24 24"
-              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]"
-              aria-hidden="true"
-            >
-              <path
-                d="M7 4v3M17 4v3M4 9h16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-              <rect
-                x="4"
-                y="6"
-                width="16"
-                height="14"
-                rx="2.5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-              />
-            </svg>
-            <select className="rounded-xl border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-8 text-xs font-semibold text-[#1F1D1B]">
-              <option>30 derniers jours</option>
-              <option>7 derniers jours</option>
-              <option>3 derniers mois</option>
-            </select>
-          </div>
-          <div className="relative">
-            <svg
-              viewBox="0 0 24 24"
-              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]"
-              aria-hidden="true"
-            >
-              <path
-                d="M4 6h16M8 12h8M10 18h4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-            <select className="rounded-xl border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-8 text-xs font-semibold text-[#1F1D1B]">
-              <option>Toutes les actions</option>
-              <option>Ventes</option>
-              <option>Réapprovisionnement</option>
-            </select>
-          </div>
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Filtrer par action ou description..."
+            className="w-72 rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-xs"
+          />
+          <select
+            value={period}
+            onChange={(event) => setPeriod(event.target.value)}
+            className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs font-semibold text-[#1F1D1B]"
+          >
+            <option value="7">7 derniers jours</option>
+            <option value="30">30 derniers jours</option>
+            <option value="90">90 derniers jours</option>
+            <option value="365">12 derniers mois</option>
+          </select>
+          <select
+            value={actionFilter}
+            onChange={(event) =>
+              setActionFilter(event.target.value as "ALL" | StockMovementType | "SCHEDULE")
+            }
+            className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5 text-xs font-semibold text-[#1F1D1B]"
+          >
+            <option value="ALL">Toutes les actions</option>
+            <option value="SCHEDULE">Horaires / Gardes</option>
+            <option value="ENTREE">Entrée</option>
+            <option value="SORTIE">Sortie</option>
+            <option value="AJUSTEMENT">Ajustement</option>
+            <option value="CREER">Création</option>
+            <option value="SUPPRIMER">Suppression</option>
+            <option value="MODIFIER">Modification</option>
+          </select>
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="inline-flex items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]">
-            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-              <path
-                d="M12 5v9"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-              <path
-                d="M8.5 11.5L12 15l3.5-3.5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M5 19h14"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
+          <button
+            type="button"
+            onClick={exportCsv}
+            className="inline-flex items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]"
+          >
             Exporter en CSV
           </button>
-          <button className="inline-flex items-center gap-2 rounded-xl bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
-            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-              <path
-                d="M7 8V4h10v4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinejoin="round"
-              />
-              <rect
-                x="5"
-                y="9"
-                width="14"
-                height="8"
-                rx="2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-              />
-              <path
-                d="M7.5 14h9"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-            Imprimer le rapport
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
+          >
+            Imprimer
           </button>
         </div>
       </div>
@@ -225,106 +397,62 @@ export default function PharmacyHistoryPage() {
       <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
         <div className="overflow-hidden rounded-2xl border border-[#E5E7EB]">
           <div className="overflow-x-auto">
-            <table className="min-w-[720px] w-full text-xs">
+            <table className="w-full min-w-[860px] text-xs">
               <thead className="bg-[#F8FAFC] text-[#6B7280]">
-              <tr>
-                <th className="px-4 py-3 text-left">ID TRANSACTION</th>
-                <th className="px-4 py-3 text-left">DATE ET HEURE</th>
-                <th className="px-4 py-3 text-left">ACTION</th>
-                <th className="px-4 py-3 text-left">NOM DU PRODUIT</th>
-                <th className="px-4 py-3 text-left">CHANGEMENT</th>
-                <th className="px-4 py-3 text-left">UTILISATEUR</th>
-                <th className="px-4 py-3 text-left">DÉTAILS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activityRows.map((row) => (
-                <tr key={row.id} className="border-t border-[#E5E7EB]">
-                  <td className="px-4 py-3 text-[#6B7280]">{row.id}</td>
-                  <td className="px-4 py-3">
-                    <div className="font-semibold">{row.date}</div>
-                    <div className="text-[10px] text-[#6B7280]">{row.time}</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
-                        actionStyles[row.actionTone]
-                      }`}
-                    >
-                      {row.action}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F3F4F6] text-[#6B7280]">
-                        <svg
-                          viewBox="0 0 24 24"
-                          className="h-4 w-4"
-                          aria-hidden="true"
-                        >
-                          <rect
-                            x="6"
-                            y="4"
-                            width="12"
-                            height="16"
-                            rx="3"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.6"
-                          />
-                          <path
-                            d="M9 12h6"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.6"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                      </span>
-                      <span className="font-semibold">{row.product}</span>
-                    </div>
-                  </td>
-                  <td
-                    className={`px-4 py-3 font-semibold ${
-                      changeStyles[row.changeTone]
-                    }`}
-                  >
-                    {row.change}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#EAF2FF] text-[10px] font-semibold text-[#0B63D1]">
-                        {row.user[0]}
-                      </span>
-                      <span className="text-[11px] font-semibold">
-                        {row.user}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-[#0B63D1]">Voir</td>
+                <tr>
+                  <th className="px-4 py-3 text-left">ID</th>
+                  <th className="px-4 py-3 text-left">Date & heure</th>
+                  <th className="px-4 py-3 text-left">Action</th>
+                  <th className="px-4 py-3 text-left">Cible</th>
+                  <th className="px-4 py-3 text-left">Changement</th>
+                  <th className="px-4 py-3 text-left">Description</th>
                 </tr>
-              ))}
-            </tbody>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td className="px-4 py-4 text-[#6B7280]" colSpan={6}>
+                      Chargement de l&apos;historique...
+                    </td>
+                  </tr>
+                ) : filteredEntries.length === 0 ? (
+                  <tr>
+                    <td className="px-4 py-4 text-[#6B7280]" colSpan={6}>
+                      Aucune action trouvée.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredEntries.map((entry) => {
+                    const { date, time } = formatDateTime(entry.date);
+
+                    return (
+                      <tr key={entry.id} className="border-t border-[#E5E7EB]">
+                        <td className="px-4 py-3 text-[#6B7280]">#{entry.id.slice(-8)}</td>
+                        <td className="px-4 py-3">
+                          <div className="font-semibold">{date}</div>
+                          <div className="text-[10px] text-[#6B7280]">{time}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`rounded-full px-2 py-1 text-[10px] font-semibold ${entry.actionToneClass}`}
+                          >
+                            {entry.actionLabel}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-semibold">{entry.targetLabel}</td>
+                        <td className="px-4 py-3 font-semibold">{entry.changeLabel}</td>
+                        <td className="px-4 py-3 text-[#6B7280]">{entry.description}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
             </table>
           </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-between text-xs text-[#6B7280]">
-          <span>Affichage de 1 à 6 sur 128 résultats</span>
-          <div className="flex items-center gap-2">
-            <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
-              Précédent
-            </button>
-            <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
-              Suivant
-            </button>
-          </div>
-        </div>
+        <div className="mt-4 text-xs text-[#6B7280]">{filteredEntries.length} action(s)</div>
       </div>
-
-      <p className="text-center text-[10px] text-[#9CA3AF]">
-        © 2023 PharmaFinder Inc. Panneau de Contrôle Super Admin v2.4.0
-      </p>
     </div>
   );
 }

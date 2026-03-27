@@ -1,206 +1,336 @@
 "use client";
 
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Notice } from "@/components/Notice";
 import { PatientShell } from "@/components/PatientShell";
+import { apiJsonAuth } from "@/lib/api";
 
-const days = [
-  "Lun",
-  "Mar",
-  "Mer",
-  "Jeu",
-  "Ven",
-  "Sam",
-  "Dim",
+type ReminderFrequency = "DAILY" | "WEEKLY" | "MONTHLY" | "CUSTOM";
+
+type ReminderItem = {
+  _id: string;
+  medicationName: string;
+  note?: string;
+  frequency: ReminderFrequency;
+  intervalHours: number;
+  startDate: string;
+  endDate?: string;
+  nextRunAt: string;
+  isActive: boolean;
+};
+
+const frequencyOptions: { label: string; value: ReminderFrequency }[] = [
+  { label: "Tous les jours", value: "DAILY" },
+  { label: "Toutes les semaines", value: "WEEKLY" },
+  { label: "Tous les mois", value: "MONTHLY" },
+  { label: "Personnalisé (heures)", value: "CUSTOM" },
 ];
 
-export default function NewReminderPage() {
+function fromInputDateTime(value: string) {
+  if (!value) return undefined;
+  return new Date(value).toISOString();
+}
+
+function formatDateTime(value?: string) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export default function ReminderForm() {
+  const [reminders, setReminders] = useState<ReminderItem[]>([]);
+  const [medicationName, setMedicationName] = useState("");
+  const [note, setNote] = useState("");
+  const [frequency, setFrequency] = useState<ReminderFrequency>("DAILY");
+  const [intervalHours, setIntervalHours] = useState("8");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [rowBusyId, setRowBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const canSubmit = useMemo(() => {
+    if (saving) return false;
+    if (!medicationName.trim()) return false;
+    if (frequency === "CUSTOM") {
+      const parsed = Number(intervalHours);
+      if (!Number.isFinite(parsed) || parsed < 1) return false;
+    }
+    return true;
+  }, [frequency, intervalHours, medicationName, saving]);
+
+  const loadReminders = useCallback(async () => {
+    setError(null);
+    setLoading(true);
+    const result = await apiJsonAuth<ReminderItem[]>("/api/reminders");
+    if (!result.ok || !result.data) {
+      setReminders([]);
+      setError(result.error ?? "Impossible de charger les rappels.");
+      setLoading(false);
+      return;
+    }
+    setReminders(result.data);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadReminders();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadReminders]);
+
+  const resetForm = () => {
+    setMedicationName("");
+    setNote("");
+    setFrequency("DAILY");
+    setIntervalHours("8");
+    setStartDate("");
+    setEndDate("");
+  };
+
+  const createReminder = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canSubmit) return;
+
+    setError(null);
+    setSuccess(null);
+    setSaving(true);
+
+    const payload = {
+      medicationName: medicationName.trim(),
+      note: note.trim() || undefined,
+      frequency,
+      intervalHours: frequency === "CUSTOM" ? Number(intervalHours) : undefined,
+      startDate: fromInputDateTime(startDate),
+      endDate: fromInputDateTime(endDate),
+    };
+
+    const result = await apiJsonAuth<ReminderItem>("/api/reminders", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    setSaving(false);
+    if (!result.ok) {
+      setError(result.error ?? "Création du rappel impossible.");
+      return;
+    }
+
+    resetForm();
+    setSuccess("Rappel enregistré.");
+    await loadReminders();
+  };
+
+  const toggleReminder = async (item: ReminderItem) => {
+    setRowBusyId(item._id);
+    setError(null);
+    setSuccess(null);
+    const result = await apiJsonAuth<ReminderItem>(`/api/reminders/${item._id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ isActive: !item.isActive }),
+    });
+    setRowBusyId(null);
+    if (!result.ok) {
+      setError(result.error ?? "Mise à jour impossible.");
+      return;
+    }
+    setSuccess(item.isActive ? "Rappel désactivé." : "Rappel activé.");
+    await loadReminders();
+  };
+
+  const deleteReminder = async (item: ReminderItem) => {
+    const confirmed = window.confirm(
+      `Supprimer le rappel "${item.medicationName}" ?`
+    );
+    if (!confirmed) return;
+    setRowBusyId(item._id);
+    setError(null);
+    setSuccess(null);
+    const result = await apiJsonAuth<{ success: boolean }>(`/api/reminders/${item._id}`, {
+      method: "DELETE",
+    });
+    setRowBusyId(null);
+    if (!result.ok) {
+      setError(result.error ?? "Suppression impossible.");
+      return;
+    }
+    setSuccess("Rappel supprimé.");
+    await loadReminders();
+  };
+
   return (
     <PatientShell>
-      <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
+      <div className="space-y-6">
+        {error ? <Notice tone="error" message={error} /> : null}
+        {success ? <Notice tone="success" message={success} /> : null}
+
+        <form
+          onSubmit={createReminder}
+          className="rounded-3xl border border-[#E5E7EB] bg-white p-6"
+        >
           <div className="space-y-2">
-            <h1 className="text-lg font-semibold">Nouveau rappel d&apos;ordonnance</h1>
+            <h1 className="text-lg font-semibold">Calendrier d&apos;ordonnance</h1>
             <p className="text-sm text-[#6B7280]">
-              Configurez votre calendrier de medication pour ne jamais oublier une prise.
+              Créez et gérez vos rappels de prise de médicaments.
             </p>
           </div>
 
-          <div className="mt-6 space-y-5">
-            <section className="space-y-4 rounded-2xl border border-[#E5E7EB] p-5">
-              <h2 className="text-sm font-semibold">Informations médicament</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2 text-xs text-[#6B7280]">
-                  <label className="text-[11px] font-semibold">Nom du médicament</label>
-                  <input
-                    placeholder="Doliprane"
-                    className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-2"
-                  />
-                </div>
-                <div className="space-y-2 text-xs text-[#6B7280]">
-                  <label className="text-[11px] font-semibold">Dosage</label>
-                  <input
-                    placeholder="1000mg"
-                    className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-2"
-                  />
-                </div>
-                <div className="space-y-2 text-xs text-[#6B7280]">
-                  <label className="text-[11px] font-semibold">Forme</label>
-                  <select className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-2">
-                    <option>Comprime</option>
-                    <option>Gelule</option>
-                    <option>Sirop</option>
-                  </select>
-                </div>
-                <div className="space-y-2 text-xs text-[#6B7280]">
-                  <label className="text-[11px] font-semibold">Posologie</label>
-                  <input
-                    placeholder="2 prises"
-                    className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-2"
-                  />
-                </div>
-              </div>
-              <button className="text-xs font-semibold text-[#0B63D1]">
-                + Ajouter un autre médicament
-              </button>
-            </section>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <label className="space-y-2 md:col-span-2">
+              <span className="text-xs font-semibold text-[#6B7280]">Médicament</span>
+              <input
+                value={medicationName}
+                onChange={(event) => setMedicationName(event.target.value)}
+                placeholder="Ex: Paracétamol 500mg"
+                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm"
+              />
+            </label>
 
-            <section className="space-y-3 rounded-2xl border border-[#E5E7EB] p-5">
-              <h2 className="text-sm font-semibold">Photo d&apos;ordonnance</h2>
-              <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC] px-6 py-8 text-center text-xs text-[#6B7280]">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow">
-                  +
-                </div>
-                <p>Parcourir les fichiers ou glisser deposer</p>
-                <p className="text-[11px]">PNG, JPG, PDF (max 5 Mo)</p>
-              </div>
-            </section>
-
-            <section className="space-y-4 rounded-2xl border border-[#E5E7EB] p-5">
-              <h2 className="text-sm font-semibold">Etat d&apos;achat des produits</h2>
-              <div className="grid gap-3 sm:grid-cols-2 text-xs">
-                <label className="flex items-start gap-3 rounded-2xl border border-[#E5E7EB] px-4 py-3">
-                  <input type="radio" name="purchase" defaultChecked />
-                  <div>
-                    <p className="text-sm font-semibold">Oui, deja achetes</p>
-                    <p className="text-xs text-[#6B7280]">
-                      Disponibles dans votre pharmacie
-                    </p>
-                  </div>
-                </label>
-                <label className="flex items-start gap-3 rounded-2xl border border-[#E5E7EB] px-4 py-3">
-                  <input type="radio" name="purchase" />
-                  <div>
-                    <p className="text-sm font-semibold">Non, a acheter</p>
-                    <p className="text-xs text-[#6B7280]">
-                      Lancer une recherche
-                    </p>
-                  </div>
-                </label>
-              </div>
-            </section>
-
-            <section className="space-y-4 rounded-2xl border border-[#E5E7EB] p-5">
-              <h2 className="text-sm font-semibold">Calendrier et frequence</h2>
-              <p className="text-xs text-[#6B7280]">
-                Jours de prise du médicament
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {days.map((day, index) => (
-                  <button
-                    key={day}
-                    className={`h-9 w-9 rounded-full text-xs font-semibold ${
-                      index < 5
-                        ? "bg-[#0B63D1] text-white"
-                        : "border border-[#E5E7EB] text-[#6B7280]"
-                    }`}
-                  >
-                    {day}
-                  </button>
+            <label className="space-y-2">
+              <span className="text-xs font-semibold text-[#6B7280]">Fréquence</span>
+              <select
+                value={frequency}
+                onChange={(event) => setFrequency(event.target.value as ReminderFrequency)}
+                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm"
+              >
+                {frequencyOptions.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
                 ))}
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2 text-xs text-[#6B7280]">
-                  <label className="text-[11px] font-semibold">Nombre de prises par jour</label>
-                  <select className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-2">
-                    <option>2 prises</option>
-                    <option>3 prises</option>
-                    <option>4 prises</option>
-                  </select>
-                </div>
-                <div className="space-y-2 text-xs text-[#6B7280]">
-                  <label className="text-[11px] font-semibold">Rappel avance</label>
-                  <select className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-2">
-                    <option>10 minutes</option>
-                    <option>30 minutes</option>
-                    <option>1 heure</option>
-                  </select>
-                </div>
-              </div>
-            </section>
+              </select>
+            </label>
 
-            <section className="space-y-4 rounded-2xl border border-[#E5E7EB] p-5">
-              <h2 className="text-sm font-semibold">Horaires des prises</h2>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {["08:00", "20:00"].map((time, index) => (
-                  <div key={time} className="flex items-center gap-3">
-                    <span className="w-12 text-xs text-[#6B7280]">
-                      Prise {index + 1}
-                    </span>
-                    <input
-                      defaultValue={time}
-                      className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-2 text-xs"
-                    />
-                  </div>
-                ))}
-              </div>
-              <button className="text-xs font-semibold text-[#0B63D1]">
-                + Ajouter une prise
-              </button>
-            </section>
+            <label className="space-y-2">
+              <span className="text-xs font-semibold text-[#6B7280]">Intervalle (heures)</span>
+              <input
+                value={intervalHours}
+                onChange={(event) => setIntervalHours(event.target.value)}
+                disabled={frequency !== "CUSTOM"}
+                placeholder="8"
+                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm disabled:bg-[#F8FAFC]"
+              />
+            </label>
 
-            <section className="space-y-4 rounded-2xl border border-[#E5E7EB] p-5">
-              <h2 className="text-sm font-semibold">Duree du traitement</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2 text-xs text-[#6B7280]">
-                  <label className="text-[11px] font-semibold">Date de debut</label>
-                  <input className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-2" />
-                </div>
-                <div className="space-y-2 text-xs text-[#6B7280]">
-                  <label className="text-[11px] font-semibold">Date de fin</label>
-                  <input className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-2" />
-                </div>
-              </div>
-              <label className="flex items-center gap-2 text-xs text-[#6B7280]">
-                <input type="checkbox" className="h-4 w-4 rounded border-[#CBD5E1]" />
-                Traitement continu / maladie chronique
-              </label>
-            </section>
+            <label className="space-y-2">
+              <span className="text-xs font-semibold text-[#6B7280]">Début</span>
+              <input
+                type="datetime-local"
+                value={startDate}
+                onChange={(event) => setStartDate(event.target.value)}
+                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm"
+              />
+            </label>
 
-            <section className="space-y-4 rounded-2xl border border-[#E5E7EB] p-5">
-              <h2 className="text-sm font-semibold">Instructions</h2>
-              <div className="grid gap-3 sm:grid-cols-3 text-xs">
-                {["Avant le repas", "Pendant le repas", "Apres le repas"].map((label) => (
-                  <button
-                    key={label}
-                    className={`rounded-2xl border px-4 py-3 ${
-                      label === "Pendant le repas"
-                        ? "border-[#0B63D1] bg-[#EAF2FF] text-[#0B63D1]"
-                        : "border-[#E5E7EB] text-[#6B7280]"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </section>
+            <label className="space-y-2">
+              <span className="text-xs font-semibold text-[#6B7280]">Fin (optionnel)</span>
+              <input
+                type="datetime-local"
+                value={endDate}
+                onChange={(event) => setEndDate(event.target.value)}
+                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm"
+              />
+            </label>
 
-            <div className="flex flex-wrap items-center justify-end gap-3">
-              <button className="rounded-full border border-[#E5E7EB] px-4 py-2 text-xs font-semibold text-[#6B7280]">
-                Annuler
-              </button>
-              <button className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
-                Creer le calendrier
-              </button>
-            </div>
+            <label className="space-y-2 md:col-span-2">
+              <span className="text-xs font-semibold text-[#6B7280]">Note</span>
+              <textarea
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                rows={3}
+                placeholder="Ex: après le repas"
+                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm"
+              />
+            </label>
           </div>
+
+          <div className="mt-5 flex justify-end">
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className="rounded-full bg-[#0B63D1] px-5 py-2 text-xs font-semibold text-white disabled:opacity-60"
+            >
+              {saving ? "Enregistrement..." : "Créer le rappel"}
+            </button>
+          </div>
+        </form>
+
+        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
+          <h2 className="text-sm font-semibold">Rappels existants</h2>
+          {loading ? (
+            <p className="mt-3 text-xs text-[#6B7280]">Chargement...</p>
+          ) : reminders.length === 0 ? (
+            <p className="mt-3 text-xs text-[#6B7280]">Aucun rappel enregistré.</p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {reminders.map((item) => {
+                const busy = rowBusyId === item._id;
+                return (
+                  <div
+                    key={item._id}
+                    className="rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] px-4 py-3"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-[#1F2937]">
+                          {item.medicationName}
+                        </p>
+                        <p className="text-xs text-[#6B7280]">
+                          {item.frequency} • Prochain envoi: {formatDateTime(item.nextRunAt)}
+                        </p>
+                        {item.note ? (
+                          <p className="mt-1 text-xs text-[#6B7280]">{item.note}</p>
+                        ) : null}
+                        <p className="mt-1 text-[11px] text-[#9CA3AF]">
+                          Début: {formatDateTime(item.startDate)} • Fin:{" "}
+                          {formatDateTime(item.endDate)}
+                        </p>
+                      </div>
+                      <span
+                        className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
+                          item.isActive
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-slate-200 text-slate-700"
+                        }`}
+                      >
+                        {item.isActive ? "Actif" : "Inactif"}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap justify-end gap-2">
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void toggleReminder(item)}
+                        className="rounded-full border border-[#E5E7EB] bg-white px-3 py-1.5 text-xs font-semibold text-[#1F2937] disabled:opacity-60"
+                      >
+                        {item.isActive ? "Désactiver" : "Activer"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void deleteReminder(item)}
+                        className="rounded-full border border-[#FECACA] bg-white px-3 py-1.5 text-xs font-semibold text-[#B91C1C] disabled:opacity-60"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </PatientShell>
   );
