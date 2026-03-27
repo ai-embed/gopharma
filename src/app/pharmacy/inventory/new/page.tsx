@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Notice } from "@/components/Notice";
 import { API_BASE, apiJsonAuth } from "@/lib/api";
@@ -25,11 +25,30 @@ type ManagerCategory = {
   name: string;
 };
 
+type DetectedBarcode = {
+  rawValue?: string;
+};
+
+type BarcodeDetectorInstance = {
+  detect: (source: HTMLVideoElement) => Promise<DetectedBarcode[]>;
+};
+
+type BarcodeDetectorCtor = new (options?: {
+  formats?: string[];
+}) => BarcodeDetectorInstance;
+
+type BarcodeWindow = Window & {
+  BarcodeDetector?: BarcodeDetectorCtor;
+};
+
 const CATEGORY_PLACEHOLDER = "Sélectionner une catégorie";
 
 export default function PharmacyInventoryNewPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const scanTimerRef = useRef<number | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const [name, setName] = useState("");
   const [scientificName, setScientificName] = useState("");
@@ -44,11 +63,87 @@ export default function PharmacyInventoryNewPage() {
   const [storageInstructions, setStorageInstructions] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [uploadedPhoto, setUploadedPhoto] = useState<FileUploadResponse | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scannerError, setScannerError] = useState<string | null>(null);
+  const [scannerStatus, setScannerStatus] = useState<string>("Positionnez le code-barres dans le cadre.");
 
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const stopScanner = useCallback(() => {
+    if (scanTimerRef.current) {
+      window.clearInterval(scanTimerRef.current);
+      scanTimerRef.current = null;
+    }
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+  }, []);
+
+  const startScanner = useCallback(async () => {
+    setScannerError(null);
+    setScannerStatus("Initialisation de la caméra...");
+
+    const barcodeWindow = window as BarcodeWindow;
+    const DetectorClass = barcodeWindow.BarcodeDetector;
+
+    if (
+      typeof window === "undefined" ||
+      !DetectorClass ||
+      typeof navigator === "undefined" ||
+      !navigator.mediaDevices?.getUserMedia
+    ) {
+      setScannerError(
+        "Scan non supporté sur cet appareil. Saisissez le code-barres manuellement."
+      );
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+        audio: false,
+      });
+      streamRef.current = stream;
+
+      if (!videoRef.current) return;
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
+      setScannerStatus("Scan en cours...");
+
+      const detector = new DetectorClass({
+        formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39"],
+      });
+
+      scanTimerRef.current = window.setInterval(async () => {
+        if (!videoRef.current) return;
+        try {
+          const results = await detector.detect(videoRef.current);
+          const first = results?.[0];
+          const value = first?.rawValue as string | undefined;
+          if (!value) return;
+          setBarcode(value.trim());
+          setScannerStatus(`Code détecté: ${value.trim()}`);
+          stopScanner();
+          setScannerOpen(false);
+        } catch {
+          setScannerError("Lecture du code-barres impossible, réessayez.");
+        }
+      }, 350);
+    } catch {
+      setScannerError("Accès caméra refusé ou indisponible.");
+    }
+  }, [stopScanner]);
+
+  useEffect(() => {
+    if (!scannerOpen) {
+      stopScanner();
+      return;
+    }
+    void startScanner();
+    return () => stopScanner();
+  }, [scannerOpen, startScanner, stopScanner]);
 
   useEffect(() => {
     const timer = window.setTimeout(async () => {
@@ -244,12 +339,21 @@ export default function PharmacyInventoryNewPage() {
                   Code-barres{" "}
                   <span className="text-[10px] font-medium text-[#9CA3AF]">(optionnel)</span>
                 </label>
-                <input
-                  value={barcode}
-                  onChange={(event) => setBarcode(event.target.value)}
-                  placeholder="Scanner ou saisir le code"
-                  className="w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm"
-                />
+                <div className="flex gap-2">
+                  <input
+                    value={barcode}
+                    onChange={(event) => setBarcode(event.target.value)}
+                    placeholder="Scanner ou saisir le code"
+                    className="w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setScannerOpen(true)}
+                    className="rounded-xl border border-[#0B63D1] px-3 text-xs font-semibold text-[#0B63D1]"
+                  >
+                    Scanner
+                  </button>
+                </div>
               </div>
             </div>
           </section>
@@ -370,6 +474,30 @@ export default function PharmacyInventoryNewPage() {
           </div>
         </div>
       </form>
+
+      {scannerOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-lg rounded-2xl border border-[#E5E7EB] bg-white p-5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Scanner un code-barres</h3>
+              <button
+                type="button"
+                onClick={() => setScannerOpen(false)}
+                className="rounded-full border border-[#E5E7EB] px-3 py-1 text-xs"
+              >
+                Fermer
+              </button>
+            </div>
+
+            <div className="mt-4 overflow-hidden rounded-xl border border-[#E5E7EB] bg-[#0F172A]">
+              <video ref={videoRef} className="h-64 w-full object-cover" muted playsInline />
+            </div>
+
+            <p className="mt-3 text-xs text-[#6B7280]">{scannerStatus}</p>
+            {scannerError ? <Notice tone="error" message={scannerError} /> : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
