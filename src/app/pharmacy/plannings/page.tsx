@@ -1,270 +1,457 @@
-const weekSchedule = [
-  { day: "Lundi", open: true, garde: false, start: "08:00 AM", end: "07:00 PM" },
-  { day: "Mardi", open: true, garde: false, start: "08:00 AM", end: "07:00 PM" },
-  { day: "Mercredi", open: true, garde: false, start: "08:00 AM", end: "07:00 PM" },
-  { day: "Jeudi", open: true, garde: true, start: "08:00 AM", end: "08:00 PM" },
-  { day: "Vendredi", open: true, garde: false, start: "08:00 AM", end: "07:00 PM" },
-  { day: "Samedi", open: true, garde: false, start: "09:00 AM", end: "01:00 PM" },
-  { day: "Dimanche", open: false, garde: true, start: "", end: "" },
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Notice } from "@/components/Notice";
+import { apiJsonAuth } from "@/lib/api";
+
+type WeeklySlot = {
+  dayOfWeek: number;
+  openTime?: string;
+  closeTime?: string;
+  isClosed: boolean;
+  onDuty: boolean;
+};
+
+type ExceptionSlot = {
+  startDate: string;
+  endDate: string;
+  isClosed: boolean;
+  onDuty: boolean;
+  openTime?: string;
+  closeTime?: string;
+  label?: string;
+};
+
+type ManagerSchedule = {
+  weekly: WeeklySlot[];
+  exceptions: ExceptionSlot[];
+};
+
+const dayLabels = [
+  { key: 1, label: "Lundi" },
+  { key: 2, label: "Mardi" },
+  { key: 3, label: "Mercredi" },
+  { key: 4, label: "Jeudi" },
+  { key: 5, label: "Vendredi" },
+  { key: 6, label: "Samedi" },
+  { key: 0, label: "Dimanche" },
 ];
 
-const specialHours = [
-  {
-    title: "Jour de Noël",
-    date: "25 Dec, 2023",
-    status: "Fermé toute la journée",
-  },
-  {
-    title: "Réveillon du Nouvel An",
-    date: "31 Dec, 2023",
-    status: "08:00 - 14:00",
-  },
-];
+function buildDefaultWeekly(): WeeklySlot[] {
+  return dayLabels.map((day) => ({
+    dayOfWeek: day.key,
+    openTime: "08:00",
+    closeTime: "19:00",
+    isClosed: day.key === 0,
+    onDuty: false,
+  }));
+}
+
+function todayIsoDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function normalizeWeekly(input: WeeklySlot[]): WeeklySlot[] {
+  const map = new Map(input.map((slot) => [slot.dayOfWeek, slot]));
+  return dayLabels.map((day) => {
+    const existing = map.get(day.key);
+    if (!existing) {
+      return {
+        dayOfWeek: day.key,
+        openTime: "08:00",
+        closeTime: "19:00",
+        isClosed: day.key === 0,
+        onDuty: false,
+      };
+    }
+    return {
+      dayOfWeek: day.key,
+      openTime: existing.openTime ?? "08:00",
+      closeTime: existing.closeTime ?? "19:00",
+      isClosed: Boolean(existing.isClosed),
+      onDuty: Boolean(existing.onDuty),
+    };
+  });
+}
 
 export default function PharmacyPlanningsPage() {
+  const [weekly, setWeekly] = useState<WeeklySlot[]>(buildDefaultWeekly());
+  const [exceptions, setExceptions] = useState<ExceptionSlot[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingWeekly, setSavingWeekly] = useState(false);
+  const [addingException, setAddingException] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const [exceptionLabel, setExceptionLabel] = useState("");
+  const [exceptionStartDate, setExceptionStartDate] = useState(todayIsoDate());
+  const [exceptionEndDate, setExceptionEndDate] = useState(todayIsoDate());
+  const [exceptionIsClosed, setExceptionIsClosed] = useState(true);
+  const [exceptionOnDuty, setExceptionOnDuty] = useState(false);
+  const [exceptionOpenTime, setExceptionOpenTime] = useState("08:00");
+  const [exceptionCloseTime, setExceptionCloseTime] = useState("14:00");
+
+  const loadSchedule = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    const result = await apiJsonAuth<ManagerSchedule>("/api/manager/schedules");
+    if (!result.ok || !result.data) {
+      setError(result.error ?? "Impossible de charger les horaires.");
+      setWeekly(buildDefaultWeekly());
+      setExceptions([]);
+      setLoading(false);
+      return;
+    }
+
+    setWeekly(normalizeWeekly(result.data.weekly ?? []));
+    setExceptions(result.data.exceptions ?? []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadSchedule();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadSchedule]);
+
+  const rows = useMemo(
+    () =>
+      dayLabels.map((day) => ({
+        ...day,
+        slot:
+          weekly.find((item) => item.dayOfWeek === day.key) ?? {
+            dayOfWeek: day.key,
+            openTime: "08:00",
+            closeTime: "19:00",
+            isClosed: false,
+            onDuty: false,
+          },
+      })),
+    [weekly]
+  );
+
+  const updateSlot = (dayOfWeek: number, patch: Partial<WeeklySlot>) => {
+    setWeekly((prev) =>
+      prev.map((slot) =>
+        slot.dayOfWeek === dayOfWeek
+          ? {
+              ...slot,
+              ...patch,
+            }
+          : slot
+      )
+    );
+  };
+
+  const saveWeekly = async () => {
+    setError(null);
+    setSuccess(null);
+    setSavingWeekly(true);
+
+    const payload = weekly.map((slot) => ({
+      dayOfWeek: slot.dayOfWeek,
+      isClosed: slot.isClosed,
+      onDuty: slot.onDuty,
+      openTime: slot.isClosed ? undefined : slot.openTime,
+      closeTime: slot.isClosed ? undefined : slot.closeTime,
+    }));
+
+    const result = await apiJsonAuth<ManagerSchedule>("/api/manager/schedules/weekly", {
+      method: "PUT",
+      body: JSON.stringify({ weekly: payload }),
+    });
+
+    setSavingWeekly(false);
+
+    if (!result.ok || !result.data) {
+      setError(result.error ?? "Enregistrement des horaires impossible.");
+      return;
+    }
+
+    setWeekly(normalizeWeekly(result.data.weekly ?? []));
+    setSuccess("Horaires hebdomadaires enregistrés.");
+  };
+
+  const addException = async () => {
+    setError(null);
+    setSuccess(null);
+
+    if (!exceptionStartDate || !exceptionEndDate) {
+      setError("Renseignez les dates de l'exception.");
+      return;
+    }
+
+    if (exceptionEndDate < exceptionStartDate) {
+      setError("La date de fin doit être supérieure ou égale à la date de début.");
+      return;
+    }
+
+    if (!exceptionIsClosed && exceptionCloseTime <= exceptionOpenTime) {
+      setError("L'heure de fermeture doit être après l'heure d'ouverture.");
+      return;
+    }
+
+    setAddingException(true);
+    const result = await apiJsonAuth<ManagerSchedule>("/api/manager/schedules/exceptions", {
+      method: "POST",
+      body: JSON.stringify({
+        startDate: exceptionStartDate,
+        endDate: exceptionEndDate,
+        isClosed: exceptionIsClosed,
+        onDuty: exceptionOnDuty,
+        openTime: exceptionIsClosed ? undefined : exceptionOpenTime,
+        closeTime: exceptionIsClosed ? undefined : exceptionCloseTime,
+        label: exceptionLabel || undefined,
+      }),
+    });
+    setAddingException(false);
+
+    if (!result.ok || !result.data) {
+      setError(result.error ?? "Ajout de l'exception impossible.");
+      return;
+    }
+
+    setExceptions(result.data.exceptions ?? []);
+    setExceptionLabel("");
+    setExceptionStartDate(todayIsoDate());
+    setExceptionEndDate(todayIsoDate());
+    setExceptionIsClosed(true);
+    setExceptionOnDuty(false);
+    setSuccess("Exception ajoutée.");
+  };
+
+  const removeException = async (index: number) => {
+    setError(null);
+    setSuccess(null);
+    const result = await apiJsonAuth<{ success: boolean }>(
+      `/api/manager/schedules/exceptions/${index}`,
+      { method: "DELETE" }
+    );
+    if (!result.ok) {
+      setError(result.error ?? "Suppression impossible.");
+      return;
+    }
+    setExceptions((prev) => prev.filter((_, idx) => idx !== index));
+    setSuccess("Exception supprimée.");
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold">Configuration des Horaires</h1>
+        <h1 className="text-lg font-semibold">Configuration des horaires</h1>
       </div>
 
+      {error ? <Notice tone="error" message={error} /> : null}
+      {success ? <Notice tone="success" message={success} /> : null}
+
       <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EAF2FF] text-[#0B63D1]">
-            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-              <circle
-                cx="12"
-                cy="12"
-                r="8"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-              />
-              <path
-                d="M12 7.5v5l3 2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-          </span>
-          <h2 className="text-sm font-semibold">
-            Heures d&apos;ouverture standard
-          </h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold">Heures d&apos;ouverture hebdomadaires</h2>
+          <button
+            type="button"
+            disabled={savingWeekly || loading}
+            onClick={() => void saveWeekly()}
+            className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {savingWeekly ? "Enregistrement..." : "Enregistrer"}
+          </button>
         </div>
-        <p className="mt-3 text-xs text-[#6B7280]">
-          Définissez les heures d&apos;ouverture et de fermeture régulières de
-          votre pharmacie. Activez &quot;Fermé&quot; pour les jours où la
-          pharmacie n&apos;est pas ouverte.
-        </p>
 
         <div className="mt-5 overflow-hidden rounded-2xl border border-[#E5E7EB]">
           <div className="overflow-x-auto">
-            <table className="min-w-[720px] w-full text-xs">
+            <table className="w-full min-w-[760px] text-xs">
               <thead className="bg-[#F8FAFC] text-[#6B7280]">
-              <tr>
-                <th className="px-4 py-3 text-left">JOUR DE LA SEMAINE</th>
-                <th className="px-4 py-3 text-left">STATUT</th>
-                <th className="px-4 py-3 text-left">GARDE</th>
-                <th className="px-4 py-3 text-left">HEURE D&apos;OUVERTURE</th>
-                <th className="px-4 py-3 text-left">HEURE DE FERMETURE</th>
-              </tr>
-            </thead>
-            <tbody>
-              {weekSchedule.map((row) => (
-                <tr
-                  key={row.day}
-                  className={`border-t border-[#E5E7EB] ${
-                    row.day === "Dimanche" ? "bg-[#FEF3F2]" : ""
-                  }`}
-                >
-                  <td className="px-4 py-3 font-semibold">{row.day}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      aria-pressed={row.open}
-                      className={`relative inline-flex h-5 w-10 items-center rounded-full px-0.5 transition ${
-                        row.open ? "bg-[#0B63D1]" : "bg-[#D1D5DB]"
-                      }`}
-                    >
-                      <span
-                        className={`h-4 w-4 rounded-full bg-white shadow transition ${
-                          row.open ? "translate-x-5" : "translate-x-0"
-                        }`}
-                      />
-                    </button>
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      aria-pressed={row.garde}
-                      className={`relative inline-flex h-5 w-10 items-center rounded-full px-0.5 transition ${
-                        row.garde ? "bg-[#7C3AED]" : "bg-[#D1D5DB]"
-                      }`}
-                    >
-                      <span
-                        className={`h-4 w-4 rounded-full bg-white shadow transition ${
-                          row.garde ? "translate-x-5" : "translate-x-0"
-                        }`}
-                      />
-                    </button>
-                  </td>
-                  {row.open ? (
-                    <>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-3 py-2 text-[11px] text-[#1F1D1B]">
-                          <svg
-                            viewBox="0 0 24 24"
-                            className="h-3.5 w-3.5 text-[#9CA3AF]"
-                            aria-hidden="true"
-                          >
-                            <circle
-                              cx="12"
-                              cy="12"
-                              r="8"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="1.6"
-                            />
-                            <path
-                              d="M12 8.5v4l2.5 1.5"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="1.6"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          {row.start}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-3 py-2 text-[11px] text-[#1F1D1B]">
-                          <svg
-                            viewBox="0 0 24 24"
-                            className="h-3.5 w-3.5 text-[#9CA3AF]"
-                            aria-hidden="true"
-                          >
-                            <circle
-                              cx="12"
-                              cy="12"
-                              r="8"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="1.6"
-                            />
-                            <path
-                              d="M12 8.5v4l2.5 1.5"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="1.6"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          {row.end}
-                        </span>
-                      </td>
-                    </>
-                  ) : (
-                    <td className="px-4 py-3" colSpan={2}>
-                      <span className="text-[11px] text-[#B91C1C]">
-                        Fermé (Ouverture sur garde)
-                      </span>
-                    </td>
-                  )}
+                <tr>
+                  <th className="px-4 py-3 text-left">Jour</th>
+                  <th className="px-4 py-3 text-left">Ouvert</th>
+                  <th className="px-4 py-3 text-left">Garde</th>
+                  <th className="px-4 py-3 text-left">Ouverture</th>
+                  <th className="px-4 py-3 text-left">Fermeture</th>
                 </tr>
-              ))}
-            </tbody>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td className="px-4 py-4 text-[#6B7280]" colSpan={5}>
+                      Chargement...
+                    </td>
+                  </tr>
+                ) : (
+                  rows.map(({ key, label, slot }) => (
+                    <tr key={key} className="border-t border-[#E5E7EB]">
+                      <td className="px-4 py-3 font-semibold">{label}</td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={!slot.isClosed}
+                          onChange={(event) =>
+                            updateSlot(key, { isClosed: !event.target.checked })
+                          }
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={slot.onDuty}
+                          onChange={(event) =>
+                            updateSlot(key, { onDuty: event.target.checked })
+                          }
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="time"
+                          disabled={slot.isClosed}
+                          value={slot.openTime ?? "08:00"}
+                          onChange={(event) =>
+                            updateSlot(key, { openTime: event.target.value })
+                          }
+                          className="rounded-lg border border-[#E5E7EB] px-3 py-1.5"
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="time"
+                          disabled={slot.isClosed}
+                          value={slot.closeTime ?? "19:00"}
+                          onChange={(event) =>
+                            updateSlot(key, { closeTime: event.target.value })
+                          }
+                          className="rounded-lg border border-[#E5E7EB] px-3 py-1.5"
+                        />
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
             </table>
           </div>
         </div>
       </div>
 
       <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EAF2FF] text-[#0B63D1]">
-              <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-                <rect
-                  x="4"
-                  y="5"
-                  width="16"
-                  height="15"
-                  rx="2.5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
+        <h2 className="text-sm font-semibold">Exceptions & jours spéciaux</h2>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <input
+            value={exceptionLabel}
+            onChange={(event) => setExceptionLabel(event.target.value)}
+            placeholder="Libellé (ex: Jour férié)"
+            className="rounded-xl border border-[#E5E7EB] px-3 py-2 text-xs"
+          />
+          <label className="flex items-center gap-2 rounded-xl border border-[#E5E7EB] px-3 py-2 text-xs">
+            <input
+              type="checkbox"
+              checked={exceptionIsClosed}
+              onChange={(event) => setExceptionIsClosed(event.target.checked)}
+            />
+            Fermé toute la journée
+          </label>
+          <label className="rounded-xl border border-[#E5E7EB] px-3 py-2 text-xs">
+            Début
+            <input
+              type="date"
+              value={exceptionStartDate}
+              onChange={(event) => setExceptionStartDate(event.target.value)}
+              max={exceptionEndDate || undefined}
+              className="mt-1 w-full"
+            />
+          </label>
+          <label className="rounded-xl border border-[#E5E7EB] px-3 py-2 text-xs">
+            Fin
+            <input
+              type="date"
+              value={exceptionEndDate}
+              onChange={(event) => setExceptionEndDate(event.target.value)}
+              min={exceptionStartDate || undefined}
+              className="mt-1 w-full"
+            />
+          </label>
+          {!exceptionIsClosed ? (
+            <>
+              <label className="rounded-xl border border-[#E5E7EB] px-3 py-2 text-xs">
+                Ouverture
+                <input
+                  type="time"
+                  value={exceptionOpenTime}
+                  onChange={(event) => setExceptionOpenTime(event.target.value)}
+                  className="mt-1 w-full"
                 />
-                <path
-                  d="M8 3.5v3M16 3.5v3M4 9h16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
+              </label>
+              <label className="rounded-xl border border-[#E5E7EB] px-3 py-2 text-xs">
+                Fermeture
+                <input
+                  type="time"
+                  value={exceptionCloseTime}
+                  onChange={(event) => setExceptionCloseTime(event.target.value)}
+                  className="mt-1 w-full"
                 />
-              </svg>
-            </span>
-            <div>
-              <h2 className="text-sm font-semibold">
-                Heures Speciales &amp; Jours Feries
-              </h2>
-              <p className="text-xs text-[#6B7280]">
-                Ajustez les horaires pour les jours speciaux.
-              </p>
-            </div>
-          </div>
-          <button className="text-xs font-semibold text-[#0B63D1]">
-            + Ajouter une date speciale
-          </button>
+              </label>
+            </>
+          ) : null}
+          <label className="flex items-center gap-2 rounded-xl border border-[#E5E7EB] px-3 py-2 text-xs">
+            <input
+              type="checkbox"
+              checked={exceptionOnDuty}
+              onChange={(event) => setExceptionOnDuty(event.target.checked)}
+            />
+            Pharmacie de garde
+          </label>
         </div>
 
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          {specialHours.map((item) => {
-            const isClosed = item.status.toLowerCase().includes("ferme");
-            return (
+        <button
+          type="button"
+          disabled={
+            addingException ||
+            !exceptionStartDate ||
+            !exceptionEndDate ||
+            exceptionEndDate < exceptionStartDate
+          }
+          onClick={() => void addException()}
+          className="mt-4 rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {addingException ? "Ajout..." : "Ajouter une exception"}
+        </button>
+
+        <div className="mt-4 space-y-2">
+          {exceptions.length === 0 ? (
+            <p className="rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2 text-xs text-[#6B7280]">
+              Aucune exception enregistrée.
+            </p>
+          ) : (
+            exceptions.map((item, index) => (
               <div
-                key={item.title}
-                className="rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-4"
+                key={`${item.startDate}-${item.endDate}-${index}`}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2 text-xs"
               >
-                <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#0B63D1]">
-                    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-                      <path
-                        d="M12 4l2.2 4.4L19 9l-3.5 3.4L16 17l-4-2.1L8 17l.5-4.6L5 9l4.8-.6L12 4z"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.4"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold">{item.title}</p>
-                    <p className="text-xs text-[#6B7280]">{item.date}</p>
-                  </div>
+                <div>
+                  <p className="font-semibold text-[#1F1D1B]">
+                    {item.label || "Exception"}
+                  </p>
+                  <p className="text-[#6B7280]">
+                    {item.startDate.slice(0, 10)} → {item.endDate.slice(0, 10)}
+                  </p>
+                  <p className="text-[#6B7280]">
+                    {item.isClosed
+                      ? "Fermé"
+                      : `${item.openTime ?? "--:--"} - ${item.closeTime ?? "--:--"}`}
+                    {item.onDuty ? " · Garde" : ""}
+                  </p>
                 </div>
-                <p
-                  className={`mt-3 inline-flex rounded-full px-3 py-1 text-[10px] font-semibold ${
-                    isClosed
-                      ? "bg-rose-100 text-rose-600"
-                      : "bg-emerald-100 text-emerald-600"
-                  }`}
+                <button
+                  type="button"
+                  onClick={() => void removeException(index)}
+                  className="rounded-full border border-[#FECACA] px-3 py-1 text-[11px] font-semibold text-[#B91C1C]"
                 >
-                  {item.status}
-                </p>
+                  Supprimer
+                </button>
               </div>
-            );
-          })}
+            ))
+          )}
         </div>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-end gap-3">
-        <button className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]">
-          Annuler
-        </button>
-        <button className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
-          Enregistrer les modifications
-        </button>
       </div>
     </div>
   );

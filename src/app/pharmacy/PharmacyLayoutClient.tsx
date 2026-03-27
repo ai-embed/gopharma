@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import AppFooter from "@/components/AppFooter";
+import { NotificationsMenu } from "@/components/NotificationsMenu";
 import { clearTokens, getAccessToken } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 import { useUser } from "@/lib/useUser";
@@ -272,28 +273,7 @@ export default function PharmacyLayout({
                   className="w-56 rounded-full border border-[#E5E7EB] bg-white py-2 pl-10 pr-4 text-xs text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#0B63D1]/40 sm:w-64"
                 />
               </div>
-              <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E7EB] bg-white">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-4 w-4 text-[#6B7280]"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M12 4a5 5 0 0 1 5 5v2.2l1.2 2.4c.4.8-.1 1.4-1 1.4H6.8c-.9 0-1.4-.6-1-1.4L7 11.2V9a5 5 0 0 1 5-5z"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M9.5 19a2.5 2.5 0 0 0 5 0"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
+              <NotificationsMenu />
               <div className="flex items-center gap-3 rounded-full border border-[#E5E7EB] bg-white px-3 py-2 text-xs">
                 <div className="relative flex h-7 w-7 items-center justify-center rounded-full bg-[#EAF2FF] text-[11px] font-semibold text-[#0B63D1]">
                   CP

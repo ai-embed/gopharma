@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { NotificationsMenu } from "@/components/NotificationsMenu";
 import { clearTokens } from "@/lib/auth";
 import { useUser } from "@/lib/useUser";
 
@@ -61,29 +62,7 @@ export function TopNav() {
         >
           Se déconnecter
         </button>
-        <button
-          type="button"
-          aria-label="Notifications"
-          className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E7EB] text-[#1F2937]"
-        >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-            <path
-              d="M6.5 17.5h11l-1.5-2v-4.5a4.5 4.5 0 1 0-9 0V15.5l-1.5 2z"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M10 18.5a2 2 0 0 0 4 0"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-            />
-          </svg>
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#0B63D1]" />
-        </button>
+        <NotificationsMenu />
         <div className="hidden flex-col items-end text-[11px] leading-tight text-[#6B7280] sm:flex">
           <span>Bonjour</span>
           <span className="text-xs font-semibold text-[#1F2937]">
