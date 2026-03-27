@@ -10,6 +10,7 @@ import AppFooter from "@/components/AppFooter";
 import { NotificationsMenu } from "@/components/NotificationsMenu";
 import { clearTokens, getAccessToken } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
+import { usePharmacyStoreStatus } from "@/lib/usePharmacyStoreStatus";
 import { useUser } from "@/lib/useUser";
 
 const navItems = [
@@ -129,6 +130,7 @@ export default function PharmacyLayout({
   const hasToken = Boolean(getAccessToken());
   const roleHome = user ? getRoleHomePath(user.role) : null;
   const canRender = hasToken && !loading && roleHome === "/pharmacy/dashboard";
+  const storeStatus = usePharmacyStoreStatus();
 
   const logout = () => {
     clearTokens();
@@ -206,10 +208,14 @@ export default function PharmacyLayout({
             <p className="font-semibold text-[#1F1D1B]">Statut du magasin</p>
             <div className="mt-2 flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                Ouvert
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    storeStatus.isOpen ? "bg-emerald-500" : "bg-slate-400"
+                  }`}
+                />
+                {storeStatus.leftLabel}
               </span>
-              <span>Fermé à 21h</span>
+              <span>{storeStatus.rightLabel}</span>
             </div>
           </div>
 

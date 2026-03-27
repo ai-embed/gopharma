@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { CoordinatePickerMap } from "@/components/CoordinatePickerMap";
 import { Notice } from "@/components/Notice";
 import { apiJson, apiJsonAuth } from "@/lib/api";
+import { usePharmacyStoreStatus } from "@/lib/usePharmacyStoreStatus";
 
 type ManagerPharmacy = {
   _id: string;
@@ -108,6 +109,7 @@ export default function PharmacySettingsPage() {
   const [managerEmail, setManagerEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const storeStatus = usePharmacyStoreStatus();
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -334,9 +336,12 @@ export default function PharmacySettingsPage() {
                     : "bg-slate-200 text-slate-700"
                 }`}
               >
-                {form.operationalStatus}
+                {form.operationalStatus === "OUVERT" ? "Ouvert" : "Fermé"}
               </span>
             </div>
+            <p className="mt-2 text-[11px] text-[#6B7280]">
+              Horaires: {storeStatus.scheduleLabel}
+            </p>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <label>
