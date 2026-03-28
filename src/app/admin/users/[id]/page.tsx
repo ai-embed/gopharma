@@ -1,149 +1,431 @@
+"use client";
+
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Notice } from "@/components/Notice";
+import { apiJsonAuth } from "@/lib/api";
+
+type AdminUser = {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  accountStatus: string;
+  isActive: boolean;
+  country?: string;
+  phoneNumber?: string;
+  createdAt?: string;
+  emailVerifiedAt?: string | null;
+};
+
+type AdminPharmacy = {
+  _id: string;
+  name: string;
+  address: string;
+  ownerId: string;
+  accountStatus: string;
+  operationalStatus: "OUVERT" | "FERME";
+};
+
+type AuditLogItem = {
+  _id: string;
+  method: string;
+  path: string;
+  outcome: "SUCCESS" | "ERROR";
+  statusCode: number;
+  createdAt: string;
+};
+
+type AuditLogListResponse = {
+  items: AuditLogItem[];
+  total: number;
+};
+
+function formatDate(iso?: string | null) {
+  if (!iso) return "-";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "-";
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+function formatDateTime(iso?: string) {
+  if (!iso) return "-";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "-";
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function userName(user: AdminUser) {
+  const name = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
+  return name || "Utilisateur";
+}
+
+function initials(user: AdminUser) {
+  const first = user.firstName?.[0] ?? "";
+  const last = user.lastName?.[0] ?? "";
+  const value = `${first}${last}`.toUpperCase();
+  return value || "U";
+}
+
+function roleLabel(role: string) {
+  const normalized = role.toUpperCase();
+  if (normalized.includes("PHARM")) return "Pharmacien";
+  if (normalized.includes("PATIENT")) return "Patient";
+  if (normalized.includes("ADMIN")) return "Admin";
+  return role;
+}
+
+function statusLabel(accountStatus: string, isActive: boolean) {
+  const normalized = accountStatus.toUpperCase();
+  if (!isActive || normalized.includes("SUSP")) return "Suspendu";
+  if (normalized.includes("ATTENTE")) return "En attente";
+  if (normalized.includes("VALIDE")) return "Actif";
+  return accountStatus;
+}
+
+function statusTone(label: string) {
+  if (label === "Actif") return "bg-emerald-100 text-emerald-700";
+  if (label === "En attente") return "bg-amber-100 text-amber-700";
+  if (label === "Suspendu") return "bg-rose-100 text-rose-700";
+  return "bg-zinc-100 text-zinc-700";
+}
+
 export default function AdminUserProfilePage() {
+  const params = useParams<{ id: string }>();
+  const userId = typeof params?.id === "string" ? params.id : "";
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [changingStatus, setChangingStatus] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const [user, setUser] = useState<AdminUser | null>(null);
+  const [linkedPharmacy, setLinkedPharmacy] = useState<AdminPharmacy | null>(null);
+  const [activity, setActivity] = useState<AuditLogItem[]>([]);
+
+  const currentStatus = useMemo(() => {
+    if (!user) return "";
+    return statusLabel(user.accountStatus, user.isActive);
+  }, [user]);
+
+  const loadData = useCallback(
+    async (mode: "initial" | "refresh" = "initial") => {
+      if (!userId) {
+        setError("Identifiant utilisateur invalide.");
+        setLoading(false);
+        return;
+      }
+
+      if (mode === "initial") setLoading(true);
+      if (mode === "refresh") setRefreshing(true);
+      setError(null);
+
+      const [usersResult, pharmaciesResult, activityResult] = await Promise.all([
+        apiJsonAuth<AdminUser[]>("/api/admin/users"),
+        apiJsonAuth<AdminPharmacy[]>("/api/admin/pharmacies"),
+        apiJsonAuth<AuditLogListResponse>(
+          `/api/admin/audit-logs?page=1&limit=20&actorUserId=${encodeURIComponent(userId)}`
+        ),
+      ]);
+
+      if (!usersResult.ok || !usersResult.data) {
+        setError(usersResult.error ?? "Impossible de charger l'utilisateur.");
+        if (mode === "initial") setLoading(false);
+        if (mode === "refresh") setRefreshing(false);
+        return;
+      }
+
+      if (!pharmaciesResult.ok || !pharmaciesResult.data) {
+        setError(pharmaciesResult.error ?? "Impossible de charger les pharmacies.");
+        if (mode === "initial") setLoading(false);
+        if (mode === "refresh") setRefreshing(false);
+        return;
+      }
+
+      const found = usersResult.data.find((item) => item._id === userId) ?? null;
+      if (!found) {
+        setUser(null);
+        setLinkedPharmacy(null);
+        setActivity([]);
+        setError("Utilisateur introuvable.");
+        if (mode === "initial") setLoading(false);
+        if (mode === "refresh") setRefreshing(false);
+        return;
+      }
+
+      setUser(found);
+      setLinkedPharmacy(
+        pharmaciesResult.data.find((pharmacy) => pharmacy.ownerId === found._id) ?? null
+      );
+
+      if (activityResult.ok && activityResult.data) {
+        setActivity(activityResult.data.items);
+      } else {
+        setActivity([]);
+      }
+
+      if (mode === "initial") setLoading(false);
+      if (mode === "refresh") setRefreshing(false);
+    },
+    [userId]
+  );
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadData("initial");
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadData]);
+
+  const toggleSuspend = async () => {
+    if (!user) return;
+    setChangingStatus(true);
+    setError(null);
+    setSuccess(null);
+
+    const actionPath =
+      currentStatus === "Suspendu"
+        ? `/api/admin/accounts/${user._id}/unsuspend`
+        : `/api/admin/accounts/${user._id}/suspend`;
+
+    const result = await apiJsonAuth<{ success: boolean }>(actionPath, {
+      method: "POST",
+      ...(currentStatus === "Suspendu"
+        ? {}
+        : {
+            body: JSON.stringify({
+              reason: "Suspension administrative depuis le profil utilisateur.",
+            }),
+          }),
+    });
+
+    setChangingStatus(false);
+
+    if (!result.ok) {
+      setError(
+        result.error ??
+          (currentStatus === "Suspendu"
+            ? "Impossible de réactiver ce compte."
+            : "Impossible de suspendre ce compte.")
+      );
+      return;
+    }
+
+    setSuccess(
+      currentStatus === "Suspendu"
+        ? "Compte réactivé avec succès."
+        : "Compte suspendu avec succès."
+    );
+    void loadData("refresh");
+  };
+
+  if (loading) {
+    return (
+      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5 text-sm text-[#6B7280]">
+        Chargement du profil utilisateur...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="space-y-4">
+        {error ? <Notice tone="error" message={error} /> : null}
+        <Link
+          href="/admin/users"
+          className="inline-flex items-center rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]"
+        >
+          Retour à la liste
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#EAF2FF] text-lg font-semibold text-[#0B63D1]">
-                SW
-              </span>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#EAF2FF] text-lg font-semibold text-[#0B63D1]">
+            {initials(user)}
+          </span>
+          <div>
+            <h1 className="text-lg font-semibold">{userName(user)}</h1>
+            <p className="text-xs text-[#6B7280]">{user.email}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => void loadData("refresh")}
+            disabled={refreshing}
+            className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B] disabled:opacity-60"
+          >
+            {refreshing ? "Actualisation..." : "Actualiser"}
+          </button>
+          <button
+            onClick={() => void toggleSuspend()}
+            disabled={changingStatus}
+            className={`rounded-xl px-4 py-2 text-xs font-semibold text-white disabled:opacity-60 ${
+              currentStatus === "Suspendu" ? "bg-emerald-600" : "bg-rose-600"
+            }`}
+          >
+            {changingStatus
+              ? "..."
+              : currentStatus === "Suspendu"
+              ? "Réactiver"
+              : "Suspendre"}
+          </button>
+          <Link
+            href="/admin/users"
+            className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]"
+          >
+            Retour
+          </Link>
+        </div>
+      </div>
+
+      {error ? <Notice tone="error" message={error} /> : null}
+      {success ? <Notice tone="success" message={success} /> : null}
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)]">
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+            <h2 className="text-sm font-semibold">Informations utilisateur</h2>
+            <div className="mt-4 grid gap-4 text-xs text-[#6B7280] md:grid-cols-2">
               <div>
-                <h1 className="text-lg font-semibold">Dr. Sarah Wilson</h1>
-                <p className="text-xs text-[#6B7280]">
-                  sarah.w@pharmafinder.com
+                <p className="text-[11px] uppercase text-[#9CA3AF]">Rôle</p>
+                <p className="font-semibold text-[#1F1D1B]">{roleLabel(user.role)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase text-[#9CA3AF]">Statut</p>
+                <span
+                  className={`mt-1 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${statusTone(
+                    currentStatus
+                  )}`}
+                >
+                  {currentStatus}
+                </span>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase text-[#9CA3AF]">Pays</p>
+                <p className="font-semibold text-[#1F1D1B]">{user.country ?? "-"}</p>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase text-[#9CA3AF]">Téléphone</p>
+                <p className="font-semibold text-[#1F1D1B]">{user.phoneNumber ?? "-"}</p>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase text-[#9CA3AF]">Créé le</p>
+                <p className="font-semibold text-[#1F1D1B]">{formatDate(user.createdAt)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase text-[#9CA3AF]">Email vérifié</p>
+                <p className="font-semibold text-[#1F1D1B]">
+                  {user.emailVerifiedAt ? formatDate(user.emailVerifiedAt) : "Non vérifié"}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B]">
-                Suspendre
-              </button>
-              <button className="inline-flex items-center gap-2 rounded-xl bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white">
-                <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-                  <path
-                    d="M4 16.5V20h3.5L18 9.5l-3.5-3.5L4 16.5z"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M13.5 6.5l3 3"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                Modifier
-              </button>
-            </div>
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-            <div className="space-y-6">
-              <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
-                <h2 className="text-sm font-semibold">Informations</h2>
-                <div className="mt-4 grid gap-4 md:grid-cols-2 text-xs text-[#6B7280]">
-                  <div>
-                    <p className="text-[11px] uppercase text-[#9CA3AF]">
-                      Role
-                    </p>
-                    <p className="font-semibold text-[#1F1D1B]">Pharmacien</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] uppercase text-[#9CA3AF]">
-                      Statut
-                    </p>
-                    <p className="font-semibold text-emerald-600">Actif</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] uppercase text-[#9CA3AF]">
-                      Telephone
-                    </p>
-                    <p className="font-semibold text-[#1F1D1B]">
-                      +33 6 12 34 56 78
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] uppercase text-[#9CA3AF]">
-                      Dernière connexion
-                    </p>
-                    <p className="font-semibold text-[#1F1D1B]">
-                      Aujourd&apos;hui 09:40
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+            <h2 className="text-sm font-semibold">Activité récente</h2>
+            <div className="mt-4 space-y-3 text-xs">
+              {activity.length === 0 ? (
+                <p className="rounded-xl border border-[#E5E7EB] px-3 py-2 text-[#6B7280]">
+                  Aucune activité récente pour cet utilisateur.
+                </p>
+              ) : (
+                activity.map((event) => (
+                  <div
+                    key={event._id}
+                    className="rounded-2xl border border-[#E5E7EB] px-3 py-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-semibold text-[#1F1D1B]">
+                        {event.method} {event.path}
+                      </p>
+                      <span
+                        className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
+                          event.outcome === "SUCCESS"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-rose-100 text-rose-700"
+                        }`}
+                      >
+                        {event.outcome === "SUCCESS" ? "Succès" : "Erreur"} ({event.statusCode})
+                      </span>
+                    </div>
+                    <p className="mt-1 text-[11px] text-[#6B7280]">
+                      {formatDateTime(event.createdAt)}
                     </p>
                   </div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
-                <h2 className="text-sm font-semibold">Activité récente</h2>
-                <div className="mt-4 space-y-3 text-xs text-[#6B7280]">
-                  <div className="rounded-2xl border border-[#E5E7EB] px-3 py-2">
-                    24 Oct - Validation de pharmacie MediLife Centrale
-                  </div>
-                  <div className="rounded-2xl border border-[#E5E7EB] px-3 py-2">
-                    23 Oct - Mise a jour inventaire (Amoxicilline 500mg)
-                  </div>
-                  <div className="rounded-2xl border border-[#E5E7EB] px-3 py-2">
-                    22 Oct - Export des rapports hebdomadaires
-                  </div>
-                </div>
-              </div>
+                ))
+              )}
             </div>
+          </div>
+        </div>
 
-            <div className="space-y-6">
-              <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
-                <h2 className="text-sm font-semibold">Pharmacie associee</h2>
-                <div className="mt-4 rounded-xl border border-[#E5E7EB] bg-white p-4 text-xs text-[#6B7280]">
-                  <p className="font-semibold text-[#1F1D1B]">
-                    Pharmacie CVS #4290
-                  </p>
-                  <p className="mt-1">Cotonou, Benin</p>
-                  <p className="mt-1 text-emerald-600">Active</p>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-[#FDE2E2] bg-[#FFF5F5] p-5 text-xs text-[#B91C1C]">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FDE2E2] text-[#B91C1C]">
-                    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-                      <path
-                        d="M12 5v8"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                        strokeLinecap="round"
-                      />
-                      <circle cx="12" cy="17" r="1.2" fill="currentColor" />
-                      <path
-                        d="M12 3l9 16H3L12 3z"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+            <h2 className="text-sm font-semibold">Pharmacie associée</h2>
+            {linkedPharmacy ? (
+              <div className="mt-4 rounded-xl border border-[#E5E7EB] px-4 py-3 text-xs text-[#6B7280]">
+                <p className="font-semibold text-[#1F1D1B]">{linkedPharmacy.name}</p>
+                <p className="mt-1">{linkedPharmacy.address}</p>
+                <div className="mt-2 flex items-center gap-2">
+                  <span
+                    className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
+                      linkedPharmacy.operationalStatus === "OUVERT"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-zinc-100 text-zinc-700"
+                    }`}
+                  >
+                    {linkedPharmacy.operationalStatus === "OUVERT" ? "Ouverte" : "Fermée"}
                   </span>
-                  <h2 className="text-sm font-semibold">Zone de danger</h2>
+                  <span className="rounded-full bg-[#EAF2FF] px-2 py-1 text-[10px] font-semibold text-[#0B63D1]">
+                    {linkedPharmacy.accountStatus}
+                  </span>
                 </div>
-                <p className="mt-2">
-                  Désactiver l&apos;accès utilisateur ou révoquer les droits.
-                </p>
-                <button className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#DC2626] px-4 py-2 text-xs font-semibold text-white">
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-                    <path
-                      d="M6 12h12"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  Revoquer l&apos;acces
-                </button>
+                <Link
+                  href={`/admin/pharmacies/${linkedPharmacy._id}`}
+                  className="mt-3 inline-flex font-semibold text-[#0B63D1]"
+                >
+                  Voir la pharmacie
+                </Link>
               </div>
+            ) : (
+              <p className="mt-4 rounded-xl border border-[#E5E7EB] px-3 py-2 text-xs text-[#6B7280]">
+                Aucun compte pharmacie lié.
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+            <h2 className="text-sm font-semibold">Résumé admin</h2>
+            <div className="mt-4 space-y-2 text-xs text-[#6B7280]">
+              <p>ID utilisateur: {user._id}</p>
+              <p>Événements audit affichés: {activity.length}</p>
+              <p>
+                Dernier événement:{" "}
+                {activity.length > 0 ? formatDateTime(activity[0]?.createdAt) : "-"}
+              </p>
             </div>
           </div>
-            </div>
+        </div>
+      </div>
+    </div>
   );
 }
+

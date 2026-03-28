@@ -1,395 +1,422 @@
+"use client";
+
 import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Notice } from "@/components/Notice";
+import { apiJsonAuth } from "@/lib/api";
 
-const stats = [
-  {
-    label: "Total Pharmacies",
-    value: "156",
-    note: "+12% ce mois",
-    noteTone: "emerald",
-    tone: "blue",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-        <rect
-          x="5"
-          y="4"
-          width="14"
-          height="16"
-          rx="2.5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-        />
-        <path
-          d="M8 8h8M8 12h8M8 16h5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-      </svg>
-    ),
-  },
-  {
-    label: "Ouvertes Actuellement",
-    value: "84",
-    note: "Heures d'ouverture actives",
-    noteTone: "slate",
-    tone: "emerald",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-        <circle
-          cx="12"
-          cy="12"
-          r="8"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-        />
-        <path
-          d="M12 8.5v4l2.5 1.5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-      </svg>
-    ),
-  },
-  {
-    label: "Renouvellements en Attente",
-    value: "5",
-    note: "Action Requise",
-    noteTone: "amber",
-    tone: "amber",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-        <path
-          d="M12 4l7 3v5c0 4.5-3 7.5-7 8-4-0.5-7-3.5-7-8V7l7-3z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M12 9v4"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-        <circle cx="12" cy="16.5" r="1" fill="currentColor" />
-      </svg>
-    ),
-  },
-  {
-    label: "Signalees",
-    value: "2",
-    note: "Examen necessaire",
-    noteTone: "rose",
-    tone: "rose",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-        <path
-          d="M6 4h8l4 4v12H6z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M14 4v4h4"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M9 13h6M9 17h4"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-      </svg>
-    ),
-  },
-];
-
-const pharmacies = [
-  {
-    name: "City Pharmacy",
-    email: "contact@citypharmacy.com",
-    location: "New York, NY",
-    status: "Actif",
-    date: "24 Oct 2023",
-    action: "Modifier",
-  },
-  {
-    name: "HealthPlus Meds",
-    email: "admin@healthplus.org",
-    location: "San Francisco, CA",
-    status: "En attente",
-    date: "01 Nov 2023",
-    action: "Reviser",
-  },
-  {
-    name: "Galaxy Pharma",
-    email: "info@galaxypharma.net",
-    location: "Austin, TX",
-    status: "Actif",
-    date: "15 Oct 2023",
-    action: "Modifier",
-  },
-  {
-    name: "MediCare Center",
-    email: "support@medicare.io",
-    location: "Chicago, IL",
-    status: "Signalee",
-    date: "Hier",
-    action: "Enqueter",
-  },
-  {
-    name: "Nature Health",
-    email: "hello@naturehealth.co",
-    location: "Seattle, WA",
-    status: "Actif",
-    date: "12 Sep 2023",
-    action: "Modifier",
-  },
-];
-
-const statusStyles: Record<string, string> = {
-  Actif: "bg-emerald-100 text-emerald-600",
-  "En attente": "bg-amber-100 text-amber-700",
-  Signalee: "bg-rose-100 text-rose-600",
+type AdminPharmacy = {
+  _id: string;
+  name: string;
+  address: string;
+  ifu: string;
+  email?: string;
+  ownerId: string;
+  accountStatus: string;
+  operationalStatus: "OUVERT" | "FERME";
+  validationDate?: string;
+  createdAt?: string;
 };
 
-const toneStyles: Record<
-  string,
-  { icon: string }
-> = {
-  blue: { icon: "bg-[#EAF2FF] text-[#0B63D1]" },
-  emerald: { icon: "bg-emerald-100 text-emerald-600" },
-  amber: { icon: "bg-amber-100 text-amber-700" },
-  rose: { icon: "bg-rose-100 text-rose-600" },
+type AdminUser = {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  isActive: boolean;
 };
 
-const noteStyles: Record<string, string> = {
-  emerald: "text-emerald-600",
-  amber: "text-amber-600",
-  rose: "text-rose-600",
-  slate: "text-[#9CA3AF]",
+type AdminValidation = {
+  _id: string;
+  pharmacyId: string;
+  status: string;
 };
+
+type PharmacyRow = {
+  pharmacy: AdminPharmacy;
+  owner: AdminUser | null;
+};
+
+function ownerName(user: AdminUser | null) {
+  if (!user) return "Propriétaire inconnu";
+  const fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
+  return fullName || user.email;
+}
+
+function accountLabel(pharmacy: AdminPharmacy, owner: AdminUser | null) {
+  const normalized = pharmacy.accountStatus.toUpperCase();
+  if (!owner?.isActive || normalized.includes("SUSP")) return "Suspendue";
+  if (normalized.includes("ATTENTE")) return "En attente";
+  if (normalized.includes("VALIDE")) return "Validée";
+  return pharmacy.accountStatus;
+}
+
+function accountTone(label: string) {
+  if (label === "Validée") return "bg-emerald-100 text-emerald-700";
+  if (label === "En attente") return "bg-amber-100 text-amber-700";
+  if (label === "Suspendue") return "bg-rose-100 text-rose-700";
+  return "bg-zinc-100 text-zinc-700";
+}
+
+function operationalTone(status: "OUVERT" | "FERME") {
+  return status === "OUVERT"
+    ? "bg-[#E8F8EF] text-[#059669]"
+    : "bg-[#F3F4F6] text-[#6B7280]";
+}
+
+function formatDate(iso?: string) {
+  if (!iso) return "-";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "-";
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
 
 export default function AdminPharmaciesPage() {
+  const [rows, setRows] = useState<PharmacyRow[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [changingId, setChangingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [openFilter, setOpenFilter] = useState("ALL");
+
+  const loadData = useCallback(async (mode: "initial" | "refresh" = "initial") => {
+    if (mode === "initial") setLoading(true);
+    if (mode === "refresh") setRefreshing(true);
+    setError(null);
+
+    const [pharmaciesResult, usersResult, validationsResult] = await Promise.all([
+      apiJsonAuth<AdminPharmacy[]>("/api/admin/pharmacies"),
+      apiJsonAuth<AdminUser[]>("/api/admin/users"),
+      apiJsonAuth<AdminValidation[]>("/api/admin/validations"),
+    ]);
+
+    if (!pharmaciesResult.ok || !pharmaciesResult.data) {
+      setError(pharmaciesResult.error ?? "Impossible de charger les pharmacies.");
+      if (mode === "initial") setLoading(false);
+      if (mode === "refresh") setRefreshing(false);
+      return;
+    }
+
+    if (!usersResult.ok || !usersResult.data) {
+      setError(usersResult.error ?? "Impossible de charger les utilisateurs.");
+      if (mode === "initial") setLoading(false);
+      if (mode === "refresh") setRefreshing(false);
+      return;
+    }
+
+    const userById = new Map(usersResult.data.map((item) => [item._id, item]));
+    setRows(
+      pharmaciesResult.data.map((pharmacy) => ({
+        pharmacy,
+        owner: userById.get(pharmacy.ownerId) ?? null,
+      }))
+    );
+
+    if (validationsResult.ok && validationsResult.data) {
+      setPendingCount(validationsResult.data.length);
+    } else {
+      setPendingCount(0);
+    }
+
+    if (mode === "initial") setLoading(false);
+    if (mode === "refresh") setRefreshing(false);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadData("initial");
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadData]);
+
+  const filteredRows = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return rows.filter(({ pharmacy, owner }) => {
+      const account = accountLabel(pharmacy, owner);
+      const searchValue = [
+        pharmacy.name,
+        pharmacy.address,
+        pharmacy.ifu,
+        pharmacy.email,
+        owner?.email,
+        ownerName(owner),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      if (query && !searchValue.includes(query)) return false;
+      if (statusFilter !== "ALL" && account !== statusFilter) return false;
+      if (openFilter !== "ALL" && pharmacy.operationalStatus !== openFilter) return false;
+      return true;
+    });
+  }, [rows, search, statusFilter, openFilter]);
+
+  const total = rows.length;
+  const openNow = rows.filter((row) => row.pharmacy.operationalStatus === "OUVERT").length;
+  const suspended = rows.filter(
+    (row) => accountLabel(row.pharmacy, row.owner) === "Suspendue"
+  ).length;
+  const waiting = rows.filter(
+    (row) => accountLabel(row.pharmacy, row.owner) === "En attente"
+  ).length;
+
+  const toggleSuspend = async (row: PharmacyRow) => {
+    if (!row.owner) {
+      setError("Impossible: aucun propriétaire lié à cette pharmacie.");
+      return;
+    }
+
+    const current = accountLabel(row.pharmacy, row.owner);
+    setChangingId(row.pharmacy._id);
+    setError(null);
+    setSuccess(null);
+
+    const result =
+      current === "Suspendue"
+        ? await apiJsonAuth<{ success: boolean }>(
+            `/api/admin/accounts/${row.owner._id}/unsuspend`,
+            {
+              method: "POST",
+            }
+          )
+        : await apiJsonAuth<{ success: boolean }>(
+            `/api/admin/accounts/${row.owner._id}/suspend`,
+            {
+              method: "POST",
+              body: JSON.stringify({
+                reason: "Suspension administrative depuis la liste pharmacies.",
+              }),
+            }
+          );
+
+    setChangingId(null);
+
+    if (!result.ok) {
+      setError(
+        result.error ??
+          (current === "Suspendue"
+            ? "Impossible de réactiver la pharmacie."
+            : "Impossible de suspendre la pharmacie.")
+      );
+      return;
+    }
+
+    setSuccess(
+      current === "Suspendue"
+        ? `Pharmacie réactivée: ${row.pharmacy.name}.`
+        : `Pharmacie suspendue: ${row.pharmacy.name}.`
+    );
+    void loadData("refresh");
+  };
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-lg font-semibold">Gestion des Pharmacies</h1>
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <svg
-              viewBox="0 0 24 24"
-              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]"
-              aria-hidden="true"
-            >
-              <circle
-                cx="11"
-                cy="11"
-                r="7"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-              />
-              <path
-                d="M20 20l-3.5-3.5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-            <input
-              placeholder="Recherche globale..."
-              className="w-56 rounded-xl border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-10 text-xs"
-            />
-          </div>
-          <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E7EB] bg-white">
-            <svg
-              viewBox="0 0 24 24"
-              className="h-4 w-4 text-[#6B7280]"
-              aria-hidden="true"
-            >
-              <path
-                d="M12 4a5 5 0 0 1 5 5v2.2l1.2 2.4c.4.8-.1 1.4-1 1.4H6.8c-.9 0-1.4-.6-1-1.4L7 11.2V9a5 5 0 0 1 5-5z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M9.5 19a2.5 2.5 0 0 0 5 0"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
+        <h1 className="text-lg font-semibold">Gestion des pharmacies</h1>
+        <button
+          onClick={() => void loadData("refresh")}
+          disabled={refreshing}
+          className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#1F1D1B] disabled:opacity-60"
+        >
+          {refreshing ? "Actualisation..." : "Actualiser"}
+        </button>
+      </div>
+
+      {error ? <Notice tone="error" message={error} /> : null}
+      {success ? <Notice tone="success" message={success} /> : null}
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <p className="text-xs text-[#6B7280]">Total pharmacies</p>
+          <p className="mt-2 text-2xl font-semibold">{total}</p>
+          <p className="mt-2 text-[11px] text-[#9CA3AF]">Enregistrées</p>
+        </div>
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <p className="text-xs text-[#6B7280]">Ouvertes</p>
+          <p className="mt-2 text-2xl font-semibold">{openNow}</p>
+          <p className="mt-2 text-[11px] text-emerald-600">Statut opérationnel</p>
+        </div>
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <p className="text-xs text-[#6B7280]">En attente</p>
+          <p className="mt-2 text-2xl font-semibold">{waiting}</p>
+          <p className="mt-2 text-[11px] text-amber-600">À valider</p>
+        </div>
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <p className="text-xs text-[#6B7280]">Suspendues</p>
+          <p className="mt-2 text-2xl font-semibold">{suspended}</p>
+          <p className="mt-2 text-[11px] text-rose-600">Contrôle admin</p>
         </div>
       </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-2xl border border-[#E5E7EB] bg-white p-4"
-          >
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-[#6B7280]">{stat.label}</p>
-              <span
-                className={`flex h-8 w-8 items-center justify-center rounded-xl ${
-                  toneStyles[stat.tone].icon
-                }`}
-              >
-                {stat.icon}
+      <div className="mt-6 rounded-2xl border border-[#E5E7EB] bg-white">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E5E7EB] px-5 py-4">
+          <h2 className="text-sm font-semibold">Toutes les pharmacies enregistrées</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Rechercher (nom, IFU, adresse, e-mail)..."
+              className="w-72 rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs text-[#1F1D1B]"
+            />
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]"
+            >
+              <option value="ALL">Tous les statuts compte</option>
+              <option value="Validée">Validée</option>
+              <option value="En attente">En attente</option>
+              <option value="Suspendue">Suspendue</option>
+            </select>
+            <select
+              value={openFilter}
+              onChange={(event) => setOpenFilter(event.target.value)}
+              className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]"
+            >
+              <option value="ALL">Ouvert/Fermé</option>
+              <option value="OUVERT">Ouvert</option>
+              <option value="FERME">Fermé</option>
+            </select>
+            <Link
+              href="/admin/pharmacies/new"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
+            >
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-sm leading-none">
+                +
               </span>
-            </div>
-            <p className="mt-2 text-2xl font-semibold">{stat.value}</p>
-            <p className={`mt-2 text-[11px] ${noteStyles[stat.noteTone]}`}>
-              {stat.note}
-            </p>
+              Ajouter une pharmacie
+            </Link>
           </div>
-        ))}
-      </div>
+        </div>
 
-          <div className="mt-6 rounded-2xl border border-[#E5E7EB] bg-white">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E5E7EB] px-5 py-4">
-              <h2 className="text-sm font-semibold">
-                Toutes les Pharmacies Enregistrées
-              </h2>
-              <div className="flex flex-wrap items-center gap-3">
-                <select className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]">
-                  <option>Tous les Statuts</option>
-                  <option>Actif</option>
-                  <option>En attente</option>
-                </select>
-                <Link
-                  href="/admin/pharmacies/new"
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
-                >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-sm leading-none">
-                    +
-                  </span>
-                  Ajouter une pharmacie
-                </Link>
-              </div>
-            </div>
-
-            <div className="overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-[720px] w-full text-xs">
-                  <thead className="bg-[#F8FAFC] text-[#6B7280]">
-                  <tr>
-                    <th className="px-4 py-3 text-left">
-                      <span className="inline-flex h-4 w-4 rounded-full border border-[#D1D5DB]" />
-                    </th>
-                    <th className="px-4 py-3 text-left">DÉTAILS PHARMACIE</th>
-                    <th className="px-4 py-3 text-left">LOCALISATION</th>
-                    <th className="px-4 py-3 text-left">STATUT</th>
-                    <th className="px-4 py-3 text-left">DATE DE VÉRIFICATION</th>
-                    <th className="px-4 py-3 text-left">ACTIONS</th>
+        <div className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-[900px] w-full text-xs">
+              <thead className="bg-[#F8FAFC] text-[#6B7280]">
+                <tr>
+                  <th className="px-4 py-3 text-left">Pharmacie</th>
+                  <th className="px-4 py-3 text-left">Propriétaire</th>
+                  <th className="px-4 py-3 text-left">IFU</th>
+                  <th className="px-4 py-3 text-left">Localisation</th>
+                  <th className="px-4 py-3 text-left">Compte</th>
+                  <th className="px-4 py-3 text-left">Opération</th>
+                  <th className="px-4 py-3 text-left">Validation</th>
+                  <th className="px-4 py-3 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr className="border-t border-[#E5E7EB]">
+                    <td colSpan={8} className="px-4 py-6 text-center text-[#6B7280]">
+                      Chargement des pharmacies...
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {pharmacies.map((pharmacy, index) => (
-                    <tr
-                      key={pharmacy.email}
-                      className="border-t border-[#E5E7EB]"
-                    >
-                      <td className="px-4 py-3">
-                        <span className="inline-flex h-4 w-4 rounded-full border border-[#D1D5DB]" />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#EAF2FF] text-xs font-semibold text-[#0B63D1]">
-                            {pharmacy.name
-                              .split(" ")
-                              .map((part) => part[0])
-                              .slice(0, 2)
-                              .join("")}
-                          </span>
-                          <div>
-                            <p className="font-semibold">{pharmacy.name}</p>
-                            <p className="text-[10px] text-[#6B7280]">
-                              {pharmacy.email}
-                            </p>
+                ) : filteredRows.length === 0 ? (
+                  <tr className="border-t border-[#E5E7EB]">
+                    <td colSpan={8} className="px-4 py-6 text-center text-[#6B7280]">
+                      Aucune pharmacie trouvée.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredRows.map((row) => {
+                    const account = accountLabel(row.pharmacy, row.owner);
+                    const inProgress = changingId === row.pharmacy._id;
+                    return (
+                      <tr key={row.pharmacy._id} className="border-t border-[#E5E7EB]">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#EAF2FF] text-xs font-semibold text-[#0B63D1]">
+                              {(row.pharmacy.name?.[0] ?? "P").toUpperCase()}
+                            </span>
+                            <div>
+                              <p className="font-semibold text-[#1F1D1B]">{row.pharmacy.name}</p>
+                              <p className="text-[10px] text-[#6B7280]">
+                                {row.pharmacy.email ?? "Sans e-mail"}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-[#6B7280]">
-                        {pharmacy.location}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
-                            statusStyles[pharmacy.status]
-                          }`}
-                        >
-                          {pharmacy.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-[#6B7280]">
-                        {pharmacy.date}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3 text-[11px] font-semibold">
-                          <button
-                            className={`${
-                              pharmacy.status === "Signalee"
-                                ? "text-rose-600"
-                                : "text-[#0B63D1]"
-                            }`}
+                        </td>
+                        <td className="px-4 py-3">
+                          <p className="font-semibold text-[#1F1D1B]">{ownerName(row.owner)}</p>
+                          <p className="text-[10px] text-[#6B7280]">
+                            {row.owner?.email ?? "Utilisateur introuvable"}
+                          </p>
+                        </td>
+                        <td className="px-4 py-3 text-[#6B7280]">{row.pharmacy.ifu}</td>
+                        <td className="px-4 py-3 text-[#6B7280]">{row.pharmacy.address}</td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`rounded-full px-2 py-1 text-[10px] font-semibold ${accountTone(
+                              account
+                            )}`}
                           >
-                            {pharmacy.action}
-                          </button>
-                          <Link
-                            href={`/admin/pharmacies/${index + 1}`}
-                            className="text-[#6B7280]"
+                            {account}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`rounded-full px-2 py-1 text-[10px] font-semibold ${operationalTone(
+                              row.pharmacy.operationalStatus
+                            )}`}
                           >
-                            Profil
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-xs text-[#6B7280]">
-              <span>Affichage 1-5 sur 156</span>
-              <div className="flex items-center gap-2">
-                <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
-                  Précédent
-                </button>
-                <button className="rounded-full bg-[#0B63D1] px-3 py-1 text-white">
-                  1
-                </button>
-                <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
-                  2
-                </button>
-                <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
-                  3
-                </button>
-                <button className="rounded-full border border-[#E5E7EB] px-3 py-1">
-                  Suivant
-                </button>
-              </div>
-            </div>
+                            {row.pharmacy.operationalStatus === "OUVERT" ? "Ouvert" : "Fermé"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-[#6B7280]">
+                          {formatDate(row.pharmacy.validationDate)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3 text-[11px] font-semibold">
+                            <Link
+                              href={`/admin/pharmacies/${row.pharmacy._id}`}
+                              className="text-[#0B63D1]"
+                            >
+                              Profil
+                            </Link>
+                            <button
+                              onClick={() => void toggleSuspend(row)}
+                              disabled={inProgress}
+                              className={`rounded-full border px-3 py-1 disabled:opacity-60 ${
+                                account === "Suspendue"
+                                  ? "border-emerald-200 text-emerald-700"
+                                  : "border-rose-200 text-rose-700"
+                              }`}
+                            >
+                              {inProgress
+                                ? "..."
+                                : account === "Suspendue"
+                                ? "Réactiver"
+                                : "Suspendre"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
-            </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-xs text-[#6B7280]">
+          <span>
+            {filteredRows.length} pharmacie(s) affichée(s) / {total} total
+          </span>
+          <span>Validations en attente: {pendingCount}</span>
+        </div>
+      </div>
+    </div>
   );
 }
+
