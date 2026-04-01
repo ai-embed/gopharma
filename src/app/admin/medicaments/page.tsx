@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Notice } from "@/components/Notice";
-import { apiJson } from "@/lib/api";
+import { apiJsonAuth } from "@/lib/api";
 
 type PublicDrug = {
   id: string;
@@ -16,6 +16,13 @@ type PublicDrug = {
 };
 
 type SortValue = "NAME_ASC" | "NAME_DESC";
+
+type AdminMedicamentsResponse = {
+  items: PublicDrug[];
+  total: number;
+  limit: number;
+  offset: number;
+};
 
 function sourceLabel(source?: string) {
   if (!source) return "Interne";
@@ -39,6 +46,7 @@ function statusTone(status: string) {
 
 export default function AdminMedicamentsPage() {
   const [items, setItems] = useState<PublicDrug[]>([]);
+  const [totalAvailable, setTotalAvailable] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +66,9 @@ export default function AdminMedicamentsPage() {
     });
     if (query.trim()) params.set("q", query.trim());
 
-    const result = await apiJson<PublicDrug[]>(`/api/public-drugs?${params.toString()}`);
+    const result = await apiJsonAuth<AdminMedicamentsResponse>(
+      `/api/admin/medicaments?${params.toString()}`
+    );
 
     if (!result.ok || !result.data) {
       setError(result.error ?? "Impossible de charger la base médicaments.");
@@ -67,7 +77,8 @@ export default function AdminMedicamentsPage() {
       return;
     }
 
-    setItems(result.data);
+    setItems(result.data.items ?? []);
+    setTotalAvailable(result.data.total ?? 0);
     if (mode === "initial") setLoading(false);
     if (mode === "refresh") setRefreshing(false);
   }, [query]);
@@ -105,7 +116,7 @@ export default function AdminMedicamentsPage() {
     return sorted;
   }, [formFilter, items, sort]);
 
-  const total = items.length;
+  const total = totalAvailable;
   const validated = items.filter((item) => statusLabel(item) === "Validé").length;
   const formsCount = forms.length;
   const sourcesCount = new Set(items.map((item) => sourceLabel(item.source))).size;
@@ -240,8 +251,10 @@ export default function AdminMedicamentsPage() {
         </div>
 
         <div className="flex items-center justify-between px-5 py-4 text-xs text-[#6B7280]">
-          <span>{filteredItems.length} résultat(s) affiché(s)</span>
-          <span>API: `/api/public-drugs`</span>
+          <span>
+            {filteredItems.length} résultat(s) affiché(s) / {totalAvailable} total
+          </span>
+          <span>API: `/api/admin/medicaments`</span>
         </div>
       </div>
     </div>
