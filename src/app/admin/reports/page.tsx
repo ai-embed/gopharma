@@ -16,24 +16,16 @@ type AuditLogItem = {
 
 type AuditLogResponse = {
   items: AuditLogItem[];
-  total: number;
 };
 
-type AdminPharmacy = {
-  _id: string;
-};
-
-type AdminValidation = {
-  _id: string;
-};
-
-type IntegrationStatus = {
-  status: "OK" | "ERROR" | "UNCONFIGURED";
-};
-
-type IntegrationStatusMap = {
-  smtp: IntegrationStatus;
-  googleMaps: IntegrationStatus;
+type AdminReportsOverviewResponse = {
+  reportTotal: number;
+  alertsTotal: number;
+  pharmaciesTotal: number;
+  errorEvents: number;
+  pendingValidations: number;
+  weeklyBars: { day: string; count: number }[];
+  incidents: { label: string; tone: "amber" | "rose" | "emerald" }[];
 };
 
 type WeeklyBar = {
@@ -53,37 +45,9 @@ type ReportData = {
   logs: AuditLogItem[];
 };
 
-function dayKey(date: Date) {
-  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-}
-
-function formatDay(date: Date) {
-  return new Intl.DateTimeFormat("fr-FR", { weekday: "short" }).format(date);
-}
-
-function toWeeklyBars(logs: AuditLogItem[]) {
-  const now = new Date();
-  const days: Date[] = [];
-  for (let index = 6; index >= 0; index -= 1) {
-    const date = new Date(now);
-    date.setDate(now.getDate() - index);
-    days.push(date);
-  }
-
-  const counts = new Map<string, number>();
-  for (const item of logs) {
-    const date = new Date(item.createdAt);
-    if (Number.isNaN(date.getTime())) continue;
-    const key = dayKey(date);
-    counts.set(key, (counts.get(key) ?? 0) + 1);
-  }
-
-  const raw = days.map((date) => ({
-    day: formatDay(date),
-    count: counts.get(dayKey(date)) ?? 0,
-  }));
-  const maxCount = Math.max(1, ...raw.map((item) => item.count));
-  return raw.map((item) => ({
+function toRenderableBars(input: { day: string; count: number }[]) {
+  const maxCount = Math.max(1, ...input.map((item) => item.count));
+  return input.map((item) => ({
     ...item,
     height: Math.max(12, Math.round((item.count / maxCount) * 100)),
   }));
@@ -124,15 +88,13 @@ export default function AdminReportsPage() {
     }
     setError(null);
 
-    const [auditResult, validationsResult, pharmaciesResult, integrationsResult] = await Promise.all([
-      apiJsonAuth<AuditLogResponse>("/api/admin/audit-logs?page=1&limit=250"),
-      apiJsonAuth<AdminValidation[]>("/api/admin/validations"),
-      apiJsonAuth<AdminPharmacy[]>("/api/admin/pharmacies"),
-      apiJsonAuth<IntegrationStatusMap>("/api/admin/integrations/status"),
+    const [overviewResult, auditResult] = await Promise.all([
+      apiJsonAuth<AdminReportsOverviewResponse>("/api/admin/reports/overview"),
+      apiJsonAuth<AuditLogResponse>("/api/admin/audit-logs?page=1&limit=100"),
     ]);
 
-    if (!auditResult.ok || !auditResult.data) {
-      setError(auditResult.error ?? "Impossible de charger les rapports.");
+    if (!overviewResult.ok || !overviewResult.data) {
+      setError(overviewResult.error ?? "Impossible de charger les rapports.");
       if (mode === "initial") {
         setLoading(false);
       } else {
@@ -141,65 +103,16 @@ export default function AdminReportsPage() {
       return;
     }
 
-    if (!validationsResult.ok || !validationsResult.data) {
-      setError(validationsResult.error ?? "Impossible de charger les validations.");
-      if (mode === "initial") {
-        setLoading(false);
-      } else {
-        setRefreshing(false);
-      }
-      return;
-    }
-
-    if (!pharmaciesResult.ok || !pharmaciesResult.data) {
-      setError(pharmaciesResult.error ?? "Impossible de charger les pharmacies.");
-      if (mode === "initial") {
-        setLoading(false);
-      } else {
-        setRefreshing(false);
-      }
-      return;
-    }
-
-    const logs = auditResult.data.items ?? [];
-    const errorEvents = logs.filter((item) => item.outcome === "ERROR").length;
-    const pendingValidations = validationsResult.data.length;
-    const integrationErrors = integrationsResult.data
-      ? Number(integrationsResult.data.smtp.status !== "OK") +
-        Number(integrationsResult.data.googleMaps.status !== "OK")
-      : 0;
-
-    const incidents: { label: string; tone: "amber" | "rose" | "emerald" }[] = [];
-    incidents.push({
-      label:
-        errorEvents > 0
-          ? `${errorEvents} erreur(s) API détectée(s)`
-          : "Aucune erreur API détectée",
-      tone: errorEvents > 0 ? "rose" : "emerald",
-    });
-    incidents.push({
-      label:
-        pendingValidations > 0
-          ? `${pendingValidations} pharmacie(s) en attente de validation`
-          : "Aucune validation en attente",
-      tone: pendingValidations > 0 ? "amber" : "emerald",
-    });
-    incidents.push({
-      label:
-        integrationErrors > 0
-          ? `${integrationErrors} intégration(s) en alerte`
-          : "Intégrations opérationnelles",
-      tone: integrationErrors > 0 ? "amber" : "emerald",
-    });
+    const logs = auditResult.ok && auditResult.data ? auditResult.data.items ?? [] : [];
 
     setData({
-      reportTotal: auditResult.data.total ?? logs.length,
-      alertsTotal: errorEvents + pendingValidations + integrationErrors,
-      pharmaciesTotal: pharmaciesResult.data.length,
-      errorEvents,
-      pendingValidations,
-      weeklyBars: toWeeklyBars(logs),
-      incidents,
+      reportTotal: overviewResult.data.reportTotal,
+      alertsTotal: overviewResult.data.alertsTotal,
+      pharmaciesTotal: overviewResult.data.pharmaciesTotal,
+      errorEvents: overviewResult.data.errorEvents,
+      pendingValidations: overviewResult.data.pendingValidations,
+      weeklyBars: toRenderableBars(overviewResult.data.weeklyBars),
+      incidents: overviewResult.data.incidents,
       logs,
     });
 

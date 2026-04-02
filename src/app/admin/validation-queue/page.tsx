@@ -40,6 +40,19 @@ type QueueRow = {
   requester: AdminUser | null;
 };
 
+function isPendingStatus(value: string) {
+  return value.toUpperCase().includes("ATTENTE");
+}
+
+function isApprovedStatus(value: string) {
+  const normalized = value.toUpperCase();
+  return normalized.includes("VALID") || normalized.includes("APPROUV");
+}
+
+function isRejectedStatus(value: string) {
+  return value.toUpperCase().includes("REJET");
+}
+
 function fullName(user: AdminUser | null) {
   if (!user) return "Utilisateur inconnu";
   const value = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
@@ -120,13 +133,14 @@ export default function ValidationQueuePage() {
     const pharmacyById = new Map(pharmaciesResult.data.map((item) => [item._id, item]));
     const userById = new Map(usersResult.data.map((item) => [item._id, item]));
 
-    setPendingRows(
-      validationsResult.data.map((validation) => ({
-        validation,
-        pharmacy: pharmacyById.get(validation.pharmacyId) ?? null,
-        requester: userById.get(validation.requestedByUserId) ?? null,
-      }))
-    );
+    const rows = validationsResult.data.map((validation) => ({
+      validation,
+      pharmacy: pharmacyById.get(validation.pharmacyId) ?? null,
+      requester: userById.get(validation.requestedByUserId) ?? null,
+    }));
+
+    setPendingRows(rows.filter((row) => isPendingStatus(row.validation.status)));
+    setReviewedRows(rows.filter((row) => !isPendingStatus(row.validation.status)));
 
     if (mode === "initial") setLoading(false);
     if (mode === "refresh") setRefreshing(false);
@@ -140,10 +154,10 @@ export default function ValidationQueuePage() {
   }, [loadQueue]);
 
   const approvedRows = reviewedRows.filter((row) =>
-    row.validation.status.toUpperCase().includes("VALID")
+    isApprovedStatus(row.validation.status)
   );
   const rejectedRows = reviewedRows.filter((row) =>
-    row.validation.status.toUpperCase().includes("REJET")
+    isRejectedStatus(row.validation.status)
   );
 
   const currentRows = useMemo(() => {
@@ -203,18 +217,30 @@ export default function ValidationQueuePage() {
 
     const reviewedValidation: AdminValidation = {
       ...row.validation,
-      status: action === "approve" ? "VALIDE" : "REJETE",
-      comment: comment.trim() || row.validation.comment,
-      updatedAt: new Date().toISOString(),
+      ...(result.data?.validation ?? {}),
+      status:
+        result.data?.validation?.status ??
+        (action === "approve" ? "VALIDE" : "REJETE"),
+      comment:
+        result.data?.validation?.comment ??
+        comment.trim() ??
+        row.validation.comment,
+      updatedAt:
+        result.data?.validation?.updatedAt ?? new Date().toISOString(),
     };
 
-    setReviewedRows((previous) => [
-      {
-        ...row,
-        validation: reviewedValidation,
-      },
-      ...previous,
-    ]);
+    setReviewedRows((previous) => {
+      const withoutCurrent = previous.filter(
+        (item) => item.validation._id !== row.validation._id
+      );
+      return [
+        {
+          ...row,
+          validation: reviewedValidation,
+        },
+        ...withoutCurrent,
+      ];
+    });
 
     setSuccess(
       action === "approve"
