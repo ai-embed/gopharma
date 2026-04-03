@@ -4,28 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Notice } from "@/components/Notice";
 import { apiJsonAuth } from "@/lib/api";
 
-type AdminUser = {
-  _id: string;
-  role: string;
-  country?: string;
-  createdAt?: string;
-};
-
-type AdminPharmacy = {
-  _id: string;
-  createdAt?: string;
-};
-
-type AuditLogItem = {
-  _id: string;
-  path: string;
-  createdAt: string;
-};
-
-type AuditLogResponse = {
-  items: AuditLogItem[];
-};
-
 type GrowthData = {
   usersGrowth: number;
   usersCurrent: number;
@@ -35,33 +13,6 @@ type GrowthData = {
   topCountries: { country: string; count: number; percent: number }[];
   roleBreakdown: { label: string; count: number; percent: number }[];
 };
-
-function inLastDays(iso: string | undefined, days: number, fromOffsetDays = 0) {
-  if (!iso) return false;
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return false;
-  const now = new Date();
-  const end = new Date(now);
-  end.setDate(now.getDate() - fromOffsetDays);
-  const start = new Date(end);
-  start.setDate(end.getDate() - days);
-  return date >= start && date < end;
-}
-
-function computeGrowth(current: number, previous: number) {
-  if (previous === 0) {
-    return current > 0 ? 100 : 0;
-  }
-  return Math.round(((current - previous) / previous) * 100);
-}
-
-function roleLabel(role: string) {
-  const normalized = role.toUpperCase();
-  if (normalized.includes("PHARM")) return "Pharmacies";
-  if (normalized.includes("ADMIN")) return "Admins";
-  if (normalized.includes("PATIENT")) return "Patients";
-  return "Autres";
-}
 
 function toCsv(data: GrowthData | null) {
   if (!data) return "";
@@ -90,14 +41,9 @@ export default function AdminGrowthPage() {
     }
     setError(null);
 
-    const [usersResult, pharmaciesResult, auditResult] = await Promise.all([
-      apiJsonAuth<AdminUser[]>("/api/admin/users"),
-      apiJsonAuth<AdminPharmacy[]>("/api/admin/pharmacies"),
-      apiJsonAuth<AuditLogResponse>("/api/admin/audit-logs?page=1&limit=400"),
-    ]);
-
-    if (!usersResult.ok || !usersResult.data) {
-      setError(usersResult.error ?? "Impossible de charger la croissance utilisateurs.");
+    const growthResult = await apiJsonAuth<GrowthData>("/api/admin/growth");
+    if (!growthResult.ok || !growthResult.data) {
+      setError(growthResult.error ?? "Impossible de charger les métriques de croissance.");
       if (mode === "initial") {
         setLoading(false);
       } else {
@@ -106,77 +52,7 @@ export default function AdminGrowthPage() {
       return;
     }
 
-    if (!pharmaciesResult.ok || !pharmaciesResult.data) {
-      setError(pharmaciesResult.error ?? "Impossible de charger la croissance pharmacies.");
-      if (mode === "initial") {
-        setLoading(false);
-      } else {
-        setRefreshing(false);
-      }
-      return;
-    }
-
-    if (!auditResult.ok || !auditResult.data) {
-      setError(auditResult.error ?? "Impossible de charger les métriques de recherche.");
-      if (mode === "initial") {
-        setLoading(false);
-      } else {
-        setRefreshing(false);
-      }
-      return;
-    }
-
-    const users = usersResult.data;
-    const pharmacies = pharmaciesResult.data;
-    const logs = auditResult.data.items ?? [];
-
-    const usersCurrent = users.filter((item) => inLastDays(item.createdAt, 30)).length;
-    const usersPrevious = users.filter((item) => inLastDays(item.createdAt, 30, 30)).length;
-    const pharmaciesCurrent = pharmacies.filter((item) => inLastDays(item.createdAt, 30)).length;
-    const pharmaciesPrevious = pharmacies.filter((item) => inLastDays(item.createdAt, 30, 30)).length;
-
-    const searchEvents = logs.filter(
-      (item) => item.path.toLowerCase().includes("/search") && inLastDays(item.createdAt, 30)
-    ).length;
-
-    const countryCounts = users.reduce<Map<string, number>>((acc, item) => {
-      const country = item.country?.trim() || "Inconnu";
-      acc.set(country, (acc.get(country) ?? 0) + 1);
-      return acc;
-    }, new Map());
-
-    const topCountries = Array.from(countryCounts.entries())
-      .map(([country, count]) => ({
-        country,
-        count,
-        percent: users.length === 0 ? 0 : Math.round((count / users.length) * 100),
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 4);
-
-    const roleCounts = users.reduce<Map<string, number>>((acc, item) => {
-      const label = roleLabel(item.role);
-      acc.set(label, (acc.get(label) ?? 0) + 1);
-      return acc;
-    }, new Map());
-
-    const roleBreakdown = Array.from(roleCounts.entries())
-      .map(([label, count]) => ({
-        label,
-        count,
-        percent: users.length === 0 ? 0 : Math.round((count / users.length) * 100),
-      }))
-      .sort((a, b) => b.count - a.count);
-
-    setData({
-      usersGrowth: computeGrowth(usersCurrent, usersPrevious),
-      usersCurrent,
-      pharmaciesGrowth: computeGrowth(pharmaciesCurrent, pharmaciesPrevious),
-      pharmaciesCurrent,
-      searchesCount: searchEvents,
-      topCountries,
-      roleBreakdown,
-    });
+    setData(growthResult.data);
 
     if (mode === "initial") {
       setLoading(false);
