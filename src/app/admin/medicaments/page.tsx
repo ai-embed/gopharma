@@ -25,6 +25,8 @@ type AdminMedicamentsResponse = {
   offset: number;
 };
 
+type MedicamentDetailResponse = PublicDrug;
+
 type MedicamentDraft = {
   name: string;
   form: string;
@@ -104,6 +106,8 @@ export default function AdminMedicamentsPage() {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingId, setViewingId] = useState<string | null>(null);
+  const [viewingItem, setViewingItem] = useState<PublicDrug | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -201,6 +205,25 @@ export default function AdminMedicamentsPage() {
   const resetDraft = () => {
     setDraft(EMPTY_DRAFT);
     setEditingId(null);
+  };
+
+  const openDetails = async (itemId: string) => {
+    setError(null);
+    setSuccess(null);
+    setViewingId(itemId);
+    setViewingItem(null);
+
+    const result = await apiJsonAuth<MedicamentDetailResponse>(
+      `/api/admin/medicaments/${itemId}`
+    );
+    setViewingId(null);
+
+    if (!result.ok || !result.data) {
+      setError(result.error ?? "Impossible de charger le détail du médicament.");
+      return;
+    }
+
+    setViewingItem(result.data);
   };
 
   const downloadCsv = () => {
@@ -398,6 +421,47 @@ export default function AdminMedicamentsPage() {
         </div>
       </div>
 
+      {viewingItem ? (
+        <div className="mt-6 rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold">Détail médicament</h2>
+            <button
+              type="button"
+              onClick={() => setViewingItem(null)}
+              className="rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs font-semibold text-[#1F1D1B]"
+            >
+              Fermer
+            </button>
+          </div>
+          <div className="mt-3 grid gap-3 text-xs text-[#1F1D1B] md:grid-cols-2 lg:grid-cols-4">
+            <p>
+              <span className="text-[#6B7280]">Nom:</span> {viewingItem.name}
+            </p>
+            <p>
+              <span className="text-[#6B7280]">Forme:</span> {viewingItem.form ?? "-"}
+            </p>
+            <p>
+              <span className="text-[#6B7280]">Dosage:</span> {viewingItem.strength ?? "-"}
+            </p>
+            <p>
+              <span className="text-[#6B7280]">ATC:</span> {viewingItem.atcCode ?? "-"}
+            </p>
+            <p>
+              <span className="text-[#6B7280]">Laboratoire:</span> {viewingItem.laboratory ?? "-"}
+            </p>
+            <p>
+              <span className="text-[#6B7280]">Pays:</span> {viewingItem.country ?? "-"}
+            </p>
+            <p>
+              <span className="text-[#6B7280]">Source:</span> {sourceLabel(viewingItem.source)}
+            </p>
+            <p>
+              <span className="text-[#6B7280]">ID:</span> {viewingItem.id}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
           <p className="text-xs text-[#6B7280]">Médicaments chargés</p>
@@ -516,6 +580,14 @@ export default function AdminMedicamentsPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => void openDetails(item.id)}
+                              disabled={Boolean(viewingId)}
+                              className="rounded-lg border border-[#CBD5E1] px-2 py-1 text-[11px] font-semibold text-[#334155] disabled:opacity-60"
+                            >
+                              {viewingId === item.id ? "Chargement..." : "Voir"}
+                            </button>
                             <button
                               type="button"
                               onClick={() => startEdit(item)}
