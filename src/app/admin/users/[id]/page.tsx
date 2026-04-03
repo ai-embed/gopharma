@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Notice } from "@/components/Notice";
 import { apiJsonAuth } from "@/lib/api";
@@ -41,6 +41,14 @@ type AuditLogItem = {
 type AuditLogListResponse = {
   items: AuditLogItem[];
   total: number;
+};
+
+type UserUpdateDraft = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  country: string;
+  phoneNumber: string;
 };
 
 function formatDate(iso?: string | null) {
@@ -103,18 +111,28 @@ function statusTone(label: string) {
 }
 
 export default function AdminUserProfilePage() {
+  const router = useRouter();
   const params = useParams<{ id: string }>();
   const userId = typeof params?.id === "string" ? params.id : "";
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [changingStatus, setChangingStatus] = useState(false);
+  const [savingUser, setSavingUser] = useState(false);
+  const [deletingUser, setDeletingUser] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const [user, setUser] = useState<AdminUser | null>(null);
   const [linkedPharmacy, setLinkedPharmacy] = useState<AdminPharmacy | null>(null);
   const [activity, setActivity] = useState<AuditLogItem[]>([]);
+  const [draft, setDraft] = useState<UserUpdateDraft>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    country: "",
+    phoneNumber: "",
+  });
 
   const currentStatus = useMemo(() => {
     if (!user) return "";
@@ -133,16 +151,16 @@ export default function AdminUserProfilePage() {
       if (mode === "refresh") setRefreshing(true);
       setError(null);
 
-      const [usersResult, pharmaciesResult, activityResult] = await Promise.all([
-        apiJsonAuth<AdminUser[]>("/api/admin/users"),
+      const [userResult, pharmaciesResult, activityResult] = await Promise.all([
+        apiJsonAuth<AdminUser>(`/api/admin/users/${encodeURIComponent(userId)}`),
         apiJsonAuth<AdminPharmacy[]>("/api/admin/pharmacies"),
         apiJsonAuth<AuditLogListResponse>(
           `/api/admin/audit-logs?page=1&limit=20&actorUserId=${encodeURIComponent(userId)}`
         ),
       ]);
 
-      if (!usersResult.ok || !usersResult.data) {
-        setError(usersResult.error ?? "Impossible de charger l'utilisateur.");
+      if (!userResult.ok || !userResult.data) {
+        setError(userResult.error ?? "Impossible de charger l'utilisateur.");
         if (mode === "initial") setLoading(false);
         if (mode === "refresh") setRefreshing(false);
         return;
@@ -155,20 +173,17 @@ export default function AdminUserProfilePage() {
         return;
       }
 
-      const found = usersResult.data.find((item) => item._id === userId) ?? null;
-      if (!found) {
-        setUser(null);
-        setLinkedPharmacy(null);
-        setActivity([]);
-        setError("Utilisateur introuvable.");
-        if (mode === "initial") setLoading(false);
-        if (mode === "refresh") setRefreshing(false);
-        return;
-      }
-
-      setUser(found);
+      const loadedUser = userResult.data;
+      setUser(loadedUser);
+      setDraft({
+        firstName: loadedUser.firstName ?? "",
+        lastName: loadedUser.lastName ?? "",
+        email: loadedUser.email ?? "",
+        country: loadedUser.country ?? "",
+        phoneNumber: loadedUser.phoneNumber ?? "",
+      });
       setLinkedPharmacy(
-        pharmaciesResult.data.find((pharmacy) => pharmacy.ownerId === found._id) ?? null
+        pharmaciesResult.data.find((pharmacy) => pharmacy.ownerId === loadedUser._id) ?? null
       );
 
       if (activityResult.ok && activityResult.data) {
@@ -230,6 +245,65 @@ export default function AdminUserProfilePage() {
         : "Compte suspendu avec succès."
     );
     void loadData("refresh");
+  };
+
+  const saveUser = async () => {
+    if (!user) return;
+    setSavingUser(true);
+    setError(null);
+    setSuccess(null);
+
+    const result = await apiJsonAuth<AdminUser>(`/api/admin/users/${encodeURIComponent(user._id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        firstName: draft.firstName.trim(),
+        lastName: draft.lastName.trim(),
+        email: draft.email.trim().toLowerCase(),
+        country: draft.country.trim(),
+        phoneNumber: draft.phoneNumber.trim() || undefined,
+      }),
+    });
+
+    setSavingUser(false);
+    if (!result.ok || !result.data) {
+      setError(result.error ?? "Impossible de mettre à jour l'utilisateur.");
+      return;
+    }
+
+    setSuccess("Utilisateur mis à jour avec succès.");
+    setUser(result.data);
+    setDraft({
+      firstName: result.data.firstName ?? "",
+      lastName: result.data.lastName ?? "",
+      email: result.data.email ?? "",
+      country: result.data.country ?? "",
+      phoneNumber: result.data.phoneNumber ?? "",
+    });
+  };
+
+  const removeUser = async () => {
+    if (!user) return;
+    const confirmed = window.confirm(
+      "Supprimer définitivement cet utilisateur ? Cette action est irréversible."
+    );
+    if (!confirmed) return;
+
+    setDeletingUser(true);
+    setError(null);
+    setSuccess(null);
+
+    const result = await apiJsonAuth<{ success: boolean }>(
+      `/api/admin/users/${encodeURIComponent(user._id)}`,
+      { method: "DELETE" }
+    );
+    setDeletingUser(false);
+
+    if (!result.ok) {
+      setError(result.error ?? "Impossible de supprimer l'utilisateur.");
+      return;
+    }
+
+    router.push("/admin/users");
   };
 
   if (loading) {
@@ -341,6 +415,84 @@ export default function AdminUserProfilePage() {
           </div>
 
           <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold">Édition rapide</h2>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void saveUser()}
+                  disabled={savingUser || deletingUser}
+                  className="rounded-xl bg-[#0B63D1] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
+                >
+                  {savingUser ? "Enregistrement..." : "Enregistrer"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void removeUser()}
+                  disabled={savingUser || deletingUser}
+                  className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 disabled:opacity-60"
+                >
+                  {deletingUser ? "Suppression..." : "Supprimer"}
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 text-xs md:grid-cols-2">
+              <div>
+                <p className="text-[11px] text-[#6B7280]">Prénom</p>
+                <input
+                  value={draft.firstName}
+                  onChange={(event) =>
+                    setDraft((prev) => ({ ...prev, firstName: event.target.value }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs"
+                />
+              </div>
+              <div>
+                <p className="text-[11px] text-[#6B7280]">Nom</p>
+                <input
+                  value={draft.lastName}
+                  onChange={(event) =>
+                    setDraft((prev) => ({ ...prev, lastName: event.target.value }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs"
+                />
+              </div>
+              <div>
+                <p className="text-[11px] text-[#6B7280]">E-mail</p>
+                <input
+                  type="email"
+                  value={draft.email}
+                  onChange={(event) =>
+                    setDraft((prev) => ({ ...prev, email: event.target.value }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs"
+                />
+              </div>
+              <div>
+                <p className="text-[11px] text-[#6B7280]">Pays</p>
+                <input
+                  value={draft.country}
+                  onChange={(event) =>
+                    setDraft((prev) => ({ ...prev, country: event.target.value }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <p className="text-[11px] text-[#6B7280]">Téléphone</p>
+                <input
+                  value={draft.phoneNumber}
+                  onChange={(event) =>
+                    setDraft((prev) => ({ ...prev, phoneNumber: event.target.value }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
             <h2 className="text-sm font-semibold">Activité récente</h2>
             <div className="mt-4 space-y-3 text-xs">
               {activity.length === 0 ? (
@@ -428,4 +580,3 @@ export default function AdminUserProfilePage() {
     </div>
   );
 }
-

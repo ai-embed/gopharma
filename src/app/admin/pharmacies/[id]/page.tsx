@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Notice } from "@/components/Notice";
 import { apiJsonAuth } from "@/lib/api";
@@ -10,6 +10,10 @@ type AdminPharmacy = {
   _id: string;
   name: string;
   address: string;
+  location?: {
+    type: "Point";
+    coordinates: [number, number];
+  };
   ifu: string;
   email?: string;
   description?: string;
@@ -53,6 +57,16 @@ type AuditLogItem = {
 
 type AuditLogListResponse = {
   items: AuditLogItem[];
+};
+
+type PharmacyUpdateDraft = {
+  name: string;
+  address: string;
+  ifu: string;
+  email: string;
+  description: string;
+  latitude: string;
+  longitude: string;
 };
 
 function formatDate(iso?: string) {
@@ -109,12 +123,15 @@ function toValidationLabel(status: string) {
 }
 
 export default function AdminPharmacyProfilePage() {
+  const router = useRouter();
   const params = useParams<{ id: string }>();
   const pharmacyId = typeof params?.id === "string" ? params.id : "";
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [changingStatus, setChangingStatus] = useState(false);
+  const [savingPharmacy, setSavingPharmacy] = useState(false);
+  const [deletingPharmacy, setDeletingPharmacy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -122,6 +139,15 @@ export default function AdminPharmacyProfilePage() {
   const [owner, setOwner] = useState<AdminUser | null>(null);
   const [validations, setValidations] = useState<AdminValidation[]>([]);
   const [ownerActivity, setOwnerActivity] = useState<AuditLogItem[]>([]);
+  const [draft, setDraft] = useState<PharmacyUpdateDraft>({
+    name: "",
+    address: "",
+    ifu: "",
+    email: "",
+    description: "",
+    latitude: "",
+    longitude: "",
+  });
 
   const currentAccount = useMemo(() => {
     if (!pharmacy) return "";
@@ -140,14 +166,14 @@ export default function AdminPharmacyProfilePage() {
       if (mode === "refresh") setRefreshing(true);
       setError(null);
 
-      const [pharmaciesResult, usersResult, validationsResult] = await Promise.all([
-        apiJsonAuth<AdminPharmacy[]>("/api/admin/pharmacies"),
+      const [pharmacyResult, usersResult, validationsResult] = await Promise.all([
+        apiJsonAuth<AdminPharmacy>(`/api/admin/pharmacies/${encodeURIComponent(pharmacyId)}`),
         apiJsonAuth<AdminUser[]>("/api/admin/users"),
         apiJsonAuth<AdminValidation[]>("/api/admin/validations"),
       ]);
 
-      if (!pharmaciesResult.ok || !pharmaciesResult.data) {
-        setError(pharmaciesResult.error ?? "Impossible de charger la pharmacie.");
+      if (!pharmacyResult.ok || !pharmacyResult.data) {
+        setError(pharmacyResult.error ?? "Impossible de charger la pharmacie.");
         if (mode === "initial") setLoading(false);
         if (mode === "refresh") setRefreshing(false);
         return;
@@ -160,23 +186,21 @@ export default function AdminPharmacyProfilePage() {
         return;
       }
 
-      const foundPharmacy =
-        pharmaciesResult.data.find((item) => item._id === pharmacyId) ?? null;
-      if (!foundPharmacy) {
-        setPharmacy(null);
-        setOwner(null);
-        setValidations([]);
-        setOwnerActivity([]);
-        setError("Pharmacie introuvable.");
-        if (mode === "initial") setLoading(false);
-        if (mode === "refresh") setRefreshing(false);
-        return;
-      }
+      const foundPharmacy = pharmacyResult.data;
 
       const foundOwner =
         usersResult.data.find((item) => item._id === foundPharmacy.ownerId) ?? null;
 
       setPharmacy(foundPharmacy);
+      setDraft({
+        name: foundPharmacy.name ?? "",
+        address: foundPharmacy.address ?? "",
+        ifu: foundPharmacy.ifu ?? "",
+        email: foundPharmacy.email ?? "",
+        description: foundPharmacy.description ?? "",
+        latitude: String(foundPharmacy.location?.coordinates?.[1] ?? ""),
+        longitude: String(foundPharmacy.location?.coordinates?.[0] ?? ""),
+      });
       setOwner(foundOwner);
 
       if (validationsResult.ok && validationsResult.data) {
@@ -260,6 +284,79 @@ export default function AdminPharmacyProfilePage() {
         : "Pharmacie suspendue avec succès."
     );
     void loadData("refresh");
+  };
+
+  const savePharmacy = async () => {
+    if (!pharmacy) return;
+    setSavingPharmacy(true);
+    setError(null);
+    setSuccess(null);
+
+    const lat = Number(draft.latitude);
+    const lng = Number(draft.longitude);
+    const payload: Record<string, unknown> = {
+      pharmacyName: draft.name.trim(),
+      pharmacyAddress: draft.address.trim(),
+      ifu: draft.ifu.trim(),
+      email: draft.email.trim() || undefined,
+      description: draft.description.trim() || undefined,
+    };
+
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      payload.latitude = lat;
+      payload.longitude = lng;
+    }
+
+    const result = await apiJsonAuth<AdminPharmacy>(
+      `/api/admin/pharmacies/${encodeURIComponent(pharmacy._id)}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }
+    );
+
+    setSavingPharmacy(false);
+    if (!result.ok || !result.data) {
+      setError(result.error ?? "Impossible de mettre à jour la pharmacie.");
+      return;
+    }
+
+    setSuccess("Pharmacie mise à jour avec succès.");
+    setPharmacy(result.data);
+    setDraft({
+      name: result.data.name ?? "",
+      address: result.data.address ?? "",
+      ifu: result.data.ifu ?? "",
+      email: result.data.email ?? "",
+      description: result.data.description ?? "",
+      latitude: String(result.data.location?.coordinates?.[1] ?? draft.latitude),
+      longitude: String(result.data.location?.coordinates?.[0] ?? draft.longitude),
+    });
+  };
+
+  const removePharmacy = async () => {
+    if (!pharmacy) return;
+    const confirmed = window.confirm(
+      "Supprimer cette pharmacie ? Le compte gestionnaire sera désactivé s'il n'a plus de pharmacie."
+    );
+    if (!confirmed) return;
+
+    setDeletingPharmacy(true);
+    setError(null);
+    setSuccess(null);
+
+    const result = await apiJsonAuth<{ success: boolean }>(
+      `/api/admin/pharmacies/${encodeURIComponent(pharmacy._id)}`,
+      { method: "DELETE" }
+    );
+    setDeletingPharmacy(false);
+
+    if (!result.ok) {
+      setError(result.error ?? "Impossible de supprimer la pharmacie.");
+      return;
+    }
+
+    router.push("/admin/pharmacies");
   };
 
   if (loading) {
@@ -379,6 +476,98 @@ export default function AdminPharmacyProfilePage() {
           </div>
 
           <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold">Édition rapide</h2>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void savePharmacy()}
+                  disabled={savingPharmacy || deletingPharmacy}
+                  className="rounded-xl bg-[#0B63D1] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
+                >
+                  {savingPharmacy ? "Enregistrement..." : "Enregistrer"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void removePharmacy()}
+                  disabled={savingPharmacy || deletingPharmacy}
+                  className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 disabled:opacity-60"
+                >
+                  {deletingPharmacy ? "Suppression..." : "Supprimer"}
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 text-xs md:grid-cols-2">
+              <div>
+                <p className="text-[11px] text-[#6B7280]">Nom</p>
+                <input
+                  value={draft.name}
+                  onChange={(event) => setDraft((prev) => ({ ...prev, name: event.target.value }))}
+                  className="mt-1 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs"
+                />
+              </div>
+              <div>
+                <p className="text-[11px] text-[#6B7280]">IFU</p>
+                <input
+                  value={draft.ifu}
+                  onChange={(event) => setDraft((prev) => ({ ...prev, ifu: event.target.value }))}
+                  className="mt-1 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <p className="text-[11px] text-[#6B7280]">Adresse</p>
+                <input
+                  value={draft.address}
+                  onChange={(event) =>
+                    setDraft((prev) => ({ ...prev, address: event.target.value }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs"
+                />
+              </div>
+              <div>
+                <p className="text-[11px] text-[#6B7280]">Email</p>
+                <input
+                  type="email"
+                  value={draft.email}
+                  onChange={(event) => setDraft((prev) => ({ ...prev, email: event.target.value }))}
+                  className="mt-1 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs"
+                />
+              </div>
+              <div>
+                <p className="text-[11px] text-[#6B7280]">Latitude</p>
+                <input
+                  value={draft.latitude}
+                  onChange={(event) =>
+                    setDraft((prev) => ({ ...prev, latitude: event.target.value }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs"
+                />
+              </div>
+              <div>
+                <p className="text-[11px] text-[#6B7280]">Longitude</p>
+                <input
+                  value={draft.longitude}
+                  onChange={(event) =>
+                    setDraft((prev) => ({ ...prev, longitude: event.target.value }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <p className="text-[11px] text-[#6B7280]">Description</p>
+                <textarea
+                  value={draft.description}
+                  onChange={(event) =>
+                    setDraft((prev) => ({ ...prev, description: event.target.value }))
+                  }
+                  className="mt-1 h-20 w-full rounded-xl border border-[#E5E7EB] bg-white px-3 py-2 text-xs"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
             <h2 className="text-sm font-semibold">Historique de validation</h2>
             <div className="mt-4 space-y-3 text-xs">
               {validations.length === 0 ? (
@@ -470,4 +659,3 @@ export default function AdminPharmacyProfilePage() {
     </div>
   );
 }
-
