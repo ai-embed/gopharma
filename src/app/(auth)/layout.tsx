@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import AppFooter from "@/components/AppFooter";
 import { usePathname, useRouter } from "next/navigation";
 import { apiJsonAuth } from "@/lib/api";
-import { clearTokens, getAccessToken } from "@/lib/auth";
+import { clearTokens, getAccessToken, saveRoleCookie } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 
 const tabs = [
@@ -32,6 +32,7 @@ export default function AuthLayout({
       if (cancelled) return;
 
       if (meResult.ok && meResult.data?.role) {
+        saveRoleCookie(meResult.data.role);
         router.replace(getRoleHomePath(meResult.data.role));
         return;
       }

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { saveTokens } from "@/lib/auth";
+import { saveRoleCookie, saveTokens } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 
 type GoogleAuthPayload =
@@ -53,6 +53,9 @@ export default function GoogleSuccessPage() {
     }
 
     saveTokens(validPayload.accessToken, validPayload.refreshToken, true);
+    if (validPayload.role) {
+      saveRoleCookie(validPayload.role, true);
+    }
 
     const nextPath = getRoleHomePath(validPayload.role);
     router.replace(nextPath);
