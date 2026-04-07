@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Notice } from "@/components/Notice";
 import { API_BASE, apiJson, apiJsonAuth } from "@/lib/api";
-import { clearTokens, getAccessToken } from "@/lib/auth";
+import { clearTokens, getAccessToken, saveRoleCookie } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
@@ -73,6 +73,7 @@ export default function PharmacyRegisterPage() {
         return;
       }
 
+      saveRoleCookie(meResult.data.role);
       router.replace(getRoleHomePath(meResult.data.role));
     };
 

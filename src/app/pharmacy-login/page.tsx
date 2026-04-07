@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Notice } from "@/components/Notice";
 import { apiJson, apiJsonAuth } from "@/lib/api";
-import { clearTokens, getAccessToken, saveTokens } from "@/lib/auth";
+import { clearTokens, getAccessToken, saveRoleCookie, saveTokens } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +42,7 @@ export default function PharmacyLoginPage() {
         return;
       }
 
+      saveRoleCookie(meResult.data.role);
       router.replace(getRoleHomePath(meResult.data.role));
     };
 
@@ -80,6 +81,7 @@ export default function PharmacyLoginPage() {
       return;
     }
 
+    saveRoleCookie(meResult.data.role, rememberMe);
     router.push(getRoleHomePath(meResult.data.role));
   };
 

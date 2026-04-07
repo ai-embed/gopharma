@@ -194,9 +194,9 @@ export default function DashboardPage() {
                 Aucune recherche récente pour le moment.
               </div>
             ) : (
-              recentSearches.map((item) => (
+              recentSearches.map((item, index) => (
                 <Link
-                  key={item.name}
+                  key={`${item.name}-${item.time}-${index}`}
                   href={`/search?q=${encodeURIComponent(item.name)}`}
                   className="flex items-center justify-between border-b border-[#E5E7EB] px-5 py-4 last:border-b-0"
                 >

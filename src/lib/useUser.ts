@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiJsonAuth } from "./api";
+import { saveRoleCookie } from "./auth";
 
 type UserPreferences = {
   language: string;
@@ -36,6 +37,7 @@ export function useUser() {
       if (!active) return;
       if (res.ok && res.data) {
         setUser(res.data);
+        saveRoleCookie(res.data.role);
         setError(null);
       } else {
         setUser(null);

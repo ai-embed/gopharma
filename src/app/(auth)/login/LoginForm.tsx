@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiJson, apiJsonAuth } from "@/lib/api";
-import { saveTokens } from "@/lib/auth";
+import { saveRoleCookie, saveTokens } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 import { Notice } from "@/components/Notice";
 
@@ -50,9 +50,12 @@ export default function LoginForm() {
     saveTokens(result.data.accessToken, result.data.refreshToken, rememberMe);
 
     const meResult = await apiJsonAuth<UserProfile>("/api/users/me");
-    const nextPath = meResult.ok && meResult.data
-      ? getRoleHomePath(meResult.data.role)
-      : "/dashboard";
+    let nextPath = "/dashboard";
+
+    if (meResult.ok && meResult.data) {
+      saveRoleCookie(meResult.data.role, rememberMe);
+      nextPath = getRoleHomePath(meResult.data.role);
+    }
 
     router.push(nextPath);
   };

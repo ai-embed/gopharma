@@ -1,5 +1,4 @@
-const ACCESS_KEY = "gopharma_access_token";
-const REFRESH_KEY = "gopharma_refresh_token";
+import { ACCESS_KEY, REFRESH_KEY, ROLE_COOKIE_KEY } from "./auth-keys";
 
 export function saveTokens(
   accessToken: string,
@@ -22,6 +21,7 @@ export function clearTokens() {
   localStorage.removeItem(REFRESH_KEY);
   sessionStorage.removeItem(ACCESS_KEY);
   sessionStorage.removeItem(REFRESH_KEY);
+  clearRoleCookie();
 }
 
 export function getAccessToken() {
@@ -29,4 +29,19 @@ export function getAccessToken() {
   return (
     sessionStorage.getItem(ACCESS_KEY) ?? localStorage.getItem(ACCESS_KEY)
   );
+}
+
+export function saveRoleCookie(role: string, rememberMe = true) {
+  if (typeof window === "undefined") return;
+  const normalizedRole = role.trim().toUpperCase();
+  if (!normalizedRole) return;
+
+  const base = `${ROLE_COOKIE_KEY}=${encodeURIComponent(normalizedRole)}; Path=/; SameSite=Lax`;
+  const rememberSuffix = rememberMe ? "; Max-Age=2592000" : "";
+  document.cookie = `${base}${rememberSuffix}`;
+}
+
+export function clearRoleCookie() {
+  if (typeof window === "undefined") return;
+  document.cookie = `${ROLE_COOKIE_KEY}=; Path=/; Max-Age=0; SameSite=Lax`;
 }
