@@ -52,6 +52,12 @@ export default function PharmacyInventoryNewPage() {
 
   const [name, setName] = useState("");
   const [scientificName, setScientificName] = useState("");
+  const [form, setForm] = useState("");
+  const [strength, setStrength] = useState("");
+  const [laboratory, setLaboratory] = useState("");
+  const [atcCode, setAtcCode] = useState("");
+  const [country, setCountry] = useState("");
+  const [source, setSource] = useState("Catalogue pharmacies");
   const [category, setCategory] = useState(CATEGORY_PLACEHOLDER);
   const [categoryOptions, setCategoryOptions] = useState<string[]>([
     CATEGORY_PLACEHOLDER,
@@ -232,6 +238,12 @@ export default function PharmacyInventoryNewPage() {
         body: JSON.stringify({
           name: name.trim(),
           scientificName: scientificName.trim() || undefined,
+          form: form.trim() || undefined,
+          strength: strength.trim() || undefined,
+          laboratory: laboratory.trim() || undefined,
+          atcCode: atcCode.trim() || undefined,
+          country: country.trim() || undefined,
+          source: source.trim() || undefined,
           category: category !== CATEGORY_PLACEHOLDER ? category : undefined,
           barcode: barcode.trim() || undefined,
           stockQuantity: Math.floor(parsedStock),
@@ -299,7 +311,7 @@ export default function PharmacyInventoryNewPage() {
               <h2 className="text-sm font-semibold">Informations sur le Produit</h2>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-[#6B7280]">Nom du produit</label>
                 <input
@@ -317,6 +329,24 @@ export default function PharmacyInventoryNewPage() {
                   value={scientificName}
                   onChange={(event) => setScientificName(event.target.value)}
                   placeholder="ex: Paracetamol"
+                  className="w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[#6B7280]">Forme</label>
+                <input
+                  value={form}
+                  onChange={(event) => setForm(event.target.value)}
+                  placeholder="ex: Comprimé"
+                  className="w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[#6B7280]">Dosage</label>
+                <input
+                  value={strength}
+                  onChange={(event) => setStrength(event.target.value)}
+                  placeholder="ex: 500 mg"
                   className="w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm"
                 />
               </div>
@@ -354,6 +384,42 @@ export default function PharmacyInventoryNewPage() {
                     Scanner
                   </button>
                 </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[#6B7280]">Laboratoire</label>
+                <input
+                  value={laboratory}
+                  onChange={(event) => setLaboratory(event.target.value)}
+                  placeholder="ex: Sanofi"
+                  className="w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[#6B7280]">Code ATC</label>
+                <input
+                  value={atcCode}
+                  onChange={(event) => setAtcCode(event.target.value)}
+                  placeholder="ex: N02BE01"
+                  className="w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[#6B7280]">Pays</label>
+                <input
+                  value={country}
+                  onChange={(event) => setCountry(event.target.value)}
+                  placeholder="ex: BJ"
+                  className="w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[#6B7280]">Source</label>
+                <input
+                  value={source}
+                  onChange={(event) => setSource(event.target.value)}
+                  placeholder="Catalogue pharmacies"
+                  className="w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm"
+                />
               </div>
             </div>
           </section>
