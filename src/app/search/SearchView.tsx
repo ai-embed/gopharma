@@ -31,6 +31,7 @@ type PublicPharmacy = {
   photoFileId?: string;
   operationalStatus?: "OUVERT" | "FERME";
   openNow?: boolean;
+  nextTransitionAt?: string;
   location?: PharmacyLocation;
 };
 
@@ -130,8 +131,32 @@ const buildDirectionsUrl = (pharmacy: PublicPharmacy) => {
 
 const formatCompactMoney = (value: number) => `${value.toLocaleString("fr-FR")} F`;
 
-const getOpenStatusPill = (isOpen?: boolean) =>
-  isOpen ? "◔ Ouvert jusqu'à 21h" : "◔ Fermé";
+const formatTransitionHour = (isoDate?: string) => {
+  if (!isoDate) {
+    return null;
+  }
+
+  const value = new Date(isoDate);
+  if (Number.isNaN(value.getTime())) {
+    return null;
+  }
+
+  const hours = value.getHours().toString().padStart(2, "0");
+  const minutes = value.getMinutes().toString().padStart(2, "0");
+  return minutes === "00" ? `${hours}h` : `${hours}h${minutes}`;
+};
+
+const getOpenStatusPill = (isOpen?: boolean, nextTransitionAt?: string) => {
+  if (!isOpen) {
+    return "◔ Fermé";
+  }
+
+  const transitionLabel = formatTransitionHour(nextTransitionAt);
+  return transitionLabel ? `◔ Ouvert jusqu'à ${transitionLabel}` : "◔ Ouvert";
+};
+
+const isPharmacyOpenNow = (pharmacy: PublicPharmacy) =>
+  pharmacy.openNow ?? pharmacy.operationalStatus === "OUVERT";
 
 const baseFilterPillClass =
   "rounded-full border border-[#DCE5F0] bg-white px-3.5 py-2 text-[11px] font-semibold text-[#374151] shadow-[0_4px_10px_rgba(15,23,42,0.03)] transition";
@@ -799,7 +824,11 @@ export default function SearchPage() {
                   index === 0 &&
                   (groupedResults.length === 1 ||
                     group.totalPrice < groupedResults[1].totalPrice);
-                const statusLabel = getOpenStatusPill(group.pharmacy.openNow);
+                const pharmacyOpenNow = isPharmacyOpenNow(group.pharmacy);
+                const statusLabel = getOpenStatusPill(
+                  pharmacyOpenNow,
+                  group.pharmacy.nextTransitionAt
+                );
                 const distanceLabel =
                   userCoords && group.pharmacy.location?.coordinates
                     ? formatDistance(userCoords, {
@@ -908,8 +937,8 @@ export default function SearchPage() {
                     <div className="mt-3 border-t border-[#E5E7EB] pt-3">
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <span
-                          className={`inline-flex rounded-full px-3 py-1.5 text-xs font-medium ${
-                            group.pharmacy.openNow
+                            className={`inline-flex rounded-full px-3 py-1.5 text-xs font-medium ${
+                            pharmacyOpenNow
                               ? "bg-[#ECFDF3] text-[#15803D]"
                               : "bg-[#FEF2F2] text-[#B91C1C]"
                           }`}
@@ -941,6 +970,7 @@ export default function SearchPage() {
                 const directionsUrl = buildDirectionsUrl(pharmacy);
                 const services = pharmacy.services?.slice(0, 3) ?? [];
                 const isSelected = selectedPharmacyId === pharmacy._id;
+                const pharmacyOpenNow = isPharmacyOpenNow(pharmacy);
                 const distanceLabel =
                   userCoords && pharmacy.location?.coordinates
                     ? formatDistance(userCoords, {
@@ -948,7 +978,10 @@ export default function SearchPage() {
                         lng: pharmacy.location.coordinates[0],
                       })
                     : null;
-                const bottomStatus = getOpenStatusPill(pharmacy.openNow);
+                const bottomStatus = getOpenStatusPill(
+                  pharmacyOpenNow,
+                  pharmacy.nextTransitionAt
+                );
                 const totalPrice = totalPriceByPharmacy.get(pharmacy._id);
 
                 return (
@@ -977,12 +1010,12 @@ export default function SearchPage() {
                             </Link>
                             <span
                               className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-                                pharmacy.openNow
+                                pharmacyOpenNow
                                   ? "bg-[#DCFCE7] text-[#15803D]"
                                   : "bg-[#FEE2E2] text-[#B91C1C]"
                               }`}
                             >
-                              {pharmacy.openNow ? "Ouvert" : "Fermé"}
+                              {pharmacyOpenNow ? "Ouvert" : "Fermé"}
                             </span>
                           </div>
                           <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-[#6B7280]">
@@ -1035,7 +1068,7 @@ export default function SearchPage() {
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <span
                           className={`inline-flex rounded-full px-3 py-1.5 text-xs font-medium ${
-                            pharmacy.openNow
+                            pharmacyOpenNow
                               ? "bg-[#ECFDF3] text-[#15803D]"
                               : "bg-[#FEF2F2] text-[#B91C1C]"
                           }`}
