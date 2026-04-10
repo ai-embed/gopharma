@@ -1,9 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { ROLE_COOKIE_KEY } from "@/lib/auth-keys";
+export type RoleBucket = "ADMIN" | "PHARMACY" | "PATIENT" | "UNKNOWN";
 
-type RoleBucket = "ADMIN" | "PHARMACY" | "PATIENT" | "UNKNOWN";
-
-const AUTH_PAGES = new Set([
+export const AUTH_PAGES = new Set([
   "/login",
   "/register",
   "/verify-email",
@@ -11,7 +8,7 @@ const AUTH_PAGES = new Set([
   "/pharmacy-register",
 ]);
 
-const PATIENT_PREFIXES = [
+export const PATIENT_PREFIXES = [
   "/dashboard",
   "/search",
   "/history",
@@ -26,11 +23,11 @@ const PATIENT_PREFIXES = [
   "/account",
 ];
 
-function normalizeRole(role?: string | null): string {
+export function normalizeRole(role?: string | null): string {
   return role?.toUpperCase() ?? "";
 }
 
-function getRoleBucket(role?: string | null): RoleBucket {
+export function getRoleBucket(role?: string | null): RoleBucket {
   const normalized = normalizeRole(role);
   if (normalized.includes("ADMIN")) return "ADMIN";
   if (normalized.includes("PHARM")) return "PHARMACY";
@@ -38,32 +35,37 @@ function getRoleBucket(role?: string | null): RoleBucket {
   return "UNKNOWN";
 }
 
-function getRoleHome(role: RoleBucket): string {
+export function getRoleHome(role: RoleBucket): string {
   if (role === "ADMIN") return "/admin/dashboard";
   if (role === "PHARMACY") return "/pharmacy/dashboard";
   if (role === "PATIENT") return "/dashboard";
   return "/login";
 }
 
-function isPrefixedRoute(pathname: string, prefix: string): boolean {
+export function isPrefixedRoute(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
 }
 
-function isPatientRoute(pathname: string): boolean {
+export function isPatientRoute(pathname: string): boolean {
   return PATIENT_PREFIXES.some((prefix) => isPrefixedRoute(pathname, prefix));
 }
 
-function isPharmacyRoute(pathname: string): boolean {
+export function isPharmacyRoute(pathname: string): boolean {
   return isPrefixedRoute(pathname, "/pharmacy");
 }
 
-function isAdminRoute(pathname: string): boolean {
+export function isAdminRoute(pathname: string): boolean {
   return isPrefixedRoute(pathname, "/admin");
 }
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const roleCookie = request.cookies.get(ROLE_COOKIE_KEY)?.value;
+export type RouteAccessDecision =
+  | { action: "allow" }
+  | { action: "redirect"; destination: string };
+
+export function decideRouteAccess(
+  pathname: string,
+  roleCookie?: string | null
+): RouteAccessDecision {
   const role = getRoleBucket(roleCookie);
   const isAuthenticated = role !== "UNKNOWN";
 
@@ -74,35 +76,29 @@ export function middleware(request: NextRequest) {
 
   if (!isAuthenticated) {
     if (onAdminRoute || onPatientRoute) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return { action: "redirect", destination: "/login" };
     }
     if (onPharmacyRoute) {
-      return NextResponse.redirect(new URL("/pharmacy-login", request.url));
+      return { action: "redirect", destination: "/pharmacy-login" };
     }
-    return NextResponse.next();
+    return { action: "allow" };
   }
 
   if (onAuthPage) {
-    return NextResponse.redirect(new URL(getRoleHome(role), request.url));
+    return { action: "redirect", destination: getRoleHome(role) };
   }
 
   if (onAdminRoute && role !== "ADMIN") {
-    return NextResponse.redirect(new URL(getRoleHome(role), request.url));
+    return { action: "redirect", destination: getRoleHome(role) };
   }
 
   if (onPharmacyRoute && role !== "PHARMACY") {
-    return NextResponse.redirect(new URL(getRoleHome(role), request.url));
+    return { action: "redirect", destination: getRoleHome(role) };
   }
 
   if (onPatientRoute && role !== "PATIENT") {
-    return NextResponse.redirect(new URL(getRoleHome(role), request.url));
+    return { action: "redirect", destination: getRoleHome(role) };
   }
 
-  return NextResponse.next();
+  return { action: "allow" };
 }
-
-export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|workbox-.*|icons|images).*)",
-  ],
-};

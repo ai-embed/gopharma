@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiJsonAuth } from "./api";
-import { saveRoleCookie } from "./auth";
+import { clearTokens, saveRoleCookie } from "./auth";
 
 type UserPreferences = {
   language: string;
@@ -40,6 +40,9 @@ export function useUser() {
         saveRoleCookie(res.data.role);
         setError(null);
       } else {
+        if (res.status === 401) {
+          clearTokens();
+        }
         setUser(null);
         setError(res.error ?? "Impossible de charger le profil utilisateur.");
       }

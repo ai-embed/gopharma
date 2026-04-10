@@ -463,8 +463,11 @@ export default function AdminDashboardPage() {
           <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
             <h3 className="text-sm font-semibold">Intégrations</h3>
             <div className="mt-4 space-y-3 text-xs">
-              {(data?.integrationRows ?? []).map((item) => (
-                <div key={item.name} className="rounded-xl border border-[#E5E7EB] px-3 py-3">
+              {(data?.integrationRows ?? []).map((item, index) => (
+                <div
+                  key={`${item.name}-${item.checkedAt}-${index}`}
+                  className="rounded-xl border border-[#E5E7EB] px-3 py-3"
+                >
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-[#1F1D1B]">{item.name}</span>
                     <span
