@@ -100,9 +100,9 @@ export default function AssistantPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {suggestions.map((item) => (
+              {suggestions.map((item, index) => (
                 <div
-                  key={item.name}
+                  key={`${item.name}-${item.price}-${index}`}
                   className="rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm"
                 >
                   <div className="flex items-center justify-between text-xs">

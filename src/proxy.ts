@@ -61,7 +61,7 @@ function isAdminRoute(pathname: string): boolean {
   return isPrefixedRoute(pathname, "/admin");
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const roleCookie = request.cookies.get(ROLE_COOKIE_KEY)?.value;
   const role = getRoleBucket(roleCookie);
