@@ -3,6 +3,7 @@
 import ProfileShell from "@/components/ProfileShell";
 import { Notice } from "@/components/Notice";
 import { useUser } from "@/lib/useUser";
+import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
 
 export default function ProfileView() {
   const { user, loading, error } = useUser();
@@ -15,11 +16,25 @@ export default function ProfileView() {
   const timezone = user?.preferences?.timezone ?? "Africa/Porto-Novo";
   const userId = user?._id ? `#${user._id.slice(-6).toUpperCase()}` : "Non renseigné";
   const phone = user?.phoneNumber ?? "Non renseigné";
+  const userIdRaw = user?._id ?? "";
+  const photoUrl = user?.profilePhotoUrl;
 
   return (
     <ProfileShell activeTab="profile">
       <div className="space-y-6">
         {error ? <Notice tone="error" message={error} /> : null}
+
+        {/* Section Photo de profil */}
+        <section className="rounded-2xl border border-[#E5E7EB] bg-white p-6">
+          <h2 className="mb-4 text-sm font-semibold">Photo de profil</h2>
+          <ProfilePhotoUpload
+            userId={userIdRaw}
+            currentPhotoUrl={photoUrl}
+            firstName={user?.firstName ?? ""}
+            lastName={user?.lastName ?? ""}
+            size="lg"
+          />
+        </section>
 
         <section className="space-y-3">
           <h2 className="text-sm font-semibold">Identité</h2>

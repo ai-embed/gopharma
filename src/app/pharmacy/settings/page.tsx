@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CoordinatePickerMap } from "@/components/CoordinatePickerMap";
 import { Notice } from "@/components/Notice";
+import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
 import { apiJson, apiJsonAuth } from "@/lib/api";
 import { usePharmacyStoreStatus } from "@/lib/usePharmacyStoreStatus";
 
@@ -27,6 +28,7 @@ type UserMe = {
   lastName: string;
   email: string;
   phoneNumber?: string;
+  profilePhotoUrl?: string | null;
   preferences: {
     alertsEnabled: boolean;
     channels: Array<"IN_APP" | "EMAIL" | "PUSH">;
@@ -107,6 +109,12 @@ export default function PharmacySettingsPage() {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [passwordResetLoading, setPasswordResetLoading] = useState(false);
   const [managerEmail, setManagerEmail] = useState("");
+  const [managerInfo, setManagerInfo] = useState<{ 
+    userId: string; 
+    firstName: string; 
+    lastName: string; 
+    photoUrl: string | null;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const storeStatus = usePharmacyStoreStatus();
@@ -137,6 +145,12 @@ export default function PharmacySettingsPage() {
     setForm(snapshot);
     setInitial(snapshot);
     setManagerEmail(userResult.data.email ?? "");
+    setManagerInfo({
+      userId: userResult.data._id,
+      firstName: userResult.data.firstName,
+      lastName: userResult.data.lastName,
+      photoUrl: userResult.data.profilePhotoUrl ?? null,
+    });
     setLoading(false);
   }, []);
 
@@ -447,6 +461,26 @@ export default function PharmacySettingsPage() {
         </div>
 
         <div className="space-y-6">
+          {/* Photo de profil du gestionnaire */}
+          {managerInfo && (
+            <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+              <h2 className="text-sm font-semibold">Photo de profil</h2>
+              <p className="mt-2 text-xs text-[#6B7280]">
+                Gestionnaire: {managerInfo.firstName} {managerInfo.lastName}
+              </p>
+              <div className="mt-4">
+                <ProfilePhotoUpload
+                  userId={managerInfo.userId}
+                  currentPhotoUrl={managerInfo.photoUrl}
+                  firstName={managerInfo.firstName}
+                  lastName={managerInfo.lastName}
+                  size="md"
+                  onPhotoUpdate={(url) => setManagerInfo(prev => prev ? { ...prev, photoUrl: url } : null)}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
             <h2 className="text-sm font-semibold">Notifications</h2>
             <p className="mt-2 text-xs text-[#6B7280]">

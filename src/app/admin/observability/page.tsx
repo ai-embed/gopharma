@@ -32,7 +32,60 @@ export default function ObservabilityDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "error" | "warn">("all");
 
-  // Déclaré avant useEffect pour éviter l'erreur ESLint
+  // Déclaré comme function pour éviter l'erreur ESLint "accessed before declaration"
+  function getMockStats(): ObservabilityStats {
+    return {
+      totalErrors: 12,
+      totalWarnings: 45,
+      last24hErrors: 3,
+      apiErrorRate: 2.4,
+      uniqueEndpointsAffected: 5,
+      topErrors: [
+        {
+          id: "err-1",
+          timestamp: new Date().toISOString(),
+          level: "error",
+          message: "Database connection timeout",
+          path: "/api/users/login",
+          method: "POST",
+          statusCode: 500,
+          traceId: "trace-123",
+        },
+        {
+          id: "err-2",
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          level: "error",
+          message: "Invalid API key",
+          path: "/api/pharmacies/search",
+          method: "GET",
+          statusCode: 401,
+          traceId: "trace-124",
+        },
+        {
+          id: "err-3",
+          timestamp: new Date(Date.now() - 7200000).toISOString(),
+          level: "warn",
+          message: "Rate limit approached",
+          path: "/api/orders",
+          method: "POST",
+          traceId: "trace-125",
+        },
+      ],
+      recentEvents: [
+        {
+          id: "evt-1",
+          timestamp: new Date().toISOString(),
+          level: "error",
+          message: "Payment processing failed",
+          path: "/api/payments",
+          method: "POST",
+          statusCode: 500,
+          traceId: "trace-126",
+        },
+      ],
+    };
+  }
+
   const loadStats = async () => {
     setLoading(true);
     const result = await apiJsonAuth<ObservabilityStats>("/api/admin/observability");
@@ -52,47 +105,6 @@ export default function ObservabilityDashboard() {
     loadStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const getMockStats = (): ObservabilityStats => ({
-    totalErrors: 12,
-    totalWarnings: 45,
-    last24hErrors: 3,
-    apiErrorRate: 2.4,
-    uniqueEndpointsAffected: 5,
-    topErrors: [
-      {
-        id: "err-1",
-        timestamp: new Date().toISOString(),
-        level: "error",
-        message: "Database connection timeout",
-        path: "/api/search/products",
-        method: "GET",
-        statusCode: 500,
-        traceId: "abc123-def456",
-      },
-      {
-        id: "err-2",
-        timestamp: new Date(Date.now() - 3600000).toISOString(),
-        level: "error",
-        message: "Invalid pharmacy ID format",
-        path: "/api/pharmacies/:id",
-        method: "GET",
-        statusCode: 400,
-        traceId: "xyz789-uvw012",
-      },
-    ],
-    recentEvents: [
-      {
-        id: "warn-1",
-        timestamp: new Date().toISOString(),
-        level: "warn",
-        message: "Slow query detected (>2s)",
-        path: "/api/admin/users",
-        method: "GET",
-        traceId: "slow-123-query",
-      },
-    ],
-  });
 
   const formatTime = (iso: string) => {
     const d = new Date(iso);
