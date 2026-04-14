@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import ProfileShell from "@/components/ProfileShell";
 import { Notice } from "@/components/Notice";
 import { useUser } from "@/lib/useUser";
@@ -16,39 +15,11 @@ export default function ProfileView() {
   const timezone = user?.preferences?.timezone ?? "Africa/Porto-Novo";
   const userId = user?._id ? `#${user._id.slice(-6).toUpperCase()}` : "Non renseigné";
   const phone = user?.phoneNumber ?? "Non renseigné";
-  const photoUrl = user?.profilePhotoUrl;
-  const initials = `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() || "?";
 
   return (
     <ProfileShell activeTab="profile">
       <div className="space-y-6">
         {error ? <Notice tone="error" message={error} /> : null}
-
-        {/* Section Photo de profil - Affichage uniquement */}
-        <section className="rounded-2xl border border-[#E5E7EB] bg-white p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Photo de profil</h2>
-            <Link
-              href="/profile/edit"
-              className="text-xs font-semibold text-[#0B63D1] hover:underline"
-            >
-              Modifier →
-            </Link>
-          </div>
-          <div className="mt-4">
-            {photoUrl ? (
-              <img
-                src={photoUrl}
-                alt={`${user?.firstName} ${user?.lastName}`}
-                className="h-32 w-32 rounded-2xl object-cover"
-              />
-            ) : (
-              <div className="flex h-32 w-32 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0B63D1] to-[#1E40AF]">
-                <span className="text-2xl font-bold text-white">{initials}</span>
-              </div>
-            )}
-          </div>
-        </section>
 
         <section className="space-y-3">
           <h2 className="text-sm font-semibold">Identité</h2>
