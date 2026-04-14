@@ -568,11 +568,10 @@ test.describe("Business Flow (Playwright)", () => {
 
     await test.step("Pharmacie: connexion et inventaire", async () => {
       await page.goto("/pharmacy-login");
-      await page
-        .getByLabel("E-mail professionnel")
-        .fill("manager@gopharma.local");
+      await page.getByLabel("E-mail professionnel").fill("manager@gopharma.local");
       await page.getByLabel("Mot de passe").fill("StrongPass1!");
       await page.getByRole("button", { name: "Se connecter" }).click();
+      await page.waitForTimeout(500);
       await expect(page).toHaveURL(/\/pharmacy\/dashboard$/);
 
       await page.goto("/pharmacy/inventory");
