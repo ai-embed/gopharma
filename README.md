@@ -75,9 +75,13 @@ Si le backend tourne aussi sur la machine locale, relancez Next.js après modifi
 ```bash
 npm run test
 npm run test:integration
+npx playwright install chromium
+npm run test:e2e:browser
 npm run lint
 npm run build
 ```
+
+Le script `test:e2e:browser` valide les protections d'accès de routes (patient/pharmacie/admin) en navigateur réel via Playwright.
 
 ## Structure
 - `src/app`: Routes et pages (App Router)
