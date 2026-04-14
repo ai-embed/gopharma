@@ -31,6 +31,7 @@ const navSections = [
     items: [
       { href: "/admin/settings", label: "Paramètres" },
       { href: "/admin/audit-logs", label: "Journaux d'audit" },
+      { href: "/admin/observability", label: "Observabilité" },
     ],
   },
 ];
