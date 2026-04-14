@@ -2,7 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Notice } from "@/components/Notice";
+import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
 import { apiJsonAuth } from "@/lib/api";
+
+type UserMe = {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  profilePhotoUrl?: string | null;
+};
 
 type IntegrationStatus = {
   status: "OK" | "ERROR" | "UNCONFIGURED";
@@ -76,6 +86,12 @@ export default function AdminSettingsPage() {
   const [sendingTest, setSendingTest] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [adminInfo, setAdminInfo] = useState<{
+    userId: string;
+    firstName: string;
+    lastName: string;
+    photoUrl: string | null;
+  } | null>(null);
 
   const loadStatus = useCallback(async (mode: "initial" | "refresh" = "initial") => {
     if (mode === "initial") {
@@ -85,9 +101,13 @@ export default function AdminSettingsPage() {
     }
     setError(null);
 
-    const result = await apiJsonAuth<IntegrationStatusMap>("/api/admin/integrations/status");
-    if (!result.ok || !result.data) {
-      setError(result.error ?? "Impossible de charger les paramètres administrateur.");
+    const [integrationsResult, userResult] = await Promise.all([
+      apiJsonAuth<IntegrationStatusMap>("/api/admin/integrations/status"),
+      apiJsonAuth<UserMe>("/api/users/me"),
+    ]);
+
+    if (!integrationsResult.ok || !integrationsResult.data) {
+      setError(integrationsResult.error ?? "Impossible de charger les paramètres administrateur.");
       if (mode === "initial") {
         setLoading(false);
       } else {
@@ -96,7 +116,17 @@ export default function AdminSettingsPage() {
       return;
     }
 
-    setIntegrations(result.data);
+    setIntegrations(integrationsResult.data);
+
+    if (userResult.ok && userResult.data) {
+      setAdminInfo({
+        userId: userResult.data._id,
+        firstName: userResult.data.firstName,
+        lastName: userResult.data.lastName,
+        photoUrl: userResult.data.profilePhotoUrl ?? null,
+      });
+    }
+
     if (mode === "initial") {
       setLoading(false);
     } else {
@@ -362,6 +392,26 @@ export default function AdminSettingsPage() {
         </div>
 
         <div className="space-y-6">
+          {/* Photo de profil de l'admin */}
+          {adminInfo && (
+            <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+              <h2 className="text-sm font-semibold">Photo de profil</h2>
+              <p className="mt-2 text-xs text-[#6B7280]">
+                Admin: {adminInfo.firstName} {adminInfo.lastName}
+              </p>
+              <div className="mt-4">
+                <ProfilePhotoUpload
+                  userId={adminInfo.userId}
+                  currentPhotoUrl={adminInfo.photoUrl}
+                  firstName={adminInfo.firstName}
+                  lastName={adminInfo.lastName}
+                  size="md"
+                  onPhotoUpdate={(url) => setAdminInfo(prev => prev ? { ...prev, photoUrl: url } : null)}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
             <div className="flex items-center gap-3">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EAF2FF] text-[#0B63D1]">

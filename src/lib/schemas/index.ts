@@ -45,6 +45,7 @@ export const UserProfileSchema = z.object({
   lastName: z.string().min(1, "Nom requis"),
   email: EmailSchema,
   phoneNumber: z.string().optional(),
+  profilePhotoUrl: z.string().url().nullable().optional(),
   role: z.string(), // UserRoleSchema ou legacy
   country: z.string().optional(),
   accountStatus: z.string().optional(), // UserAccountStatusSchema
