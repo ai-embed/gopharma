@@ -7,6 +7,7 @@ import { apiJson, apiJsonAuth } from "@/lib/api";
 import { saveRoleCookie, saveTokens } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 import { Notice } from "@/components/Notice";
+import { useSecureAuth } from "@/lib/security/useSecureAuth";
 
 type LoginResponse = {
   accessToken: string;
@@ -24,6 +25,9 @@ export default function LoginForm() {
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  
+  // Rate limiting protection
+  const { authState, checkAuthAttempt, recordAuthAttempt } = useSecureAuth(email || "anonymous");
 
   const startGoogleAuth = () => {
     if (typeof window === "undefined") return;
@@ -33,6 +37,14 @@ export default function LoginForm() {
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+    
+    // Check rate limiting
+    const check = checkAuthAttempt();
+    if (!check.canProceed) {
+      setError(check.error || "Trop de tentatives. Réessayez plus tard.");
+      return;
+    }
+    
     setLoading(true);
 
     const result = await apiJson<LoginResponse>("/api/auth/login", {
@@ -42,12 +54,17 @@ export default function LoginForm() {
 
     setLoading(false);
 
-    if (!result.ok || !result.data) {
+    // Record attempt result (success/failure)
+    const success = result.ok && !!result.data;
+    recordAuthAttempt(success);
+
+    if (!success || !result.data) {
       setError(result.error ?? "Connexion impossible.");
       return;
     }
 
-    saveTokens(result.data.accessToken, result.data.refreshToken, rememberMe);
+    const tokens = result.data;
+    saveTokens(tokens.accessToken, tokens.refreshToken, rememberMe);
 
     const meResult = await apiJsonAuth<UserProfile>("/api/users/me");
     let nextPath = "/dashboard";
