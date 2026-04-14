@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useCallback, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, ReactNode, useRef, useEffect } from "react";
 import { useWebSocket } from "./useWebSocket";
 import { Notification } from "./schemas";
 
@@ -35,12 +35,13 @@ export function RealTimeNotificationsProvider({
 }: RealTimeNotificationsProviderProps) {
   const [notifications, setNotifications] = useState<RealTimeNotification[]>([]);
   const [isRealTime, setIsRealTime] = useState(false);
+  const sendRef = useRef<(data: unknown) => boolean>(() => false);
 
-  const handleMessage = useCallback((data: unknown) => {
-    const message = data as { type: string; payload: unknown };
-    
-    if (message.type === "notification") {
-      const notification = message.payload as Notification;
+  const handleMessage = useCallback((event: unknown) => {
+    const data = event as { type: string; payload: unknown };
+
+    if (data.type === "notification") {
+      const notification = data.payload as Notification;
       setNotifications((prev) => [
         {
           ...notification,
@@ -49,8 +50,8 @@ export function RealTimeNotificationsProvider({
         },
         ...prev,
       ]);
-    } else if (message.type === "notifications.batch") {
-      const batch = (message.payload as Notification[]).map((n) => ({
+    } else if (data.type === "notifications.batch") {
+      const batch = (data.payload as Notification[]).map((n) => ({
         ...n,
         source: "websocket" as const,
         receivedAt: new Date().toISOString(),
@@ -62,7 +63,7 @@ export function RealTimeNotificationsProvider({
   const handleOpen = useCallback(() => {
     setIsRealTime(true);
     // Subscribe to user's notifications channel
-    ws.send({ type: "subscribe", channel: `user:${userId}:notifications` });
+    sendRef.current({ type: "subscribe", channel: `user:${userId}:notifications` });
   }, [userId]);
 
   const handleClose = useCallback(() => {
@@ -78,19 +79,23 @@ export function RealTimeNotificationsProvider({
     reconnectAttempts: 3,
   });
 
+  useEffect(() => {
+    sendRef.current = ws.send;
+  }, [ws.send]);
+
   const markAsRead = useCallback((id: string) => {
     setNotifications((prev) =>
       prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
     );
     
     // Send read confirmation via WebSocket
-    ws.send({ type: "notification.read", notificationId: id });
-  }, [ws]);
+    sendRef.current({ type: "notification.read", notificationId: id });
+  }, []);
 
   const markAllAsRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    ws.send({ type: "notifications.readAll" });
-  }, [ws]);
+    sendRef.current({ type: "notifications.readAll" });
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 

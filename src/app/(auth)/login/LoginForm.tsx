@@ -122,14 +122,22 @@ export default function LoginForm() {
         />
       </div>
 
+      {authState.isLocked && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
+          <p className="text-sm text-amber-800">
+            Compte temporairement verrouillé. Réessayez dans {authState.remainingLockoutMinutes} minute(s).
+          </p>
+        </div>
+      )}
+
       {error ? <Notice tone="error" message={error} /> : null}
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || authState.isLocked}
         className="w-full rounded-2xl bg-[#0B63D1] py-3 text-sm font-semibold text-white transition hover:bg-[#0A58BA] disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {loading ? "Connexion..." : "Se connecter"}
+        {loading ? "Connexion..." : authState.isLocked ? "Compte verrouillé" : "Se connecter"}
       </button>
 
       <label className="flex items-center gap-2 text-xs text-[#6B7280]">

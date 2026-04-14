@@ -32,10 +32,7 @@ export default function ObservabilityDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "error" | "warn">("all");
 
-  useEffect(() => {
-    loadStats();
-  }, []);
-
+  // Déclaré avant useEffect pour éviter l'erreur ESLint
   const loadStats = async () => {
     setLoading(true);
     const result = await apiJsonAuth<ObservabilityStats>("/api/admin/observability");
@@ -50,6 +47,11 @@ export default function ObservabilityDashboard() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    loadStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getMockStats = (): ObservabilityStats => ({
     totalErrors: 12,

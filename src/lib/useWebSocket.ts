@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useLayoutEffect } from "react";
 
 type WebSocketStatus = "connecting" | "open" | "closed" | "error";
 
@@ -38,6 +38,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectCountRef = useRef(0);
   const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const connectRef = useRef<() => void>(() => {});
   
   const [status, setStatus] = useState<WebSocketStatus>("closed");
   const [lastMessage, setLastMessage] = useState<unknown | null>(null);
@@ -84,7 +85,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         if (reconnectCountRef.current < reconnectAttempts) {
           reconnectCountRef.current++;
           reconnectTimerRef.current = setTimeout(() => {
-            connect();
+            connectRef.current();
           }, reconnectInterval);
         }
       };
@@ -130,15 +131,27 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     }
   }, []);
 
+  // Synchroniser connectRef avec la fonction connect actuelle
+  useLayoutEffect(() => {
+    connectRef.current = connect;
+  });
+
   useEffect(() => {
     if (autoConnect) {
-      connect();
+      // Utiliser requestAnimationFrame pour éviter setState synchrone
+      const frame = requestAnimationFrame(() => {
+        connect();
+      });
+      return () => cancelAnimationFrame(frame);
     }
+    return undefined;
+  }, [autoConnect]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
     return () => {
       disconnect();
     };
-  }, [autoConnect, connect, disconnect]);
+  }, []);
 
   return {
     status,

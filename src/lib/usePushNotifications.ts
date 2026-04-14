@@ -23,21 +23,17 @@ interface UsePushNotificationsReturn {
  * Web + Mobile (iOS/Android via PWA/Capacitor)
  */
 export function usePushNotifications(userId: string | null): UsePushNotificationsReturn {
-  const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
+  // Initialisation lazy pour éviter setState dans useEffect
+  const [permission, setPermission] = useState<NotificationPermission | "unsupported">(() => {
+    if (typeof window === "undefined") return "default";
+    if (!("Notification" in window)) return "unsupported";
+    return Notification.permission;
+  });
   const [token, setToken] = useState<string | null>(null);
   const [lastMessage, setLastMessage] = useState<PushNotification | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const isSupported = typeof window !== "undefined" && "Notification" in window;
-
-  // Check initial permission
-  useEffect(() => {
-    if (!isSupported) {
-      setPermission("unsupported");
-      return;
-    }
-    setPermission(Notification.permission);
-  }, [isSupported]);
 
   // Listen for foreground messages
   useEffect(() => {
