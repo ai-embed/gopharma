@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Notice } from "@/components/Notice";
 import { PatientShell } from "@/components/PatientShell";
+import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
 import { apiJsonAuth } from "@/lib/api";
 import { useUser } from "@/lib/useUser";
 
@@ -23,12 +24,28 @@ export default function EditProfileForm() {
     return `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "Utilisateur";
   }, [user]);
 
+  const handlePhotoUpdate = (url: string | null) => {
+    // La mise à jour se fait via le composant ProfilePhotoUpload
+    // et le re-fetch du user dans EditProfileFields
+  };
+
   return (
     <PatientShell>
       <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="relative h-16 w-16 overflow-hidden rounded-full bg-[#E5E7EB]" />
+            {user ? (
+              <ProfilePhotoUpload
+                userId={user._id}
+                currentPhotoUrl={user.profilePhotoUrl ?? null}
+                firstName={user.firstName}
+                lastName={user.lastName}
+                size="md"
+                onPhotoUpdate={handlePhotoUpdate}
+              />
+            ) : (
+              <div className="relative h-16 w-16 overflow-hidden rounded-full bg-[#E5E7EB]" />
+            )}
             <div>
               <h1 className="text-lg font-semibold">{displayName}</h1>
               <p className="text-sm text-[#6B7280]">
