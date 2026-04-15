@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { apiJsonAuth } from "@/lib/api";
 import { Notice } from "./Notice";
 import Image from "next/image";
 
@@ -31,7 +32,7 @@ export function PharmacyPhotoUpload({
   const photoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
-  // Charger les photos depuis l'API au montage
+  // Charger les photos depuis le backend au montage
   useEffect(() => {
     if (!pharmacyId) return;
 
@@ -39,18 +40,13 @@ export function PharmacyPhotoUpload({
       setIsLoadingPhoto(true);
       setIsLoadingBanner(true);
       try {
-        // Charger la photo
-        const photoRes = await fetch(`/api/pharmacy/photo?pharmacyId=${pharmacyId}`);
-        if (photoRes.ok) {
-          const photoData = await photoRes.json();
-          setPhotoUrl(photoData.photoUrl);
-        }
-
-        // Charger la bannière
-        const bannerRes = await fetch(`/api/pharmacy/banner?pharmacyId=${pharmacyId}`);
-        if (bannerRes.ok) {
-          const bannerData = await bannerRes.json();
-          setBannerUrl(bannerData.bannerUrl);
+        // Utiliser le endpoint /api/manager/pharmacy pour récupérer les infos
+        const result = await apiJsonAuth<{ photoUrl?: string; bannerUrl?: string }>(
+          "/api/manager/pharmacy"
+        );
+        if (result.ok && result.data) {
+          setPhotoUrl(result.data.photoUrl || null);
+          setBannerUrl(result.data.bannerUrl || null);
         }
       } catch {
         // Silently fail
@@ -63,7 +59,6 @@ export function PharmacyPhotoUpload({
     void loadPhotos();
   }, [pharmacyId]);
 
-  // Mock storage pour les photos de pharmacie
   const handlePhotoUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       setError("Veuillez sélectionner une image (JPG, PNG, WebP)");
@@ -81,21 +76,23 @@ export function PharmacyPhotoUpload({
     try {
       const formData = new FormData();
       formData.append("photo", file);
-      formData.append("pharmacyId", pharmacyId);
 
-      const response = await fetch("/api/pharmacy/photo", {
-        method: "POST",
-        body: formData,
-      });
+      // Appel direct au backend NestJS
+      const result = await apiJsonAuth<{ pharmacy: { photoUrl: string } }>(
+        "/api/manager/pharmacy/photo",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Échec de l'upload");
+      if (!result.ok) {
+        throw new Error(result.error || "Échec de l'upload");
       }
 
-      const data = await response.json();
-      setPhotoUrl(data.photoUrl);
-      onPhotoUpdate?.(data.photoUrl);
+      const photoUrl = result.data?.pharmacy?.photoUrl || null;
+      setPhotoUrl(photoUrl);
+      onPhotoUpdate?.(photoUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors de l'upload");
     } finally {
@@ -120,21 +117,23 @@ export function PharmacyPhotoUpload({
     try {
       const formData = new FormData();
       formData.append("banner", file);
-      formData.append("pharmacyId", pharmacyId);
 
-      const response = await fetch("/api/pharmacy/banner", {
-        method: "POST",
-        body: formData,
-      });
+      // Appel direct au backend NestJS
+      const result = await apiJsonAuth<{ pharmacy: { bannerUrl: string } }>(
+        "/api/manager/pharmacy/banner",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Échec de l'upload");
+      if (!result.ok) {
+        throw new Error(result.error || "Échec de l'upload");
       }
 
-      const data = await response.json();
-      setBannerUrl(data.bannerUrl);
-      onBannerUpdate?.(data.bannerUrl);
+      const bannerUrl = result.data?.pharmacy?.bannerUrl || null;
+      setBannerUrl(bannerUrl);
+      onBannerUpdate?.(bannerUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors de l'upload");
     } finally {
@@ -144,15 +143,12 @@ export function PharmacyPhotoUpload({
 
   const handlePhotoDelete = async () => {
     try {
-      const response = await fetch("/api/pharmacy/photo", {
+      const result = await apiJsonAuth("/api/manager/pharmacy/photo", {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pharmacyId }),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Échec de la suppression");
+      if (!result.ok) {
+        throw new Error(result.error || "Échec de la suppression");
       }
 
       setPhotoUrl(null);
@@ -164,15 +160,12 @@ export function PharmacyPhotoUpload({
 
   const handleBannerDelete = async () => {
     try {
-      const response = await fetch("/api/pharmacy/banner", {
+      const result = await apiJsonAuth("/api/manager/pharmacy/banner", {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pharmacyId }),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Échec de la suppression");
+      if (!result.ok) {
+        throw new Error(result.error || "Échec de la suppression");
       }
 
       setBannerUrl(null);

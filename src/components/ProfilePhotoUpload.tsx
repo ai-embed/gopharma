@@ -37,18 +37,19 @@ export function ProfilePhotoUpload({
   const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "?";
   const sizes = sizeClasses[size];
 
-  // Charger la photo depuis l'API au montage
+  // Charger la photo depuis le backend au montage
   useEffect(() => {
     if (!userId) return;
 
     const loadPhoto = async () => {
       setIsLoading(true);
       try {
-        const result = await apiJsonAuth<{ photoUrl: string | null }>(
-          `/api/users/profile-photo?userId=${userId}`
+        // Utiliser le endpoint /api/users/me pour récupérer le profil avec la photo
+        const result = await apiJsonAuth<{ profilePhotoUrl: string | null }>(
+          "/api/users/me"
         );
         if (result.ok && result.data) {
-          setPhotoUrl(result.data.photoUrl);
+          setPhotoUrl(result.data.profilePhotoUrl || null);
         }
       } catch {
         // Silently fail - pas de photo = pas d'erreur
@@ -78,21 +79,24 @@ export function ProfilePhotoUpload({
     try {
       const formData = new FormData();
       formData.append("photo", file);
-      formData.append("userId", userId);
 
-      const response = await fetch("/api/users/profile-photo", {
-        method: "POST",
-        body: formData,
-      });
+      // Appel direct au backend NestJS
+      const response = await apiJsonAuth<{ user: { profilePhotoUrl: string } }>(
+        "/api/users/me/photo",
+        {
+          method: "POST",
+          body: formData,
+          // Ne pas mettre Content-Type, fetch le fait automatiquement pour FormData
+        }
+      );
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Échec de l'upload");
+        throw new Error(response.error || "Échec de l'upload");
       }
 
-      const data = await response.json();
-      setPhotoUrl(data.photoUrl);
-      onPhotoUpdate?.(data.photoUrl);
+      const photoUrl = response.data?.user?.profilePhotoUrl || null;
+      setPhotoUrl(photoUrl);
+      onPhotoUpdate?.(photoUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors de l'upload");
     } finally {
@@ -132,9 +136,8 @@ export function ProfilePhotoUpload({
 
     setIsUploading(true);
     try {
-      const result = await apiJsonAuth("/api/users/profile-photo", {
+      const result = await apiJsonAuth("/api/users/me/photo", {
         method: "DELETE",
-        body: JSON.stringify({ userId }),
       });
 
       if (result.ok) {
