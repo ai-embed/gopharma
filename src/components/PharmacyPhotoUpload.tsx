@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Notice } from "./Notice";
 import Image from "next/image";
 
@@ -25,9 +25,43 @@ export function PharmacyPhotoUpload({
   const [bannerUrl, setBannerUrl] = useState<string | null>(currentBannerUrl || null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [isLoadingPhoto, setIsLoadingPhoto] = useState(true);
+  const [isLoadingBanner, setIsLoadingBanner] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  // Charger les photos depuis l'API au montage
+  useEffect(() => {
+    if (!pharmacyId) return;
+
+    const loadPhotos = async () => {
+      setIsLoadingPhoto(true);
+      setIsLoadingBanner(true);
+      try {
+        // Charger la photo
+        const photoRes = await fetch(`/api/pharmacy/photo?pharmacyId=${pharmacyId}`);
+        if (photoRes.ok) {
+          const photoData = await photoRes.json();
+          setPhotoUrl(photoData.photoUrl);
+        }
+
+        // Charger la bannière
+        const bannerRes = await fetch(`/api/pharmacy/banner?pharmacyId=${pharmacyId}`);
+        if (bannerRes.ok) {
+          const bannerData = await bannerRes.json();
+          setBannerUrl(bannerData.bannerUrl);
+        }
+      } catch {
+        // Silently fail
+      } finally {
+        setIsLoadingPhoto(false);
+        setIsLoadingBanner(false);
+      }
+    };
+
+    void loadPhotos();
+  }, [pharmacyId]);
 
   // Mock storage pour les photos de pharmacie
   const handlePhotoUpload = async (file: File) => {
@@ -176,7 +210,11 @@ export function PharmacyPhotoUpload({
                 : "border-[#E5E7EB] bg-[#F8FAFC] hover:border-[#0B63D1]"
             }`}
           >
-            {bannerUrl ? (
+            {isLoadingBanner ? (
+              <div className="flex h-full items-center justify-center bg-gray-100">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0B63D1] border-t-transparent" />
+              </div>
+            ) : bannerUrl ? (
               <Image
                 src={bannerUrl}
                 alt="Bannière de la pharmacie"
@@ -250,7 +288,11 @@ export function PharmacyPhotoUpload({
                 : "border-[#E5E7EB] bg-[#F8FAFC] hover:border-[#0B63D1]"
             }`}
           >
-            {photoUrl ? (
+            {isLoadingPhoto ? (
+              <div className="flex h-full w-full items-center justify-center bg-gray-200">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#0B63D1] border-t-transparent" />
+              </div>
+            ) : photoUrl ? (
               <Image
                 src={photoUrl}
                 alt="Photo de la pharmacie"

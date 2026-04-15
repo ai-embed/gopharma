@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { apiJsonAuth } from "@/lib/api";
 import { Notice } from "./Notice";
 
@@ -31,10 +31,34 @@ export function ProfilePhotoUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "?";
   const sizes = sizeClasses[size];
+
+  // Charger la photo depuis l'API au montage
+  useEffect(() => {
+    if (!userId) return;
+
+    const loadPhoto = async () => {
+      setIsLoading(true);
+      try {
+        const result = await apiJsonAuth<{ photoUrl: string | null }>(
+          `/api/users/profile-photo?userId=${userId}`
+        );
+        if (result.ok && result.data) {
+          setPhotoUrl(result.data.photoUrl);
+        }
+      } catch {
+        // Silently fail - pas de photo = pas d'erreur
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadPhoto();
+  }, [userId]);
 
   const handleFileChange = async (file: File) => {
     // Validation
@@ -140,11 +164,15 @@ export function ProfilePhotoUpload({
           className={`
             ${sizes.container} relative cursor-pointer overflow-hidden rounded-2xl
             ${isDragging ? "ring-4 ring-blue-400 ring-offset-2" : ""}
-            ${photoUrl ? "" : "bg-gradient-to-br from-[#0B63D1] to-[#1E40AF]"}
+            ${photoUrl ? "" : "bg-linear-to-br from-[#0B63D1] to-[#1E40AF]"}
             transition-all hover:scale-105 hover:shadow-lg
           `}
         >
-          {photoUrl ? (
+          {isLoading ? (
+            <div className="flex h-full w-full items-center justify-center bg-gray-200">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#0B63D1] border-t-transparent" />
+            </div>
+          ) : photoUrl ? (
             <img
               src={photoUrl}
               alt={`${firstName} ${lastName}`}

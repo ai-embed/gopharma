@@ -69,6 +69,36 @@ export async function POST(request: NextRequest) {
 }
 
 /**
+ * GET - Récupère l'URL de la bannière de la pharmacie
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const pharmacyId = searchParams.get("pharmacyId");
+
+    if (!pharmacyId) {
+      return NextResponse.json(
+        { error: "Pharmacy ID requis" },
+        { status: 400 }
+      );
+    }
+
+    const bannerUrl = pharmacyBanners.get(pharmacyId) || null;
+
+    return NextResponse.json({
+      success: true,
+      bannerUrl,
+    });
+  } catch (error) {
+    console.error("[PharmacyBanner] Erreur GET:", error);
+    return NextResponse.json(
+      { error: "Erreur serveur" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * DELETE - Supprime la bannière de la pharmacie
  */
 export async function DELETE(request: NextRequest) {
