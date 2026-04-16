@@ -150,7 +150,7 @@ export function PharmacyCard({
                 {pharmacy.name}
               </Link>
               {isBestPrice ? (
-                <span className="rounded-[4px] bg-[#E8F0FF] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.03em] text-[#275CDB]">
+                <span className="rounded-sm bg-[#E8F0FF] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.03em] text-[#275CDB]">
                   Meilleur prix
                 </span>
               ) : null}
@@ -165,7 +165,7 @@ export function PharmacyCard({
             {pharmacyOpenNow ? "Ouvert" : "Fermé"}
           </p>
         </div>
-        <div className="min-w-[96px] text-right">
+        <div className="min-w-24 text-right">
           <p className="text-[18px] font-semibold tracking-[-0.02em] text-[#16A3E0]">
             {statusLabel}
           </p>

@@ -699,7 +699,7 @@ export default function SearchPage() {
                     }
                   }}
                   placeholder="Ajouter un produit..."
-                  className="min-w-[180px] flex-1 border-none bg-transparent text-[14px] leading-6 text-[#4B5563] outline-none placeholder:text-[#9CA3AF]"
+                  className="min-w-45 flex-1 border-none bg-transparent text-[14px] leading-6 text-[#4B5563] outline-none placeholder:text-[#9CA3AF]"
                 />
                 <button
                   type="button"
@@ -714,14 +714,14 @@ export default function SearchPage() {
                   onClick={() => {
                     void runSearch();
                   }}
-                  className="rounded-full bg-[#0B63D1] px-5 py-2 text-[10px] font-semibold text-white shadow-[0_10px_24px_rgba(11,99,209,0.18)] transition hover:bg-[#0A58B8]"
+                  className="rounded-md bg-blue-500 px-4 py-2 text-[12px] font-semibold text-white shadow-md transition hover:bg-blue-600"
                 >
                   Rechercher
                 </button>
               </div>
             </div>
             {visibleSuggestions.length > 0 ? (
-              <div className="absolute left-5 right-5 top-full z-10 mt-3 rounded-[22px] border border-[#E5E7EB] bg-white p-2 text-sm shadow-[0_16px_32px_rgba(15,23,42,0.12)]">
+              <div className="absolute left-5 right-5 top-full z-10 mt-3 rounded-md border border-gray-200 bg-white p-2 text-sm shadow-md">
                 {visibleSuggestions.map((item) => (
                   <button
                     type="button"
@@ -729,7 +729,7 @@ export default function SearchPage() {
                     onClick={() => {
                       commitToken(item);
                     }}
-                  className="block w-full rounded-xl px-3 py-2 text-left text-[13px] hover:bg-[#F3F6F9]"
+                  className="block w-full rounded-md px-3 py-2 text-left text-[13px] hover:bg-gray-100"
                   >
                     {item}
                   </button>
@@ -801,10 +801,10 @@ export default function SearchPage() {
                       resultCardRefs.current[group.pharmacy._id] = node;
                     }}
                     onClick={() => setSelectedPharmacyId(group.pharmacy._id)}
-                    className={`cursor-pointer rounded-[20px] bg-white p-4 transition hover:-translate-y-0.5 ${
+                    className={`cursor-pointer rounded-md bg-white p-4 transition hover:-translate-y-0.5 ${
                       isSelected || isBestPrice
-                        ? "border-2 border-[#CBE8FA] shadow-[0_18px_38px_rgba(34,157,227,0.14)]"
-                        : "border border-[#DCE5F0] shadow-[0_10px_24px_rgba(15,23,42,0.05)] hover:border-[#CBE8FA] hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]"
+                        ? "border-2 border-blue-200 shadow-md"
+                        : "border border-gray-200 shadow-sm hover:border-blue-200 hover:shadow-md"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -814,12 +814,12 @@ export default function SearchPage() {
                             <Link
                               href={`/pharmacies/${group.pharmacy._id}`}
                               onClick={(event) => event.stopPropagation()}
-                              className="text-sm font-semibold text-[#111827] hover:text-[#0B63D1]"
+                              className="text-sm font-semibold text-[#111827] hover:text-blue-500"
                             >
                               {group.pharmacy.name}
                             </Link>
                             {isBestPrice ? (
-                              <span className="rounded-[4px] bg-[#E8F0FF] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.03em] text-[#275CDB]">
+                              <span className="rounded-sm bg-blue-100 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.03em] text-blue-500">
                                 Meilleur prix
                               </span>
                             ) : null}
@@ -830,7 +830,7 @@ export default function SearchPage() {
                             {group.pharmacy.address ?? "Adresse non renseignée"}
                           </p>
                         </div>
-                        <p className="inline-flex rounded-full bg-[#EAFBF0] px-3 py-1 text-xs font-semibold text-[#1B8E48]">
+                        <p className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-500">
                           {queryTokens.length > 0
                             ? `${group.availableCount}/${queryTokens.length} produits disponibles`
                             : `${group.availableCount}/${group.items.length} produits disponibles`}
@@ -845,8 +845,8 @@ export default function SearchPage() {
                                 <span
                                   className={`flex h-4.5 w-4.5 items-center justify-center rounded-full text-[10px] font-bold ${
                                     item.isAvailable
-                                      ? "bg-[#DCFCE7] text-[#17A34A]"
-                                      : "bg-[#FEE2E2] text-[#DC2626]"
+                                      ? "bg-green-100 text-green-500"
+                                      : "bg-red-100 text-red-500"
                                   }`}
                                 >
                                   {item.isAvailable ? "✓" : "×"}
@@ -855,21 +855,21 @@ export default function SearchPage() {
                                   {item.productId.name} :{" "}
                                   <span
                                     className={
-                                      item.isAvailable ? "text-[#16A34A]" : "text-[#DC2626]"
+                                      item.isAvailable ? "text-green-500" : "text-red-500"
                                     }
                                   >
                                     {item.isAvailable ? "En stock" : "Indisponible"}
                                   </span>
                                 </span>
                               </div>
-                              <span className="min-w-[72px] text-right text-[13px] font-semibold text-[#1F1D1B]">
+                              <span className="min-w-22 text-right text-[13px] font-semibold text-[#16A3E0]">
                                 {formatCompactMoney(item.price)}
                               </span>
                             </div>
                           ))}
                         </div>
                       </div>
-                      <div className="min-w-[96px] text-right">
+                      <div className="min-w-24 text-right">
                         <p className="text-[18px] font-semibold tracking-[-0.02em] text-[#16A3E0]">
                           {formatCompactMoney(group.totalPrice)}
                         </p>
