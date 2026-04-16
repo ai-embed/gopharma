@@ -50,7 +50,7 @@ export default function AuthLayout({
 
   return (
     <div className="min-h-screen bg-[#F3F6F9] px-4 py-6 text-[#1E1E1E] sm:px-6 sm:py-10">
-      <div className="mx-auto w-full max-w-[420px] rounded-[28px] bg-white p-8 shadow-[0_18px_60px_-40px_rgba(15,23,42,0.6)]">
+      <div className="mx-auto w-full max-w-105 rounded-[28px] bg-white p-8 shadow-[0_18px_60px_-40px_rgba(15,23,42,0.6)]">
         <div className="flex flex-col items-center text-center">
           <Image
             src="/icons/Untitled design.png"
