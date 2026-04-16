@@ -104,7 +104,7 @@ export default function LoginForm() {
             MOT DE PASSE
           </label>
           <Link
-            href="#"
+            href="/forgot-password"
             className="text-xs font-semibold text-[#0B63D1] hover:text-[#0A58BA]"
           >
             Mot de passe oublié ?
