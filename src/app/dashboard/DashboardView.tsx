@@ -22,7 +22,8 @@ type Pharmacy = {
   location?: { coordinates: [number, number] };
   openNow?: boolean;
   operationalStatus?: "OUVERT" | "FERME";
-  photoFileId?: string;
+  photoUrl?: string;
+  bannerUrl?: string;
 };
 
 type Coordinates = {
@@ -242,9 +243,7 @@ export default function DashboardPage() {
                       )
                     : "Distance inconnue";
                 const statusLabel = pharmacy.openNow ? "OUVERT" : "FERME";
-                const photoUrl = pharmacy.photoFileId
-                  ? `/api/files/${pharmacy.photoFileId}`
-                  : null;
+                const photoUrl = pharmacy.photoUrl ?? null;
 
                 return (
                   <div

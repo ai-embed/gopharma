@@ -16,7 +16,8 @@ type PharmacyDetails = {
   email?: string;
   description?: string;
   services?: string[];
-  photoFileId?: string;
+  photoUrl?: string;
+  bannerUrl?: string;
   openNow?: boolean;
   operationalStatus?: "OUVERT" | "FERME";
   availabilitySource?: "manual" | "schedule";
@@ -82,11 +83,14 @@ export default function PharmacyDetailPage() {
   const lng = coords?.[0];
 
   const heroImage = useMemo(() => {
-    if (pharmacy?.photoFileId) {
-      return `/api/files/${pharmacy.photoFileId}`;
+    if (pharmacy?.bannerUrl) {
+      return pharmacy.bannerUrl;
+    }
+    if (pharmacy?.photoUrl) {
+      return pharmacy.photoUrl;
     }
     return "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=1200&q=80";
-  }, [pharmacy?.photoFileId]);
+  }, [pharmacy?.bannerUrl, pharmacy?.photoUrl]);
 
   const statusLabel = pharmacy?.openNow ? "Ouvert" : "Fermé";
   const mapsUrl = lat && lng
@@ -133,10 +137,10 @@ export default function PharmacyDetailPage() {
           <section className="space-y-6">
             <div className="relative overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white">
               <div
-                className="relative h-[220px] bg-cover bg-center"
+                className="relative h-55 bg-cover bg-center"
                 style={{ backgroundImage: `url('${heroImage}')` }}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-r from-black/60 to-transparent" />
                 <div className="absolute bottom-4 left-4 text-white">
                   <h1 className="text-xl font-semibold">{pharmacy.name}</h1>
                   <div className="mt-2 flex items-center gap-3 text-xs">

@@ -9,27 +9,57 @@ type ApiResult<T> = {
   error?: string;
 };
 
+function isFormDataBody(body: unknown): body is FormData {
+  return typeof FormData !== "undefined" && body instanceof FormData;
+}
+
 export async function apiJson<T>(
   path: string,
   init?: RequestInit
 ): Promise<ApiResult<T>> {
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
   try {
+    const isMultipart = isFormDataBody(init?.body);
+    const headers = new Headers(init?.headers ?? {});
+    if (isMultipart) {
+      // Important: let the browser set multipart/form-data boundary automatically.
+      headers.delete("Content-Type");
+      headers.delete("content-type");
+    } else if (!headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+
     const response = await fetch(url, {
       ...init,
-      headers: {
-        "Content-Type": "application/json",
-        ...(init?.headers ?? {}),
-      },
+      headers,
     });
     const text = await response.text();
-    const data = text ? (JSON.parse(text) as T) : undefined;
+    const contentType = response.headers.get("content-type") ?? "";
+    const isJson = contentType.includes("application/json");
+
+    let data: T | undefined;
+    if (text && isJson) {
+      try {
+        data = JSON.parse(text) as T;
+      } catch {
+        data = undefined;
+      }
+    }
 
     if (!response.ok) {
+      const detailFromJson =
+        data && typeof data === "object"
+          ? (data as { detail?: string }).detail
+          : undefined;
+      const detailFromText = !isJson && text ? text : undefined;
       return {
         ok: false,
         status: response.status,
-        error: (data as { detail?: string })?.detail ?? response.statusText,
+        error:
+          detailFromJson ??
+          detailFromText ??
+          response.statusText ??
+          `HTTP ${response.status}`,
         data,
       };
     }
