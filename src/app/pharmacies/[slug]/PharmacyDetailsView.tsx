@@ -82,17 +82,7 @@ export default function PharmacyDetailPage() {
   const lat = coords?.[1];
   const lng = coords?.[0];
 
-  const heroImage = useMemo(() => {
-    if (pharmacy?.bannerUrl) {
-      return addCloudinaryTransformations(pharmacy.bannerUrl, { width: 1200, height: 400, crop: 'fill' });
-    }
-    if (pharmacy?.photoUrl) {
-      return addCloudinaryTransformations(pharmacy.photoUrl, { width: 1200, height: 400, crop: 'fill' });
-    }
-    return "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=1200&q=80";
-  }, [pharmacy?.bannerUrl, pharmacy?.photoUrl]);
-
-function addCloudinaryTransformations(url: string, options: { width?: number; height?: number; crop?: string }) {
+  function addCloudinaryTransformations(url: string, options: { width?: number; height?: number; crop?: string }) {
   if (!url.includes('cloudinary.com')) return url;
   const { width, height, crop } = options;
   const transformations = [];
@@ -105,6 +95,12 @@ function addCloudinaryTransformations(url: string, options: { width?: number; he
   const transformationString = transformations.join(',');
   return url.replace(/\/upload\//, `/upload/${transformationString}/`);
 }
+
+  const heroImage = pharmacy?.bannerUrl
+    ? addCloudinaryTransformations(pharmacy.bannerUrl, { width: 1200, height: 400, crop: 'fill' })
+    : pharmacy?.photoUrl
+    ? addCloudinaryTransformations(pharmacy.photoUrl, { width: 1200, height: 400, crop: 'fill' })
+    : "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=1200&q=80";
 
   const statusLabel = pharmacy?.openNow ? "Ouvert" : "Fermé";
   const mapsUrl = lat && lng

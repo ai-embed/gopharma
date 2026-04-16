@@ -39,7 +39,9 @@ export default function AdminProfileEditPage() {
   }, []);
 
   useEffect(() => {
-    void loadUser();
+    setTimeout(() => {
+      void loadUser();
+    }, 0);
   }, [loadUser]);
 
   const displayName = useMemo(() => {
