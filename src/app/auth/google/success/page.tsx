@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveRoleCookie, saveTokens } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
@@ -26,33 +26,30 @@ function parseHashParams() {
 
 export default function GoogleSuccessPage() {
   const router = useRouter();
-  const isMounted = useRef(false);
+  const [authPayload, setAuthPayload] = useState<GoogleAuthPayload | null>(null);
 
   useEffect(() => {
-    isMounted.current = true;
-  }, []);
-
-  const authPayload = useMemo<GoogleAuthPayload>(() => {
     const params = parseHashParams();
     const accessToken = params.get("accessToken");
     const refreshToken = params.get("refreshToken");
     const role = params.get("role");
 
     if (!accessToken || !refreshToken) {
-      return {
+      setAuthPayload({
         error: "Impossible de finaliser la connexion Google.",
-      };
+      });
+      return;
     }
 
-    return {
+    setAuthPayload({
       accessToken,
       refreshToken,
       role,
       error: null,
-    };
+    });
   }, []);
 
-  const validPayload = authPayload.error === null ? authPayload : null;
+  const validPayload = authPayload?.error === null ? authPayload : null;
 
   useEffect(() => {
     if (!validPayload) {
@@ -68,8 +65,8 @@ export default function GoogleSuccessPage() {
     router.replace(nextPath);
   }, [router, validPayload]);
 
-  // Show loading state during hydration to avoid mismatch
-  if (!isMounted.current) {
+  // Show loading state while parsing hash params
+  if (!authPayload) {
     return (
       <div className="min-h-screen bg-[#F3F6F9] px-4 py-10 text-[#1E1E1E]">
         <div className="mx-auto w-full max-w-120 rounded-[28px] bg-white p-8 text-center shadow-[0_18px_60px_-40px_rgba(15,23,42,0.6)]">
