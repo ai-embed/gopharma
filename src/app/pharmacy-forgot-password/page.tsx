@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Notice } from "@/components/Notice";
 import { apiJson } from "@/lib/api";
 
@@ -77,9 +79,13 @@ export default function PharmacyForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-[#F3F6F9] px-4">
       <div className="w-full max-w-md rounded-3xl border border-[#E5E7EB] bg-white p-8">
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B63D1] text-xs font-semibold text-white">
-            +
-          </div>
+          <Image
+            src="/icons/Untitled design.png"
+            alt="GoPharma Logo"
+            width={32}
+            height={32}
+            className="mx-auto mb-4 h-8 w-8 rounded-xl"
+          />
           <h1 className="text-2xl font-semibold text-[#111827]">
             Mot de passe oublié ?
           </h1>

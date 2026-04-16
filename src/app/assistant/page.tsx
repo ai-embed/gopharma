@@ -1,4 +1,5 @@
 import { PatientShell } from "@/components/PatientShell";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -29,9 +30,13 @@ export default function AssistantPage() {
       <div className="flex min-h-[70vh] flex-col rounded-3xl border border-[#E5E7EB] bg-white lg:flex-row">
         <aside className="flex w-full flex-col border-b border-[#E5E7EB] bg-white px-5 py-6 lg:w-64 lg:border-b-0 lg:border-r">
           <div className="flex items-center gap-2 text-sm font-semibold text-[#0B63D1]">
-            <span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-[#0B63D1] text-xs font-semibold text-white">
-              +
-            </span>
+            <Image
+              src="/icons/Untitled design.png"
+              alt="GoPharma Logo"
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-2xl"
+            />
             GoPharma
           </div>
 

@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { Notice } from "@/components/Notice";
 import { API_BASE, apiJson, apiJsonAuth } from "@/lib/api";
 import { clearTokens, getAccessToken, saveRoleCookie } from "@/lib/auth";
@@ -206,9 +206,13 @@ export default function PharmacyRegisterPage() {
       <div className="mx-auto w-full max-w-4xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0B63D1] text-sm font-semibold text-white">
-              +
-            </span>
+            <Image
+              src="/icons/Untitled design.png"
+              alt="GoPharma Logo"
+              width={40}
+              height={40}
+              className="h-10 w-10 rounded-2xl"
+            />
             <span className="text-sm font-semibold">GoPharma Pro</span>
           </div>
           <div className="flex items-center gap-3 text-xs text-[#6B7280]">

@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Notice } from "@/components/Notice";
 import { apiJson, apiJsonAuth } from "@/lib/api";
 import { clearTokens, getAccessToken, saveRoleCookie, saveTokens } from "@/lib/auth";
@@ -119,9 +119,13 @@ export default function PharmacyLoginPage() {
         <div className="grid md:grid-cols-[1.05fr_0.95fr]">
           <div className="px-6 py-10 md:px-10">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0B63D1] text-sm font-semibold text-white">
-                +
-              </span>
+              <Image
+                src="/icons/Untitled design.png"
+                alt="GoPharma Logo"
+                width={40}
+                height={40}
+                className="h-10 w-10 rounded-2xl"
+              />
               <span className="text-sm font-semibold">GoPharma Pro</span>
             </div>
 
