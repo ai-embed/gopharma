@@ -17,6 +17,7 @@ export type UserProfile = {
   lastName: string;
   email: string;
   phoneNumber?: string;
+  profilePhotoUrl?: string | null;
   role: string;
   country?: string;
   accountStatus?: string;

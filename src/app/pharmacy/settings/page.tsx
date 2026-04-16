@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CoordinatePickerMap } from "@/components/CoordinatePickerMap";
 import { Notice } from "@/components/Notice";
+import { PharmacyPhotoUpload } from "@/components/PharmacyPhotoUpload";
 import { apiJson, apiJsonAuth } from "@/lib/api";
 import { usePharmacyStoreStatus } from "@/lib/usePharmacyStoreStatus";
 
@@ -14,6 +15,8 @@ type ManagerPharmacy = {
   email?: string;
   description?: string;
   services?: string[];
+  photoUrl?: string;
+  bannerUrl?: string;
   operationalStatus: "OUVERT" | "FERME";
   location: {
     type: "Point";
@@ -27,6 +30,7 @@ type UserMe = {
   lastName: string;
   email: string;
   phoneNumber?: string;
+  profilePhotoUrl?: string | null;
   preferences: {
     alertsEnabled: boolean;
     channels: Array<"IN_APP" | "EMAIL" | "PUSH">;
@@ -107,6 +111,9 @@ export default function PharmacySettingsPage() {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [passwordResetLoading, setPasswordResetLoading] = useState(false);
   const [managerEmail, setManagerEmail] = useState("");
+  const [pharmacyPhotoUrl, setPharmacyPhotoUrl] = useState<string | null>(null);
+  const [pharmacyBannerUrl, setPharmacyBannerUrl] = useState<string | null>(null);
+  const [pharmacyId, setPharmacyId] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const storeStatus = usePharmacyStoreStatus();
@@ -137,6 +144,8 @@ export default function PharmacySettingsPage() {
     setForm(snapshot);
     setInitial(snapshot);
     setManagerEmail(userResult.data.email ?? "");
+    setPharmacyId(pharmacyResult.data._id);
+    // Note: Les URLs de photo/bannière sont gérées par le composant PharmacyPhotoUpload
     setLoading(false);
   }, []);
 
@@ -315,6 +324,21 @@ export default function PharmacySettingsPage() {
 
       {error ? <Notice tone="error" message={error} /> : null}
       {success ? <Notice tone="success" message={success} /> : null}
+
+      {/* Section Photo et Bannière de la pharmacie */}
+      {!loading && pharmacyId && (
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+          <h2 className="mb-4 text-sm font-semibold">Apparence de la pharmacie</h2>
+          <PharmacyPhotoUpload
+            pharmacyId={pharmacyId}
+            currentPhotoUrl={pharmacyPhotoUrl}
+            currentBannerUrl={pharmacyBannerUrl}
+            pharmacyName={form.pharmacyName}
+            onPhotoUpdate={setPharmacyPhotoUrl}
+            onBannerUpdate={setPharmacyBannerUrl}
+          />
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="space-y-6">

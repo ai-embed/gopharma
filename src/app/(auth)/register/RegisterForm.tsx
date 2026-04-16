@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiJson } from "@/lib/api";
 import { Notice } from "@/components/Notice";
+import { useSecureAuth } from "@/lib/security/useSecureAuth";
 
 type RegisterResponse = {
   success: boolean;
@@ -23,6 +24,9 @@ export default function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  
+  // Rate limiting protection
+  const { checkAuthAttempt, recordAuthAttempt } = useSecureAuth(email || "anonymous");
 
   const startGoogleAuth = () => {
     if (typeof window === "undefined") return;
@@ -43,6 +47,13 @@ export default function RegisterForm() {
     event.preventDefault();
     setError(null);
     setSuccess(null);
+    
+    // Check rate limiting
+    const check = checkAuthAttempt();
+    if (!check.canProceed) {
+      setError(check.error || "Trop de tentatives. Réessayez plus tard.");
+      return;
+    }
 
     if (!isPasswordValid) {
       setError(
@@ -69,8 +80,12 @@ export default function RegisterForm() {
     });
 
     setLoading(false);
+    
+    // Record attempt result
+    const attemptSuccess = result.ok && !!result.data;
+    recordAuthAttempt(attemptSuccess);
 
-    if (!result.ok || !result.data) {
+    if (!attemptSuccess || !result.data) {
       if (result.error?.toLowerCase().includes("données invalides")) {
         setError(
           "Données invalides. Vérifiez les champs et le mot de passe (8+ caractères, majuscule, minuscule, chiffre, caractère spécial)."
@@ -81,13 +96,15 @@ export default function RegisterForm() {
       return;
     }
 
-    if (!result.data.success) {
-      setError(result.data.message ?? "Inscription impossible.");
+    const data = result.data;
+
+    if (!data.success) {
+      setError(data.message ?? "Inscription impossible.");
       return;
     }
 
     setSuccess(
-      result.data.message ??
+      data.message ??
         "Un code de vérification a été envoyé. Vérifiez votre boîte email."
     );
     if (typeof window !== "undefined") {

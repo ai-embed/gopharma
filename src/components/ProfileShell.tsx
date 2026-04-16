@@ -28,13 +28,33 @@ export default function ProfileShell({
   const email = user?.email ?? "utilisateur@example.com";
   const isEmailVerified = Boolean(user?.emailVerifiedAt);
   const memberSince = getMemberSinceLabel(user?._id, user?.emailVerifiedAt);
+  const initials = user
+    ? `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase()
+    : "?";
+  const profilePhotoUrl = user?.profilePhotoUrl ?? null;
 
   return (
     <PatientShell>
       <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="relative h-16 w-16 overflow-hidden rounded-full bg-[#E5E7EB]" />
+            <div className="relative h-16 w-16 overflow-hidden rounded-full bg-linear-to-br from-[#0B63D1] to-[#1E40AF]">
+              {loading ? (
+                <div className="flex h-full w-full items-center justify-center">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                </div>
+              ) : profilePhotoUrl ? (
+                <img
+                  src={profilePhotoUrl}
+                  alt={displayName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center">
+                  <span className="text-sm font-bold text-white">{initials}</span>
+                </div>
+              )}
+            </div>
             <div>
               <h1 className="text-lg font-semibold">{displayName}</h1>
               <p className="text-sm text-[#6B7280]">{email}</p>

@@ -22,7 +22,8 @@ type Pharmacy = {
   location?: { coordinates: [number, number] };
   openNow?: boolean;
   operationalStatus?: "OUVERT" | "FERME";
-  photoFileId?: string;
+  photoUrl?: string;
+  bannerUrl?: string;
 };
 
 type Coordinates = {
@@ -44,6 +45,20 @@ const formatDistance = (from: Coordinates, to: Coordinates) => {
   const distance = earthRadiusKm * c;
   return `${distance.toFixed(1)} km`;
 };
+
+function addCloudinaryTransformations(url: string, options: { width?: number; height?: number; crop?: string }) {
+  if (!url.includes('cloudinary.com')) return url;
+  const { width, height, crop } = options;
+  const transformations = [];
+  if (width) transformations.push(`w_${width}`);
+  if (height) transformations.push(`h_${height}`);
+  if (crop) transformations.push(`c_${crop}`);
+  
+  if (transformations.length === 0) return url;
+  
+  const transformationString = transformations.join(',');
+  return url.replace(/\/upload\//, `/upload/${transformationString}/`);
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -242,8 +257,8 @@ export default function DashboardPage() {
                       )
                     : "Distance inconnue";
                 const statusLabel = pharmacy.openNow ? "OUVERT" : "FERME";
-                const photoUrl = pharmacy.photoFileId
-                  ? `/api/files/${pharmacy.photoFileId}`
+                const photoUrl = pharmacy.photoUrl 
+                  ? addCloudinaryTransformations(pharmacy.photoUrl, { width: 200, height: 200, crop: 'fill' })
                   : null;
 
                 return (
@@ -259,6 +274,8 @@ export default function DashboardPage() {
                           backgroundSize: "cover",
                           backgroundPosition: "center",
                         }}
+                        role="img"
+                        aria-label={`Photo de ${pharmacy.name}`}
                       />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">

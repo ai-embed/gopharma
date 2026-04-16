@@ -16,7 +16,8 @@ type PharmacyDetails = {
   email?: string;
   description?: string;
   services?: string[];
-  photoFileId?: string;
+  photoUrl?: string;
+  bannerUrl?: string;
   openNow?: boolean;
   operationalStatus?: "OUVERT" | "FERME";
   availabilitySource?: "manual" | "schedule";
@@ -81,12 +82,25 @@ export default function PharmacyDetailPage() {
   const lat = coords?.[1];
   const lng = coords?.[0];
 
-  const heroImage = useMemo(() => {
-    if (pharmacy?.photoFileId) {
-      return `/api/files/${pharmacy.photoFileId}`;
-    }
-    return "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=1200&q=80";
-  }, [pharmacy?.photoFileId]);
+  function addCloudinaryTransformations(url: string, options: { width?: number; height?: number; crop?: string }) {
+  if (!url.includes('cloudinary.com')) return url;
+  const { width, height, crop } = options;
+  const transformations = [];
+  if (width) transformations.push(`w_${width}`);
+  if (height) transformations.push(`h_${height}`);
+  if (crop) transformations.push(`c_${crop}`);
+  
+  if (transformations.length === 0) return url;
+  
+  const transformationString = transformations.join(',');
+  return url.replace(/\/upload\//, `/upload/${transformationString}/`);
+}
+
+  const heroImage = pharmacy?.bannerUrl
+    ? addCloudinaryTransformations(pharmacy.bannerUrl, { width: 1200, height: 400, crop: 'fill' })
+    : pharmacy?.photoUrl
+    ? addCloudinaryTransformations(pharmacy.photoUrl, { width: 1200, height: 400, crop: 'fill' })
+    : "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=1200&q=80";
 
   const statusLabel = pharmacy?.openNow ? "Ouvert" : "Fermé";
   const mapsUrl = lat && lng
@@ -133,10 +147,12 @@ export default function PharmacyDetailPage() {
           <section className="space-y-6">
             <div className="relative overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white">
               <div
-                className="relative h-[220px] bg-cover bg-center"
+                className="relative h-55 bg-cover bg-center"
                 style={{ backgroundImage: `url('${heroImage}')` }}
+                role="img"
+                aria-label={`Bannière de ${pharmacy.name}`}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-r from-black/60 to-transparent" />
                 <div className="absolute bottom-4 left-4 text-white">
                   <h1 className="text-xl font-semibold">{pharmacy.name}</h1>
                   <div className="mt-2 flex items-center gap-3 text-xs">

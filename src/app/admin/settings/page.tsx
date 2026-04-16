@@ -76,7 +76,6 @@ export default function AdminSettingsPage() {
   const [sendingTest, setSendingTest] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
   const loadStatus = useCallback(async (mode: "initial" | "refresh" = "initial") => {
     if (mode === "initial") {
       setLoading(true);
@@ -86,6 +85,7 @@ export default function AdminSettingsPage() {
     setError(null);
 
     const result = await apiJsonAuth<IntegrationStatusMap>("/api/admin/integrations/status");
+
     if (!result.ok || !result.data) {
       setError(result.error ?? "Impossible de charger les paramètres administrateur.");
       if (mode === "initial") {
@@ -97,6 +97,7 @@ export default function AdminSettingsPage() {
     }
 
     setIntegrations(result.data);
+
     if (mode === "initial") {
       setLoading(false);
     } else {
