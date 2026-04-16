@@ -34,28 +34,7 @@ interface PharmacyCardProps {
   onCardClick: () => void;
 }
 
-function getDistanceKm(from: Coordinates, pharmacy?: PublicPharmacy) {
-  const coords = pharmacy?.location?.coordinates;
-  if (!coords?.length) {
-    return null;
-  }
-
-  const [lng, lat] = coords;
-  const toRad = (value: number) => (value * Math.PI) / 180;
-  const earthRadiusKm = 6371;
-  const dLat = toRad(lat - from.lat);
-  const dLng = toRad(lng - from.lng);
-  const lat1 = toRad(from.lat);
-  const lat2 = toRad(lat);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return earthRadiusKm * c;
-}
-
-const formatDistance = (from: Coordinates, to: Coordinates) => {
+function formatDistance(from: Coordinates, to: Coordinates) {
   const toRad = (value: number) => (value * Math.PI) / 180;
   const earthRadiusKm = 6371;
   const dLat = toRad(to.lat - from.lat);
@@ -103,20 +82,6 @@ export function PharmacyCard({
   isBestPrice,
   onCardClick,
 }: PharmacyCardProps) {
-  const directionsUrl = (() => {
-    const coords = pharmacy.location?.coordinates;
-    if (coords?.length === 2) {
-      const [lng, lat] = coords;
-      return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-    }
-
-    if (pharmacy.address) {
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pharmacy.address)}`;
-    }
-
-    return null;
-  })();
-
   const pharmacyOpenNow = isPharmacyOpenNow(pharmacy);
   const statusLabel = getOpenStatusPill(pharmacyOpenNow, pharmacy.nextTransitionAt);
   const distanceLabel =
@@ -126,8 +91,6 @@ export function PharmacyCard({
           lng: pharmacy.location.coordinates[0],
         })
       : null;
-
-  const photoUrl = pharmacy.photoUrl ?? null;
 
   return (
     <div

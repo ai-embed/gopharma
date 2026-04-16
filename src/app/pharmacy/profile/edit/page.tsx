@@ -44,11 +44,6 @@ export default function PharmacyProfileEditPage() {
     }, 0);
   }, [loadUser]);
 
-  const displayName = useMemo(() => {
-    if (!user) return "Gestionnaire";
-    return `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "Gestionnaire";
-  }, [user]);
-
   const handlePhotoUpdate = (url: string | null) => {
     setUser((prev) => (prev ? { ...prev, profilePhotoUrl: url } : null));
   };

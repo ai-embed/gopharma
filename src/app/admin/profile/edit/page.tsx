@@ -44,11 +44,6 @@ export default function AdminProfileEditPage() {
     }, 0);
   }, [loadUser]);
 
-  const displayName = useMemo(() => {
-    if (!user) return "Administrateur";
-    return `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "Administrateur";
-  }, [user]);
-
   const handlePhotoUpdate = (url: string | null) => {
     setUser((prev) => (prev ? { ...prev, profilePhotoUrl: url } : null));
   };

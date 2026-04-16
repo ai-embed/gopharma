@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { apiJsonAuth } from "@/lib/api";
 import { Notice } from "./Notice";
 
@@ -119,7 +120,7 @@ export function ProfilePhotoUpload({
     if (file) {
       handleFileChange(file);
     }
-  }, []);
+  }, [handleFileChange]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -176,10 +177,11 @@ export function ProfilePhotoUpload({
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#0B63D1] border-t-transparent" />
             </div>
           ) : photoUrl ? (
-            <img
+            <Image
               src={photoUrl}
               alt={`${firstName} ${lastName}`}
-              className="h-full w-full object-cover"
+              fill
+              className="object-cover"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">

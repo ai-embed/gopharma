@@ -160,9 +160,6 @@ const getOpenStatusPill = (isOpen?: boolean, nextTransitionAt?: string) => {
 const isPharmacyOpenNow = (pharmacy: PublicPharmacy) =>
   pharmacy.openNow ?? pharmacy.operationalStatus === "OUVERT";
 
-const baseFilterPillClass =
-  "rounded-full border border-[#DCE5F0] bg-white px-3.5 py-2 text-[11px] font-semibold text-[#374151] shadow-[0_4px_10px_rgba(15,23,42,0.03)] transition";
-
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams?.get("q") ?? "";
