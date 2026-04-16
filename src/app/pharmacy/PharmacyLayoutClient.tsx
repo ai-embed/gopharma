@@ -66,7 +66,6 @@ const navItems = [
           fill="none"
           stroke="currentColor"
           strokeWidth="1.6"
-          strokeLinecap="round"
         />
       </svg>
     ),
@@ -114,6 +113,23 @@ const navItems = [
           strokeWidth="1.2"
           strokeLinejoin="round"
         />
+      </svg>
+    ),
+  },
+  {
+    href: "/pharmacy/profile/edit",
+    label: "Mon profil",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+        <path
+          d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="12" cy="7" r="4" fill="none" stroke="currentColor" strokeWidth="1.6" />
       </svg>
     ),
   },
