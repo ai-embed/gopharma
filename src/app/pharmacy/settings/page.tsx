@@ -15,8 +15,8 @@ type ManagerPharmacy = {
   email?: string;
   description?: string;
   services?: string[];
-  photoFileId?: string;
-  bannerFileId?: string;
+  photoUrl?: string;
+  bannerUrl?: string;
   operationalStatus: "OUVERT" | "FERME";
   location: {
     type: "Point";

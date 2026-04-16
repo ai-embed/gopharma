@@ -28,7 +28,8 @@ type PublicPharmacy = {
   description?: string;
   email?: string;
   services?: string[];
-  photoFileId?: string;
+  photoUrl?: string;
+  bannerUrl?: string;
   operationalStatus?: "OUVERT" | "FERME";
   openNow?: boolean;
   nextTransitionAt?: string;
