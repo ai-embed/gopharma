@@ -908,7 +908,7 @@ export default function SearchPage() {
                             target="_blank"
                             rel="noreferrer"
                             onClick={(event) => event.stopPropagation()}
-                            className="rounded-[12px] bg-[#18A8EA] px-4 py-2 text-[12px] font-semibold text-white shadow-[0_10px_24px_rgba(22,163,224,0.22)] transition hover:bg-[#1099DA]"
+                            className="rounded-xl bg-[#18A8EA] px-4 py-2 text-[12px] font-semibold text-white shadow-[0_10px_24px_rgba(22,163,224,0.22)] transition hover:bg-[#1099DA]"
                           >
                             ⟡ Itinéraire
                           </a>
@@ -999,7 +999,7 @@ export default function SearchPage() {
                           </div>
                         ) : null}
                       </div>
-                      <div className="min-w-[88px] text-right">
+                      <div className="min-w-22 text-right">
                         <p className="text-[18px] font-semibold tracking-[-0.02em] text-[#16A3E0]">
                           {totalPrice !== undefined ? formatCompactMoney(totalPrice) : "—"}
                         </p>
@@ -1036,7 +1036,7 @@ export default function SearchPage() {
                           <Link
                             href={`/pharmacies/${pharmacy._id}`}
                             onClick={(event) => event.stopPropagation()}
-                            className="rounded-[12px] border border-[#D1D5DB] px-4 py-2 text-center text-[12px] font-semibold text-[#1F1D1B]"
+                            className="rounded-xl border border-[#D1D5DB] px-4 py-2 text-center text-[12px] font-semibold text-[#1F1D1B]"
                           >
                             Voir détails
                           </Link>
@@ -1046,7 +1046,7 @@ export default function SearchPage() {
                               target="_blank"
                               rel="noreferrer"
                               onClick={(event) => event.stopPropagation()}
-                              className="rounded-[12px] bg-[#18A8EA] px-4 py-2 text-[12px] font-semibold text-white shadow-[0_10px_24px_rgba(22,163,224,0.22)] transition hover:bg-[#1099DA]"
+                              className="rounded-xl bg-[#18A8EA] px-4 py-2 text-[12px] font-semibold text-white shadow-[0_10px_24px_rgba(22,163,224,0.22)] transition hover:bg-[#1099DA]"
                             >
                               ⟡ Itinéraire
                             </a>
