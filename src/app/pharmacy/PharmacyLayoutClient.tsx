@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import AppFooter from "@/components/AppFooter";
 import { NotificationsMenu } from "@/components/NotificationsMenu";
 import { clearTokens, getAccessToken } from "@/lib/auth";
@@ -297,10 +298,22 @@ export default function PharmacyLayout({
               </div>
               <NotificationsMenu />
               <div className="flex items-center gap-3 rounded-full border border-[#E5E7EB] bg-white px-3 py-2 text-xs">
-                <div className="relative flex h-7 w-7 items-center justify-center rounded-full bg-[#EAF2FF] text-[11px] font-semibold text-[#0B63D1]">
-                  CP
+                <Link
+                  href="/pharmacy/profile/edit"
+                  className="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-[#EAF2FF]"
+                >
+                  {user?.profilePhotoUrl ? (
+                    <Image
+                      src={user.profilePhotoUrl}
+                      alt={`Photo de profil de ${user.firstName} ${user.lastName}`}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="text-[11px] font-semibold text-[#0B63D1]">CP</span>
+                  )}
                   <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full border-2 border-white bg-emerald-500" />
-                </div>
+                </Link>
                 <div>
                   <p className="text-[11px] font-semibold text-[#1F1D1B]">
                     Pharmacie CVS #4290

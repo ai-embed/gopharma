@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
 import AppFooter from "@/components/AppFooter";
 import { clearTokens, getAccessToken } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
@@ -135,8 +136,17 @@ export default function AdminLayoutClient({
             href={user ? `/admin/users/${user._id}` : "/admin/users"}
             className="mt-auto flex items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-3 text-xs text-[#6B7280] transition hover:bg-[#F3F6F9]"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EAF2FF] text-[11px] font-semibold text-[#0B63D1]">
-              {initials}
+            <span className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#EAF2FF]">
+              {user?.profilePhotoUrl ? (
+                <Image
+                  src={user.profilePhotoUrl}
+                  alt={`Photo de profil de ${fullName}`}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <span className="text-[11px] font-semibold text-[#0B63D1]">{initials}</span>
+              )}
             </span>
             <div>
               <p className="text-[11px] font-semibold text-[#1F1D1B]">{fullName}</p>
