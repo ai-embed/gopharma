@@ -49,9 +49,20 @@ export async function apiJson<T>(
     if (!response.ok) {
       const detailFromJson =
         data && typeof data === "object"
-          ? (data as { detail?: string }).detail
+          ? (data as { detail?: string; message?: string }).detail ??
+            (data as { detail?: string; message?: string }).message
           : undefined;
       const detailFromText = !isJson && text ? text : undefined;
+      
+      // Log errors for debugging (in development)
+      if (process.env.NODE_ENV === "development") {
+        console.error(`[API Error] ${path}`, {
+          status: response.status,
+          statusText: response.statusText,
+          error: detailFromJson ?? detailFromText,
+        });
+      }
+
       return {
         ok: false,
         status: response.status,
@@ -66,6 +77,11 @@ export async function apiJson<T>(
 
     return { ok: true, status: response.status, data };
   } catch (error) {
+    // Log network errors for debugging (in development)
+    if (process.env.NODE_ENV === "development") {
+      console.error(`[Network Error] ${path}`, error);
+    }
+
     return {
       ok: false,
       status: 0,

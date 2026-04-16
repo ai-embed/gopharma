@@ -84,13 +84,27 @@ export default function PharmacyDetailPage() {
 
   const heroImage = useMemo(() => {
     if (pharmacy?.bannerUrl) {
-      return pharmacy.bannerUrl;
+      return addCloudinaryTransformations(pharmacy.bannerUrl, { width: 1200, height: 400, crop: 'fill' });
     }
     if (pharmacy?.photoUrl) {
-      return pharmacy.photoUrl;
+      return addCloudinaryTransformations(pharmacy.photoUrl, { width: 1200, height: 400, crop: 'fill' });
     }
     return "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=1200&q=80";
   }, [pharmacy?.bannerUrl, pharmacy?.photoUrl]);
+
+function addCloudinaryTransformations(url: string, options: { width?: number; height?: number; crop?: string }) {
+  if (!url.includes('cloudinary.com')) return url;
+  const { width, height, crop } = options;
+  const transformations = [];
+  if (width) transformations.push(`w_${width}`);
+  if (height) transformations.push(`h_${height}`);
+  if (crop) transformations.push(`c_${crop}`);
+  
+  if (transformations.length === 0) return url;
+  
+  const transformationString = transformations.join(',');
+  return url.replace(/\/upload\//, `/upload/${transformationString}/`);
+}
 
   const statusLabel = pharmacy?.openNow ? "Ouvert" : "Fermé";
   const mapsUrl = lat && lng
@@ -139,6 +153,8 @@ export default function PharmacyDetailPage() {
               <div
                 className="relative h-55 bg-cover bg-center"
                 style={{ backgroundImage: `url('${heroImage}')` }}
+                role="img"
+                aria-label={`Bannière de ${pharmacy.name}`}
               >
                 <div className="absolute inset-0 bg-linear-to-r from-black/60 to-transparent" />
                 <div className="absolute bottom-4 left-4 text-white">
