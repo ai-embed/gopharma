@@ -7,6 +7,7 @@ import Image from "next/image";
 import AppFooter from "@/components/AppFooter";
 import { clearTokens, getAccessToken, saveRoleCookie } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
+import { apiJsonAuth } from "@/lib/api";
 
 const tabs = [
   { href: "/login", label: "Connexion" },
