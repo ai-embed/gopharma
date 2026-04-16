@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveRoleCookie, saveTokens } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
@@ -26,6 +26,12 @@ function parseHashParams() {
 
 export default function GoogleSuccessPage() {
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const authPayload = useMemo<GoogleAuthPayload>(() => {
     const params = parseHashParams();
     const accessToken = params.get("accessToken");
@@ -45,6 +51,7 @@ export default function GoogleSuccessPage() {
       error: null,
     };
   }, []);
+
   const validPayload = authPayload.error === null ? authPayload : null;
 
   useEffect(() => {
@@ -60,6 +67,23 @@ export default function GoogleSuccessPage() {
     const nextPath = getRoleHomePath(validPayload.role);
     router.replace(nextPath);
   }, [router, validPayload]);
+
+  // Show loading state during hydration to avoid mismatch
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-[#F3F6F9] px-4 py-10 text-[#1E1E1E]">
+        <div className="mx-auto w-full max-w-[480px] rounded-[28px] bg-white p-8 text-center shadow-[0_18px_60px_-40px_rgba(15,23,42,0.6)]">
+          <div className="text-lg font-semibold">Connexion Google</div>
+          <p className="mt-3 text-sm text-[#6B7280]">
+            Validation en cours, redirection…
+          </p>
+          <div className="mt-6 flex items-center justify-center">
+            <span className="h-10 w-10 animate-spin rounded-full border-2 border-[#0B63D1] border-t-transparent" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (authPayload.error) {
     return (
