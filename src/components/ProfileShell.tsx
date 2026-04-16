@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { PatientShell } from "@/components/PatientShell";
 import { useUser } from "@/lib/useUser";
@@ -44,10 +46,11 @@ export default function ProfileShell({
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                 </div>
               ) : profilePhotoUrl ? (
-                <img
+                <Image
                   src={profilePhotoUrl}
                   alt={displayName}
-                  className="h-full w-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">

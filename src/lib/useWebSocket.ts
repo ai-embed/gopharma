@@ -151,7 +151,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     return () => {
       disconnect();
     };
-  }, []);
+  }, [disconnect]);
 
   return {
     status,

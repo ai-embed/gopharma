@@ -24,7 +24,7 @@ export default function EditProfileForm() {
     return `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "Utilisateur";
   }, [user]);
 
-  const handlePhotoUpdate = (url: string | null) => {
+  const handlePhotoUpdate = (_url: string | null) => {
     // La mise à jour se fait via le composant ProfilePhotoUpload
     // et le re-fetch du user dans EditProfileFields
   };

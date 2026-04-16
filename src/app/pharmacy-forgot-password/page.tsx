@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Notice } from "@/components/Notice";
 import { apiJson } from "@/lib/api";
@@ -9,7 +8,6 @@ import { apiJson } from "@/lib/api";
 export const dynamic = "force-dynamic";
 
 export default function PharmacyForgotPasswordPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

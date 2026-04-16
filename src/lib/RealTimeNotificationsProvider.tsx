@@ -24,14 +24,12 @@ interface RealTimeNotificationsProviderProps {
   children: ReactNode;
   userId: string;
   wsUrl?: string;
-  fallbackToPolling?: boolean;
 }
 
 export function RealTimeNotificationsProvider({
   children,
   userId,
   wsUrl = process.env.NEXT_PUBLIC_WS_URL ?? "wss://ws.gopharma.local",
-  fallbackToPolling = true,
 }: RealTimeNotificationsProviderProps) {
   const [notifications, setNotifications] = useState<RealTimeNotification[]>([]);
   const [isRealTime, setIsRealTime] = useState(false);

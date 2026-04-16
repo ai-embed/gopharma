@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
 import { NotificationsMenu } from "@/components/NotificationsMenu";
 import { clearTokens } from "@/lib/auth";
 import { useUser } from "@/lib/useUser";
@@ -72,22 +73,31 @@ export function TopNav() {
         <Link
           href="/profile"
           aria-label="Profil patient"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#EEF2F7] text-[#0B63D1]"
+          className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#EEF2F7]"
         >
-          <svg
-            viewBox="0 0 24 24"
-            className="h-4 w-4"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="8" r="4" fill="currentColor" opacity="0.9" />
-            <path
-              d="M5 20c1.8-4 11.2-4 14 0"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
+          {user?.profilePhotoUrl ? (
+            <Image
+              src={user.profilePhotoUrl}
+              alt={`Photo de profil de ${displayName}`}
+              fill
+              className="object-cover"
             />
-          </svg>
+          ) : (
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4 text-[#0B63D1]"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8" r="4" fill="currentColor" opacity="0.9" />
+              <path
+                d="M5 20c1.8-4 11.2-4 14 0"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
+          )}
         </Link>
       </div>
     </header>
