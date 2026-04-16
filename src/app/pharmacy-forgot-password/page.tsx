@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Notice } from "@/components/Notice";
 import { apiJson } from "@/lib/api";

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Notice } from "@/components/Notice";
 import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
 import { apiJsonAuth } from "@/lib/api";

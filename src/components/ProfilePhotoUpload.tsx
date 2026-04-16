@@ -62,7 +62,7 @@ export function ProfilePhotoUpload({
     void loadPhoto();
   }, [userId]);
 
-  const handleFileChange = async (file: File) => {
+  const handleFileChange = useCallback(async (file: File) => {
     // Validation
     if (!file.type.startsWith("image/")) {
       setError("Veuillez sélectionner une image (JPG, PNG, WebP)");
@@ -103,7 +103,7 @@ export function ProfilePhotoUpload({
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [onPhotoUpdate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

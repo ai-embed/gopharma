@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { saveRoleCookie, saveTokens } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
@@ -26,10 +26,10 @@ function parseHashParams() {
 
 export default function GoogleSuccessPage() {
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useRef(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    isMounted.current = true;
   }, []);
 
   const authPayload = useMemo<GoogleAuthPayload>(() => {
@@ -69,7 +69,7 @@ export default function GoogleSuccessPage() {
   }, [router, validPayload]);
 
   // Show loading state during hydration to avoid mismatch
-  if (!isMounted) {
+  if (!isMounted.current) {
     return (
       <div className="min-h-screen bg-[#F3F6F9] px-4 py-10 text-[#1E1E1E]">
         <div className="mx-auto w-full max-w-120 rounded-[28px] bg-white p-8 text-center shadow-[0_18px_60px_-40px_rgba(15,23,42,0.6)]">
