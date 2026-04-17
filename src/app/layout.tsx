@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "@/components/PwaRegister";
 import PwaInstallPrompt from "@/components/PwaInstallPrompt";
+import { Chatbot } from "@/components/Chatbot";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body className="antialiased" suppressHydrationWarning>
         <PwaRegister />
         <PwaInstallPrompt />
+        <Chatbot />
         {children}
       </body>
     </html>
