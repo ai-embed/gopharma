@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { TopNav } from "@/components/TopNav";
 import AppFooter from "@/components/AppFooter";
 import FloatingAssistantButton from "@/components/FloatingAssistantButton";
+import { Chatbot } from "@/components/Chatbot";
 import { clearTokens, getAccessToken } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 import { useUser } from "@/lib/useUser";
@@ -58,6 +59,7 @@ export function PatientShell({ children }: PatientShellProps) {
         <AppFooter />
       </div>
       <FloatingAssistantButton />
+      <Chatbot />
     </div>
   );
 }
