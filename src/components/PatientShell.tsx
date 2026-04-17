@@ -5,7 +5,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { TopNav } from "@/components/TopNav";
 import AppFooter from "@/components/AppFooter";
-import FloatingAssistantButton from "@/components/FloatingAssistantButton";
 import { Chatbot } from "@/components/Chatbot";
 import { clearTokens, getAccessToken } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
@@ -58,7 +57,6 @@ export function PatientShell({ children }: PatientShellProps) {
         {children}
         <AppFooter />
       </div>
-      <FloatingAssistantButton />
       <Chatbot />
     </div>
   );
