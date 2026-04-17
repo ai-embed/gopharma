@@ -34,19 +34,22 @@ export default function GoogleSuccessPage() {
     const refreshToken = params.get("refreshToken");
     const role = params.get("role");
 
-    if (!accessToken || !refreshToken) {
-      setAuthPayload({
-        error: "Impossible de finaliser la connexion Google.",
-      });
-      return;
-    }
+    // Defer setState to avoid synchronous setState warning
+    setTimeout(() => {
+      if (!accessToken || !refreshToken) {
+        setAuthPayload({
+          error: "Impossible de finaliser la connexion Google.",
+        });
+        return;
+      }
 
-    setAuthPayload({
-      accessToken,
-      refreshToken,
-      role,
-      error: null,
-    });
+      setAuthPayload({
+        accessToken,
+        refreshToken,
+        role,
+        error: null,
+      });
+    }, 0);
   }, []);
 
   const validPayload = authPayload?.error === null ? authPayload : null;
