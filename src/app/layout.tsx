@@ -34,7 +34,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <head />
+      <head>
+        <link rel="icon" href="/icons/icon-192.png" sizes="192x192" />
+        <link rel="icon" href="/icons/icon-512.png" sizes="512x512" />
+      </head>
       <body className="antialiased" suppressHydrationWarning>
         <PwaRegister />
         <PwaInstallPrompt />
