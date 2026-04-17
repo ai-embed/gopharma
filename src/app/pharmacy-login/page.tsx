@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Notice } from "@/components/Notice";
 import { apiJson, apiJsonAuth } from "@/lib/api";
 import { clearTokens, getAccessToken, saveRoleCookie, saveTokens } from "@/lib/auth";
@@ -115,13 +116,17 @@ export default function PharmacyLoginPage() {
 
   return (
     <div className="min-h-screen bg-[#F3F6F9] px-6 py-10 text-[#1F1D1B]">
-      <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-[32px] border border-[#E5E7EB] bg-white shadow-sm">
+      <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-4xl border border-[#E5E7EB] bg-white shadow-sm">
         <div className="grid md:grid-cols-[1.05fr_0.95fr]">
           <div className="px-6 py-10 md:px-10">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0B63D1] text-sm font-semibold text-white">
-                +
-              </span>
+              <Image
+                src="/icons/Untitled design.png"
+                alt="GoPharma Logo"
+                width={40}
+                height={40}
+                className="h-10 w-10 rounded-2xl"
+              />
               <span className="text-sm font-semibold">GoPharma Pro</span>
             </div>
 
@@ -227,7 +232,7 @@ export default function PharmacyLoginPage() {
             </form>
           </div>
 
-          <div className="relative flex flex-col justify-between bg-gradient-to-b from-[#F1F8FF] via-[#F7FBFF] to-white px-6 py-10 md:px-10">
+          <div className="relative flex flex-col justify-between bg-linear-to-b from-[#F1F8FF] via-[#F7FBFF] to-white px-6 py-10 md:px-10">
             <div className="rounded-2xl border border-[#E5E7EB] bg-white/80 p-4 text-xs text-[#6B7280]">
               <div className="flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#EAF2FF] text-[#0B63D1]">
@@ -270,7 +275,7 @@ export default function PharmacyLoginPage() {
               </div>
             </div>
 
-            <div className="mt-10 h-40 w-full overflow-hidden rounded-3xl bg-gradient-to-br from-[#BBD3DE] via-[#8DB0C2] to-[#5F7E91]" />
+            <div className="mt-10 h-40 w-full overflow-hidden rounded-3xl bg-linear-to-br from-[#BBD3DE] via-[#8DB0C2] to-[#5F7E91]" />
           </div>
         </div>
       </div>

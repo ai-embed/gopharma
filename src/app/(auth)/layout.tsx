@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import AppFooter from "@/components/AppFooter";
 import { usePathname, useRouter } from "next/navigation";
-import { apiJsonAuth } from "@/lib/api";
+import Image from "next/image";
+import AppFooter from "@/components/AppFooter";
 import { clearTokens, getAccessToken, saveRoleCookie } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
+import { apiJsonAuth } from "@/lib/api";
 
 const tabs = [
   { href: "/login", label: "Connexion" },
@@ -49,11 +50,15 @@ export default function AuthLayout({
 
   return (
     <div className="min-h-screen bg-[#F3F6F9] px-4 py-6 text-[#1E1E1E] sm:px-6 sm:py-10">
-      <div className="mx-auto w-full max-w-[420px] rounded-[28px] bg-white p-8 shadow-[0_18px_60px_-40px_rgba(15,23,42,0.6)]">
+      <div className="mx-auto w-full max-w-105 rounded-[28px] bg-white p-8 shadow-[0_18px_60px_-40px_rgba(15,23,42,0.6)]">
         <div className="flex flex-col items-center text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B63D1] text-white">
-            <span className="text-lg font-semibold">GP</span>
-          </div>
+          <Image
+            src="/icons/Untitled design.png"
+            alt="GoPharma Logo"
+            width={48}
+            height={48}
+            className="h-12 w-12 rounded-2xl"
+          />
           <h1 className="mt-4 text-xl font-semibold">GoPharma</h1>
           <p className="mt-2 text-sm text-[#6B7280]">
             Votre compagnon de confiance pour la gestion des médicaments.

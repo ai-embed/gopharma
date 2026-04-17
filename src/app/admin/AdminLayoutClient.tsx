@@ -93,15 +93,22 @@ export default function AdminLayoutClient({
     <div className="min-h-screen bg-[#F6F8FA] text-[#1F1D1B]">
       <div className="flex flex-col md:flex-row">
         <aside className="flex w-full shrink-0 flex-col border-b border-[#E5E7EB] bg-white px-6 py-6 md:sticky md:top-0 md:h-screen md:w-64 md:border-b-0 md:border-r">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0B63D1] text-xs font-semibold text-white">
-              +
-            </div>
+          <Link
+            href="/admin/dashboard"
+            className="flex items-center gap-3"
+          >
+            <Image
+              src="/icons/Untitled design.png"
+              alt="GoPharma Logo"
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-xl"
+            />
             <div>
               <p className="text-sm font-semibold">GoPharma</p>
               <p className="text-[11px] text-[#6B7280]">Tableau de bord</p>
             </div>
-          </div>
+          </Link>
 
           {navSections.map((section) => (
             <div key={section.title}>

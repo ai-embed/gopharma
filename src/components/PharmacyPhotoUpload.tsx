@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { apiJsonAuth } from "@/lib/api";
 import { Notice } from "./Notice";
 import Image from "next/image";

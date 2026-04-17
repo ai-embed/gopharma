@@ -53,15 +53,6 @@ export async function apiJson<T>(
             (data as { detail?: string; message?: string }).message
           : undefined;
       const detailFromText = !isJson && text ? text : undefined;
-      
-      // Log errors for debugging (in development)
-      if (process.env.NODE_ENV === "development") {
-        console.error(`[API Error] ${path}`, {
-          status: response.status,
-          statusText: response.statusText,
-          error: detailFromJson ?? detailFromText,
-        });
-      }
 
       return {
         ok: false,
