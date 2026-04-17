@@ -22,6 +22,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
   themeColor: "#0B63D1",
 };
 
@@ -34,7 +37,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <head />
+      <head>
+        <link rel="icon" href="/favicon.png" />
+      </head>
       <body className="antialiased" suppressHydrationWarning>
         <PwaRegister />
         <PwaInstallPrompt />

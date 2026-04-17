@@ -637,6 +637,7 @@ export default function SearchPage() {
         const distanceB = getDistanceKm(userCoords, b) ?? Number.POSITIVE_INFINITY;
         return distanceA - distanceB;
       })
+      .slice(0, 3)
       .map((pharmacy) => ({
         ...pharmacy,
         secondaryLabel:
