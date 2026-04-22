@@ -1,0 +1,14 @@
+<svg width="900" height="700" viewBox="0 0 900 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="700" fill="#FFF6E9"/>
+  <rect y="500" width="900" height="200" fill="#E5D9C8"/>
+  <rect x="126" y="210" width="648" height="308" rx="24" fill="#FAFBFF"/>
+  <rect x="126" y="168" width="648" height="76" rx="24" fill="#C2410C"/>
+  <rect x="184" y="286" width="168" height="152" rx="18" fill="#E4EEF9"/>
+  <rect x="374" y="286" width="152" height="232" rx="18" fill="#7B523C"/>
+  <rect x="548" y="286" width="168" height="152" rx="18" fill="#E4EEF9"/>
+  <path d="M450 342V394" stroke="#FFF1D6" stroke-width="10" stroke-linecap="round"/>
+  <path d="M423 368H477" stroke="#FFF1D6" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="100" cy="498" r="42" fill="#FFE0B2"/>
+  <circle cx="804" cy="508" r="36" fill="#FFD59A"/>
+  <text x="450" y="215" fill="white" font-size="34" font-family="Arial" text-anchor="middle">Pharmacie Horizon</text>
+</svg>

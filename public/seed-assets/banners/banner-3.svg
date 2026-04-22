@@ -1,0 +1,10 @@
+<svg width="1400" height="420" viewBox="0 0 1400 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="420" fill="#113730"/>
+  <circle cx="1170" cy="116" r="210" fill="#1B6E61"/>
+  <circle cx="1322" cy="322" r="176" fill="#2A9D8F"/>
+  <rect x="88" y="92" width="210" height="210" rx="34" fill="#0F766E"/>
+  <path d="M193 139V245" stroke="white" stroke-width="22" stroke-linecap="round"/>
+  <path d="M140 192H246" stroke="white" stroke-width="22" stroke-linecap="round"/>
+  <text x="358" y="176" fill="white" font-size="54" font-family="Arial" font-weight="700">Espace sante moderne</text>
+  <text x="358" y="242" fill="#CFF8F1" font-size="28" font-family="Arial">Disponibilite, prevention et suivi patient</text>
+</svg>

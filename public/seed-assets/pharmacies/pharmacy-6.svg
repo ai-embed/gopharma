@@ -1,0 +1,14 @@
+<svg width="900" height="700" viewBox="0 0 900 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="700" fill="#F1FAEC"/>
+  <rect y="504" width="900" height="196" fill="#D2E4CE"/>
+  <rect x="154" y="206" width="592" height="314" rx="28" fill="#FFFFFD"/>
+  <rect x="186" y="166" width="528" height="82" rx="20" fill="#166534"/>
+  <rect x="220" y="290" width="138" height="150" rx="18" fill="#E0F0DB"/>
+  <rect x="382" y="290" width="136" height="230" rx="18" fill="#8D684C"/>
+  <rect x="542" y="290" width="138" height="150" rx="18" fill="#E0F0DB"/>
+  <path d="M450 344V392" stroke="#F8E5BF" stroke-width="10" stroke-linecap="round"/>
+  <path d="M423 368H477" stroke="#F8E5BF" stroke-width="10" stroke-linecap="round"/>
+  <rect x="94" y="536" width="78" height="108" rx="18" fill="#88B775"/>
+  <circle cx="133" cy="518" r="28" fill="#6B9D57"/>
+  <text x="450" y="219" fill="white" font-size="32" font-family="Arial" text-anchor="middle">Clinique Verte</text>
+</svg>

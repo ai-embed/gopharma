@@ -52,7 +52,13 @@ Après connexion, le frontend redirige automatiquement selon le rôle :
 - `PHARMACY_MANAGER` → `/pharmacy/dashboard`
 - `PATIENT` → `/dashboard`
 
-Les écrans encore majoritairement en UI mockée pourront ensuite être reliés endpoint par endpoint.
+Modules déjà branchés sur l’API backend :
+- auth (`/api/auth/*`, `/api/users/me`)
+- recherche (`/api/search/*`, `/api/pharmacies/:id`, `/api/pharmacies/:id/schedule`)
+- historique, favoris, notifications et rappels
+- espaces admin et pharmacie sur leurs endpoints dédiés
+
+Certains écrans restent encore partiellement mockés ou hybrides, mais la base applicative n’est plus limitée au seul login/register.
 
 Option avancée :
 - `NEXT_PUBLIC_API_URL` peut être défini si vous voulez forcer des appels directs vers une URL externe.
