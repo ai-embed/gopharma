@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import AppFooter from "@/components/AppFooter";
 import { clearTokens, getAccessToken, saveRoleCookie } from "@/lib/auth";
-import { getRoleHomePath } from "@/lib/roles";
+import { getRolePostAuthPath } from "@/lib/roles";
 import { apiJsonAuth } from "@/lib/api";
 
 const tabs = [
@@ -34,7 +34,7 @@ export default function AuthLayout({
 
       if (meResult.ok && meResult.data?.role) {
         saveRoleCookie(meResult.data.role);
-        router.replace(getRoleHomePath(meResult.data.role));
+        router.replace(getRolePostAuthPath(meResult.data.role));
         return;
       }
 

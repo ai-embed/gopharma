@@ -12,6 +12,10 @@ export function getRoleHomePath(role?: string | null) {
   return "/login";
 }
 
+export function getRolePostAuthPath(role?: string | null) {
+  return getRoleHomePath(role);
+}
+
 export function getRoleTargetLabel(role?: string | null) {
   const normalizedRole = normalizeRole(role);
 

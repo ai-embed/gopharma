@@ -7,16 +7,12 @@ import { useSearchParams } from "next/navigation";
 import { apiJson, apiJsonAuth } from "@/lib/api";
 import { PatientShell } from "@/components/PatientShell";
 import { useFavorites } from "@/lib/useFavorites";
+import { getSavedLocationCoords, type Coordinates } from "@/lib/location-preferences";
 import { DistanceMode, SearchFilters } from "@/components/search/SearchFilters";
 
 const SearchResultsMap = dynamic(() => import("@/components/SearchResultsMap"), {
   ssr: false,
 });
-
-type Coordinates = {
-  lat: number;
-  lng: number;
-};
 
 type PharmacyLocation = {
   coordinates: [number, number];
@@ -169,7 +165,7 @@ export default function SearchPage() {
   const initialState = useMemo(() => parseInitialQuery(initialQuery), [initialQuery]);
   const [queryInput, setQueryInput] = useState(initialState.queryInput);
   const [queryTokens, setQueryTokens] = useState<string[]>(initialState.queryTokens);
-  const [openNow, setOpenNow] = useState(true);
+  const [openNow, setOpenNow] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("priceAsc");
   const [distanceMode, setDistanceMode] = useState<DistanceMode>("within20");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -297,25 +293,15 @@ export default function SearchPage() {
   useEffect(() => {
     let active = true;
 
-    if (typeof window !== "undefined" && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          if (!active) {
-            return;
-          }
-
-          const coords = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setUserCoords(coords);
-          void loadNearbyPharmacies(coords);
-        },
-        () => {
-          void loadNearbyPharmacies();
-        },
-        { timeout: 5000 }
-      );
+    const coords = getSavedLocationCoords();
+    if (coords) {
+      void Promise.resolve().then(() => {
+        if (!active) {
+          return;
+        }
+        setUserCoords(coords);
+      });
+      void loadNearbyPharmacies(coords);
     } else {
       void loadNearbyPharmacies();
     }
@@ -780,6 +766,12 @@ export default function SearchPage() {
               {pharmacyCount} pharmacies trouvées {locationLabel}
             </p>
           </div>
+          {!userCoords ? (
+            <p className="mx-1 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-700">
+              Vous avez continué sans localisation: la distance et le tri par proximité
+              peuvent être moins précis.
+            </p>
+          ) : null}
 
           {!hasComparedProducts ? (
             <p className="px-1 text-[12px] text-[#6B7280]">

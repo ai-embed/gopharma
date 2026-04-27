@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveRoleCookie, saveTokens } from "@/lib/auth";
-import { getRoleHomePath } from "@/lib/roles";
+import { clearLocationAccessState } from "@/lib/location-preferences";
+import { getRolePostAuthPath } from "@/lib/roles";
 
 type GoogleAuthPayload =
   | {
@@ -60,11 +61,12 @@ export default function GoogleSuccessPage() {
     }
 
     saveTokens(validPayload.accessToken, validPayload.refreshToken, true);
+    clearLocationAccessState({ keepPersistentChoice: true });
     if (validPayload.role) {
       saveRoleCookie(validPayload.role, true);
     }
 
-    const nextPath = getRoleHomePath(validPayload.role);
+    const nextPath = getRolePostAuthPath(validPayload.role);
     router.replace(nextPath);
   }, [router, validPayload]);
 

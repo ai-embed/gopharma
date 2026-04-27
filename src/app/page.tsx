@@ -5,14 +5,13 @@ import { useRouter } from "next/navigation";
 import { getRoleHomePath, getRoleTargetLabel } from "@/lib/roles";
 import { useUser } from "@/lib/useUser";
 
-const REDIRECT_DELAY_MS = 2600;
+const REDIRECT_DELAY_MS = 1200;
 
 export default function Home() {
   const router = useRouter();
   const { user, loading } = useUser();
 
   const targetPath = useMemo(() => getRoleHomePath(user?.role), [user?.role]);
-
   const targetLabel = useMemo(() => getRoleTargetLabel(user?.role), [user?.role]);
 
   useEffect(() => {
@@ -58,9 +57,7 @@ export default function Home() {
 
         <div className="mt-8 flex flex-col items-center gap-4">
           <span className="flex h-12 w-12 animate-spin items-center justify-center rounded-full border-2 border-[#0B63D1] border-t-transparent" />
-          <p className="text-sm text-[#0B63D1]">
-            Redirection vers {targetLabel}…
-          </p>
+          <p className="text-sm text-[#0B63D1]">Redirection vers {targetLabel}…</p>
         </div>
 
         <p className="mt-10 text-[11px] text-[#9CA3AF]">

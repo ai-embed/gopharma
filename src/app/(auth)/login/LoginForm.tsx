@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiJson, apiJsonAuth } from "@/lib/api";
 import { saveRoleCookie, saveTokens } from "@/lib/auth";
-import { getRoleHomePath } from "@/lib/roles";
+import { clearLocationAccessState } from "@/lib/location-preferences";
+import { getRolePostAuthPath } from "@/lib/roles";
 import { Notice } from "@/components/Notice";
 import { useSecureAuth } from "@/lib/security/useSecureAuth";
 
@@ -65,13 +66,14 @@ export default function LoginForm() {
 
     const tokens = result.data;
     saveTokens(tokens.accessToken, tokens.refreshToken, rememberMe);
+    clearLocationAccessState({ keepPersistentChoice: true });
 
     const meResult = await apiJsonAuth<UserProfile>("/api/users/me");
-    let nextPath = "/dashboard";
+    let nextPath = "/";
 
     if (meResult.ok && meResult.data) {
       saveRoleCookie(meResult.data.role, rememberMe);
-      nextPath = getRoleHomePath(meResult.data.role);
+      nextPath = getRolePostAuthPath(meResult.data.role);
     }
 
     router.push(nextPath);
