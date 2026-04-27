@@ -252,6 +252,18 @@ export default function RegisterForm() {
         </select>
       </div>
 
+      <p className="text-center text-xs text-[#9CA3AF]">
+        En continuant, vous acceptez nos{" "}
+        <Link href="/conditions-utilisation" className="font-semibold text-[#0B63D1]">
+          Conditions d&apos;utilisation
+        </Link>{" "}
+        et notre{" "}
+        <Link href="/politique-confidentialite" className="font-semibold text-[#0B63D1]">
+          Politique de confidentialite
+        </Link>
+        .
+      </p>
+
       {error ? <Notice tone="error" message={error} /> : null}
       {success ? <Notice tone="success" message={success} /> : null}
 

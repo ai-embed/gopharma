@@ -28,6 +28,7 @@ export const UserPreferencesSchema = z.object({
   timezone: z.string().default("Africa/Porto-Novo"),
   channels: z.array(z.string()).default([]),
   alertsEnabled: z.boolean().default(true),
+  theme: z.enum(["light", "dark"]).default("light"),
 });
 
 export const UserRoleSchema = z.enum(["PATIENT", "PHARMACY_MANAGER", "ADMIN"]);

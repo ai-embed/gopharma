@@ -12,10 +12,10 @@ export default function AppFooter({ align = "left" }: { align?: "left" | "center
         <Link href="#" className="hover:text-[#0B63D1]">
           Aide
         </Link>
-        <Link href="#" className="hover:text-[#0B63D1]">
+        <Link href="/politique-confidentialite" className="hover:text-[#0B63D1]">
           Confidentialité
         </Link>
-        <Link href="#" className="hover:text-[#0B63D1]">
+        <Link href="/conditions-utilisation" className="hover:text-[#0B63D1]">
           Conditions
         </Link>
       </div>

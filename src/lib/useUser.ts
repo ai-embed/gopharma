@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { apiJsonAuth } from "./api";
 import { clearTokens, saveRoleCookie } from "./auth";
+import { normalizeThemePreference, setThemePreference } from "./theme-preferences";
 
 type UserPreferences = {
   language: string;
   timezone: string;
   channels: string[];
   alertsEnabled: boolean;
+  theme?: string;
 };
 
 export type UserProfile = {
@@ -39,6 +41,9 @@ export function useUser() {
       if (res.ok && res.data) {
         setUser(res.data);
         saveRoleCookie(res.data.role);
+        if (res.data.preferences?.theme) {
+          setThemePreference(normalizeThemePreference(res.data.preferences.theme));
+        }
         setError(null);
       } else {
         if (res.status === 401) {

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "@/components/PwaRegister";
 import PwaInstallPrompt from "@/components/PwaInstallPrompt";
+import ThemeBootstrap from "@/components/ThemeBootstrap";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -41,6 +42,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.png" />
       </head>
       <body className="antialiased" suppressHydrationWarning>
+        <ThemeBootstrap />
         <PwaRegister />
         <PwaInstallPrompt />
         {children}

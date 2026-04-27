@@ -171,15 +171,10 @@ export default function LoginForm() {
       </div>
 
       <p className="text-center text-xs text-[#9CA3AF]">
-        En continuant, vous acceptez nos{" "}
-        <Link href="#" className="font-semibold text-[#0B63D1]">
-          Conditions d&apos;utilisation
-        </Link>{" "}
-        et notre{" "}
-        <Link href="#" className="font-semibold text-[#0B63D1]">
-          Politique de confidentialite
+        Vous n&apos;avez pas encore de compte ?{" "}
+        <Link href="/register" className="font-semibold text-[#0B63D1]">
+          Créer un compte
         </Link>
-        .
       </p>
     </form>
   );
