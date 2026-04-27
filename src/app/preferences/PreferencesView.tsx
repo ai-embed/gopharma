@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Notice } from "@/components/Notice";
 import ProfileShell from "@/components/ProfileShell";
 import { apiJson, apiJsonAuth } from "@/lib/api";
+import { clearLocationAccessState } from "@/lib/location-preferences";
 import { useUser } from "@/lib/useUser";
 
 type UpdatePreferencesResponse = {
@@ -141,6 +142,14 @@ function PreferencesForm({
     setSuccess("E-mail de réinitialisation envoyé. Vérifiez votre boîte mail.");
   };
 
+  const onResetLocationPreference = () => {
+    setError(null);
+    clearLocationAccessState();
+    setSuccess(
+      "Préférence de localisation réinitialisée. Retournez à l'accueil pour choisir de nouveau."
+    );
+  };
+
   return (
     <div className="space-y-6">
       <section className="space-y-3 rounded-2xl border border-[#E5E7EB] p-5">
@@ -269,6 +278,29 @@ function PreferencesForm({
         >
           {passwordResetLoading ? "Envoi..." : "Changer le mot de passe"}
         </button>
+      </section>
+
+      <section className="space-y-3 rounded-2xl border border-[#E5E7EB] p-5">
+        <h2 className="text-sm font-semibold">Localisation</h2>
+        <p className="text-xs text-[#6B7280]">
+          Réinitialisez votre choix “Cette fois / Toujours” pour afficher à nouveau
+          la demande de localisation.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={onResetLocationPreference}
+            className="rounded-full border border-[#E5E7EB] px-4 py-2 text-[11px] font-semibold text-[#1F1D1B]"
+          >
+            Réinitialiser la préférence de localisation
+          </button>
+          <Link
+            href="/"
+            className="text-[11px] font-semibold text-[#0B63D1] underline"
+          >
+            Aller à l&apos;accueil
+          </Link>
+        </div>
       </section>
 
       {error ? <Notice tone="error" message={error} /> : null}

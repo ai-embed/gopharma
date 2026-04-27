@@ -1,0 +1,10 @@
+<svg width="1400" height="420" viewBox="0 0 1400 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="420" fill="#28184C"/>
+  <circle cx="1180" cy="120" r="208" fill="#5C36B1"/>
+  <circle cx="1326" cy="324" r="176" fill="#7C4DFF"/>
+  <rect x="88" y="92" width="210" height="210" rx="34" fill="#6D28D9"/>
+  <path d="M193 139V245" stroke="white" stroke-width="22" stroke-linecap="round"/>
+  <path d="M140 192H246" stroke="white" stroke-width="22" stroke-linecap="round"/>
+  <text x="358" y="176" fill="white" font-size="54" font-family="Arial" font-weight="700">Service rapide et fiable</text>
+  <text x="358" y="242" fill="#E0D2FF" font-size="28" font-family="Arial">Ordonnances, garde et accompagnement quotidien</text>
+</svg>

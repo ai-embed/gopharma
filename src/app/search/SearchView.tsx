@@ -7,16 +7,12 @@ import { useSearchParams } from "next/navigation";
 import { apiJson, apiJsonAuth } from "@/lib/api";
 import { PatientShell } from "@/components/PatientShell";
 import { useFavorites } from "@/lib/useFavorites";
-import { SearchFilters } from "@/components/search/SearchFilters";
+import { getSavedLocationCoords, type Coordinates } from "@/lib/location-preferences";
+import { DistanceMode, SearchFilters } from "@/components/search/SearchFilters";
 
 const SearchResultsMap = dynamic(() => import("@/components/SearchResultsMap"), {
   ssr: false,
 });
-
-type Coordinates = {
-  lat: number;
-  lng: number;
-};
 
 type PharmacyLocation = {
   coordinates: [number, number];
@@ -65,6 +61,9 @@ type GroupedPharmacyResult = {
   availableCount: number;
   totalPrice: number;
 };
+
+const FAR_DISTANCE_THRESHOLD_KM = 50;
+const FAR_DISTANCE_FETCH_RADIUS_KM = 2000;
 
 function parseInitialQuery(rawQuery: string) {
   const tokens = rawQuery
@@ -166,12 +165,9 @@ export default function SearchPage() {
   const initialState = useMemo(() => parseInitialQuery(initialQuery), [initialQuery]);
   const [queryInput, setQueryInput] = useState(initialState.queryInput);
   const [queryTokens, setQueryTokens] = useState<string[]>(initialState.queryTokens);
-  const [openNow, setOpenNow] = useState(true);
-  const [stockOnly, setStockOnly] = useState(true);
+  const [openNow, setOpenNow] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("priceAsc");
-  const [radiusKm, setRadiusKm] = useState(50);
-  const [category, setCategory] = useState("");
-  const [categories, setCategories] = useState<string[]>([]);
+  const [distanceMode, setDistanceMode] = useState<DistanceMode>("within20");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [pharmacyMatches, setPharmacyMatches] = useState<PublicPharmacy[]>([]);
   const [nearbyPharmacies, setNearbyPharmacies] = useState<PublicPharmacy[]>([]);
@@ -189,6 +185,32 @@ export default function SearchPage() {
   );
   const resultCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
+  const applyDistanceParams = useCallback(
+    (params: URLSearchParams) => {
+      switch (distanceMode) {
+        case "within5":
+          params.set("radiusKm", "5");
+          break;
+        case "within10":
+          params.set("radiusKm", "10");
+          break;
+        case "within20":
+          params.set("radiusKm", "20");
+          break;
+        case "within50":
+          params.set("radiusKm", "50");
+          break;
+        case "beyond50":
+          params.set("radiusKm", FAR_DISTANCE_FETCH_RADIUS_KM.toString());
+          break;
+        case "unlimited":
+        default:
+          break;
+      }
+    },
+    [distanceMode]
+  );
+
   const recordHistory = useCallback(
     (query: string, searchType: "PRODUIT" | "PHARMACIE", resultCount: number) => {
       const cleanQuery = query.trim();
@@ -205,22 +227,6 @@ export default function SearchPage() {
     },
     []
   );
-
-  useEffect(() => {
-    let active = true;
-
-    apiJson<string[]>("/api/search/categories").then((res) => {
-      if (!active || !res.ok || !res.data) {
-        return;
-      }
-
-      setCategories(res.data);
-    });
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   useEffect(() => {
     if (!queryInput || queryInput.length < 2) {
@@ -259,7 +265,7 @@ export default function SearchPage() {
         params.set("lat", currentCoords.lat.toString());
         params.set("lng", currentCoords.lng.toString());
       }
-      params.set("radiusKm", radiusKm.toString());
+      applyDistanceParams(params);
       params.set("openNow", String(openNow));
 
       const res = await apiJson<PublicPharmacy[]>(
@@ -281,31 +287,21 @@ export default function SearchPage() {
 
       await requestNearbyPharmacies(coords, allowFallback);
     },
-    [openNow, radiusKm]
+    [applyDistanceParams, openNow]
   );
 
   useEffect(() => {
     let active = true;
 
-    if (typeof window !== "undefined" && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          if (!active) {
-            return;
-          }
-
-          const coords = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setUserCoords(coords);
-          void loadNearbyPharmacies(coords);
-        },
-        () => {
-          void loadNearbyPharmacies();
-        },
-        { timeout: 5000 }
-      );
+    const coords = getSavedLocationCoords();
+    if (coords) {
+      void Promise.resolve().then(() => {
+        if (!active) {
+          return;
+        }
+        setUserCoords(coords);
+      });
+      void loadNearbyPharmacies(coords);
     } else {
       void loadNearbyPharmacies();
     }
@@ -348,14 +344,11 @@ export default function SearchPage() {
     if (openNow !== undefined) {
       baseParams.set("openNow", String(openNow));
     }
-    if (category) {
-      baseParams.set("category", category);
-    }
     if (userCoords) {
       baseParams.set("lat", userCoords.lat.toString());
       baseParams.set("lng", userCoords.lng.toString());
     }
-    baseParams.set("radiusKm", radiusKm.toString());
+    applyDistanceParams(baseParams);
 
     if (queryTokens.length > 0) {
       const productResponses = await Promise.all(
@@ -423,7 +416,7 @@ export default function SearchPage() {
       pharmacyParams.set("lat", userCoords.lat.toString());
       pharmacyParams.set("lng", userCoords.lng.toString());
     }
-    pharmacyParams.set("radiusKm", radiusKm.toString());
+    applyDistanceParams(pharmacyParams);
 
     const pharmacyRes = await apiJson<PublicPharmacy[]>(
       `/api/search/pharmacies?${pharmacyParams.toString()}`
@@ -441,12 +434,11 @@ export default function SearchPage() {
     setSelectedPharmacyId(null);
     recordHistory(trimmedQuery, "PHARMACIE", pharmacyRes.data?.length ?? 0);
   }, [
-    category,
     nearbyPharmacies,
     openNow,
     queryInput,
     queryTokens,
-    radiusKm,
+    applyDistanceParams,
     recordHistory,
     userCoords,
   ]);
@@ -482,7 +474,7 @@ export default function SearchPage() {
     }, 250);
 
     return () => window.clearTimeout(timer);
-  }, [category, openNow, radiusKm]);
+  }, [distanceMode, openNow]);
 
   useEffect(() => {
     if (!selectedPharmacyId) {
@@ -501,8 +493,20 @@ export default function SearchPage() {
   }, [selectedPharmacyId]);
 
   const filteredResults = useMemo(
-    () => (stockOnly ? results.filter((item) => item.isAvailable) : results),
-    [results, stockOnly]
+    () =>
+      results.filter((item) => {
+        if (!item.isAvailable) {
+          return false;
+        }
+
+        if (distanceMode !== "beyond50" || !userCoords) {
+          return true;
+        }
+
+        const distanceKm = getDistanceKm(userCoords, item.pharmacyId);
+        return distanceKm !== null && distanceKm >= FAR_DISTANCE_THRESHOLD_KM;
+      }),
+    [distanceMode, results, userCoords]
   );
 
   const groupedResults = useMemo<GroupedPharmacyResult[]>(() => {
@@ -609,8 +613,19 @@ export default function SearchPage() {
       });
     }
 
+    const applyFarDistanceFilter = (pharmacies: PublicPharmacy[]) => {
+      if (distanceMode !== "beyond50" || !userCoords) {
+        return pharmacies;
+      }
+
+      return pharmacies.filter((pharmacy) => {
+        const distanceKm = getDistanceKm(userCoords, pharmacy);
+        return distanceKm !== null && distanceKm >= FAR_DISTANCE_THRESHOLD_KM;
+      });
+    };
+
     if (pharmacyMatches.length > 0) {
-      return [...pharmacyMatches]
+      return applyFarDistanceFilter([...pharmacyMatches])
         .sort((a, b) => {
           if (!userCoords) {
             return a.name.localeCompare(b.name);
@@ -628,7 +643,7 @@ export default function SearchPage() {
       }));
     }
 
-    return [...nearbyPharmacies]
+    return applyFarDistanceFilter([...nearbyPharmacies])
       .sort((a, b) => {
         if (!userCoords) {
           return a.name.localeCompare(b.name);
@@ -637,7 +652,7 @@ export default function SearchPage() {
         const distanceB = getDistanceKm(userCoords, b) ?? Number.POSITIVE_INFINITY;
         return distanceA - distanceB;
       })
-      .slice(0, 3)
+      .slice(0, distanceMode === "unlimited" ? undefined : 3)
       .map((pharmacy) => ({
         ...pharmacy,
         secondaryLabel:
@@ -645,7 +660,14 @@ export default function SearchPage() {
           pharmacy.description ??
           pharmacy.email,
       }));
-  }, [groupedResults, nearbyPharmacies, pharmacyMatches, queryTokens.length, userCoords]);
+  }, [
+    distanceMode,
+    groupedResults,
+    nearbyPharmacies,
+    pharmacyMatches,
+    queryTokens.length,
+    userCoords,
+  ]);
 
   const pharmacyCount = visiblePharmacies.length;
   const locationLabel = userCoords ? "près de vous" : "dans votre zone";
@@ -744,6 +766,12 @@ export default function SearchPage() {
               {pharmacyCount} pharmacies trouvées {locationLabel}
             </p>
           </div>
+          {!userCoords ? (
+            <p className="mx-1 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-700">
+              Vous avez continué sans localisation: la distance et le tri par proximité
+              peuvent être moins précis.
+            </p>
+          ) : null}
 
           {!hasComparedProducts ? (
             <p className="px-1 text-[12px] text-[#6B7280]">
@@ -754,15 +782,10 @@ export default function SearchPage() {
           <SearchFilters
             openNow={openNow}
             onOpenNowChange={setOpenNow}
-            stockOnly={stockOnly}
-            onStockOnlyChange={setStockOnly}
             sortMode={sortMode}
             onSortModeChange={setSortMode}
-            radiusKm={radiusKm}
-            onRadiusKmChange={setRadiusKm}
-            category={category}
-            onCategoryChange={setCategory}
-            categories={categories}
+            distanceMode={distanceMode}
+            onDistanceModeChange={setDistanceMode}
           />
 
           {loading ? (

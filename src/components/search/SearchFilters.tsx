@@ -1,19 +1,21 @@
 "use client";
 
 type SortMode = "priceAsc" | "priceDesc";
+export type DistanceMode =
+  | "within5"
+  | "within10"
+  | "within20"
+  | "within50"
+  | "beyond50"
+  | "unlimited";
 
 interface SearchFiltersProps {
   openNow: boolean;
   onOpenNowChange: (value: boolean) => void;
-  stockOnly: boolean;
-  onStockOnlyChange: (value: boolean) => void;
   sortMode: SortMode;
   onSortModeChange: (value: SortMode) => void;
-  radiusKm: number;
-  onRadiusKmChange: (value: number) => void;
-  category: string;
-  onCategoryChange: (value: string) => void;
-  categories: string[];
+  distanceMode: DistanceMode;
+  onDistanceModeChange: (value: DistanceMode) => void;
 }
 
 const baseFilterPillClass =
@@ -22,15 +24,10 @@ const baseFilterPillClass =
 export function SearchFilters({
   openNow,
   onOpenNowChange,
-  stockOnly,
-  onStockOnlyChange,
   sortMode,
   onSortModeChange,
-  radiusKm,
-  onRadiusKmChange,
-  category,
-  onCategoryChange,
-  categories,
+  distanceMode,
+  onDistanceModeChange,
 }: SearchFiltersProps) {
   return (
     <div className="flex flex-wrap gap-2 text-[11px] font-semibold text-[#374151]">
@@ -57,38 +54,17 @@ export function SearchFilters({
       >
         Prix: {sortMode === "priceAsc" ? "croissant" : "décroissant"}
       </button>
-      <button
-        type="button"
-        onClick={() => onStockOnlyChange(!stockOnly)}
-        className={`${baseFilterPillClass} ${
-          stockOnly
-            ? "bg-[#EFF6FF] text-[#0B63D1] ring-1 ring-[#BFDBFE]"
-            : "hover:border-[#BFDBFE] hover:text-[#0B63D1]"
-        }`}
-      >
-        {stockOnly ? "Disponibilité complète" : "Tous les stocks"}
-      </button>
       <select
-        value={String(radiusKm)}
-        onChange={(event) => onRadiusKmChange(Number(event.target.value))}
+        value={distanceMode}
+        onChange={(event) => onDistanceModeChange(event.target.value as DistanceMode)}
         className={`${baseFilterPillClass} pr-8 text-[11px] text-[#6B7280]`}
       >
-        <option value="5">Rayon 5 km</option>
-        <option value="10">Rayon 10 km</option>
-        <option value="20">Rayon 20 km</option>
-        <option value="50">Rayon 50 km</option>
-      </select>
-      <select
-        value={category}
-        onChange={(event) => onCategoryChange(event.target.value)}
-        className={`${baseFilterPillClass} pr-8 text-[11px] text-[#6B7280]`}
-      >
-        <option value="">Toutes les catégories</option>
-        {categories.map((item) => (
-          <option key={item} value={item}>
-            {item}
-          </option>
-        ))}
+        <option value="within5">Jusqu&apos;à 5 km</option>
+        <option value="within10">Jusqu&apos;à 10 km</option>
+        <option value="within20">Jusqu&apos;à 20 km</option>
+        <option value="within50">Jusqu&apos;à 50 km</option>
+        <option value="beyond50">Loin (≥ 50 km)</option>
+        <option value="unlimited">Illimité</option>
       </select>
     </div>
   );

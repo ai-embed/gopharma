@@ -1,4 +1,5 @@
 import { ACCESS_KEY, REFRESH_KEY, ROLE_COOKIE_KEY } from "./auth-keys";
+import { clearLocationAccessState } from "./location-preferences";
 
 export function saveTokens(
   accessToken: string,
@@ -21,6 +22,7 @@ export function clearTokens() {
   localStorage.removeItem(REFRESH_KEY);
   sessionStorage.removeItem(ACCESS_KEY);
   sessionStorage.removeItem(REFRESH_KEY);
+  clearLocationAccessState({ keepPersistentChoice: true });
   clearRoleCookie();
 }
 
