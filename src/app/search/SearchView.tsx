@@ -178,12 +178,14 @@ export default function SearchPage() {
   const [distanceMode, setDistanceMode] = useState<DistanceMode>("within20");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [pharmacyMatches, setPharmacyMatches] = useState<PublicPharmacy[]>([]);
-  const [nearbyPharmacies, setNearbyPharmacies] = useState<PublicPharmacy[]>([]);
   const [userCoords, setUserCoords] = useState<Coordinates | null>(null);
   const [selectedPharmacyId, setSelectedPharmacyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [hasExecutedSearch, setHasExecutedSearch] = useState(
+    Boolean(initialState.queryTokens.length > 0 || initialState.queryInput.trim())
+  );
   const { isPharmacyFavorite, togglePharmacyFavorite, mutating: favoriteMutating } =
     useFavorites();
   const shouldAutoSearchRef = useRef(Boolean(initialQuery));
@@ -262,42 +264,6 @@ export default function SearchPage() {
     };
   }, [queryInput]);
 
-  const loadNearbyPharmacies = useCallback(
-    async (coords?: Coordinates, allowFallback = true) => {
-      const requestNearbyPharmacies = async (
-        currentCoords?: Coordinates,
-        canFallback = true
-      ) => {
-      const params = new URLSearchParams();
-      if (currentCoords) {
-        params.set("lat", currentCoords.lat.toString());
-        params.set("lng", currentCoords.lng.toString());
-      }
-      applyDistanceParams(params);
-      params.set("openNow", String(openNow));
-
-      const res = await apiJson<PublicPharmacy[]>(
-        `/api/search/pharmacies${params.toString() ? `?${params.toString()}` : ""}`
-      );
-
-      if (!res.ok) {
-        return;
-      }
-
-      const data = res.data ?? [];
-      if (currentCoords && data.length === 0 && canFallback) {
-        await requestNearbyPharmacies(undefined, false);
-        return;
-      }
-
-      setNearbyPharmacies(data);
-      };
-
-      await requestNearbyPharmacies(coords, allowFallback);
-    },
-    [applyDistanceParams, openNow]
-  );
-
   useEffect(() => {
     let active = true;
 
@@ -309,15 +275,12 @@ export default function SearchPage() {
         }
         setUserCoords(coords);
       });
-      void loadNearbyPharmacies(coords);
-    } else {
-      void loadNearbyPharmacies();
     }
 
     return () => {
       active = false;
     };
-  }, [loadNearbyPharmacies]);
+  }, []);
 
   const visibleSuggestions = queryInput.length < 2 ? [] : suggestions;
 
@@ -338,10 +301,11 @@ export default function SearchPage() {
     setQueryTokens([]);
     setSuggestions([]);
     setResults([]);
-    setPharmacyMatches(nearbyPharmacies);
+    setPharmacyMatches([]);
     setSelectedPharmacyId(null);
     setError(null);
     setLoading(false);
+    setHasExecutedSearch(false);
   };
 
   const runSearch = useCallback(async () => {
@@ -359,6 +323,7 @@ export default function SearchPage() {
     applyDistanceParams(baseParams);
 
     if (queryTokens.length > 0) {
+      setHasExecutedSearch(true);
       const productResponses = await Promise.all(
         queryTokens.map(async (term) => {
           const params = new URLSearchParams(baseParams.toString());
@@ -390,12 +355,14 @@ export default function SearchPage() {
     const trimmedQuery = queryInput.trim();
     if (!trimmedQuery) {
       setResults([]);
-      setPharmacyMatches(nearbyPharmacies);
+      setPharmacyMatches([]);
       setSelectedPharmacyId(null);
       setLoading(false);
+      setHasExecutedSearch(false);
       return;
     }
 
+    setHasExecutedSearch(true);
     baseParams.set("q", trimmedQuery);
     const productRes = await apiJson<SearchResult[]>(
       `/api/search/products?${baseParams.toString()}`
@@ -442,7 +409,6 @@ export default function SearchPage() {
     setSelectedPharmacyId(null);
     recordHistory(trimmedQuery, "PHARMACIE", pharmacyRes.data?.length ?? 0);
   }, [
-    nearbyPharmacies,
     openNow,
     queryInput,
     queryTokens,
@@ -608,6 +574,10 @@ export default function SearchPage() {
   }, [results]);
 
   const visiblePharmacies = useMemo<SearchPanelPharmacy[]>(() => {
+    if (!hasExecutedSearch) {
+      return [];
+    }
+
     if (groupedResults.length > 0) {
       return groupedResults.map((group) => {
         return {
@@ -651,27 +621,11 @@ export default function SearchPage() {
       }));
     }
 
-    return applyFarDistanceFilter([...nearbyPharmacies])
-      .sort((a, b) => {
-        if (!userCoords) {
-          return a.name.localeCompare(b.name);
-        }
-        const distanceA = getDistanceKm(userCoords, a) ?? Number.POSITIVE_INFINITY;
-        const distanceB = getDistanceKm(userCoords, b) ?? Number.POSITIVE_INFINITY;
-        return distanceA - distanceB;
-      })
-      .slice(0, distanceMode === "unlimited" ? undefined : 3)
-      .map((pharmacy) => ({
-        ...pharmacy,
-        secondaryLabel:
-          pharmacy.services?.slice(0, 2).join(" • ") ??
-          pharmacy.description ??
-          pharmacy.email,
-      }));
+    return [];
   }, [
+    hasExecutedSearch,
     distanceMode,
     groupedResults,
-    nearbyPharmacies,
     pharmacyMatches,
     queryTokens.length,
     userCoords,
@@ -680,6 +634,18 @@ export default function SearchPage() {
   const pharmacyCount = visiblePharmacies.length;
   const locationLabel = userCoords ? "près de vous" : "dans votre zone";
   const hasComparedProducts = groupedResults.length > 0;
+  const showNoResultHint =
+    hasExecutedSearch &&
+    !loading &&
+    !error &&
+    groupedResults.length === 0 &&
+    visiblePharmacies.length === 0;
+  const showPreSearchHint =
+    !hasExecutedSearch &&
+    !loading &&
+    !error &&
+    groupedResults.length === 0 &&
+    visiblePharmacies.length === 0;
 
   return (
     <PatientShell>
@@ -770,9 +736,15 @@ export default function SearchPage() {
             <h2 className="text-[18px] font-semibold tracking-[-0.02em] text-[#111827]">
               Résultats de recherche
             </h2>
-            <p className="text-[13px] text-[#6B7280]">
-              {pharmacyCount} pharmacies trouvées {locationLabel}
-            </p>
+            {hasExecutedSearch ? (
+              <p className="text-[13px] text-[#6B7280]">
+                {pharmacyCount} pharmacies trouvées {locationLabel}
+              </p>
+            ) : (
+              <p className="text-[13px] text-[#6B7280]">
+                Lancez une recherche pour afficher des résultats.
+              </p>
+            )}
           </div>
           {!userCoords ? (
             <p className="mx-1 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-700">
@@ -948,8 +920,38 @@ export default function SearchPage() {
                 );
               })}
             </div>
-          ) : visiblePharmacies.length === 0 ? (
-            <p className="text-sm text-[#6B7280]">Aucun résultat pour le moment.</p>
+          ) : showNoResultHint ? (
+            <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                  ☁
+                </span>
+                <div className="space-y-1">
+                  <p>
+                    Aucune pharmacie ne propose ce produit dans le périmètre actuel.
+                  </p>
+                  <p className="text-xs">
+                    Essayez d&apos;élargir le périmètre en changeant le filtre de kilomètres
+                    (par exemple de 20 km vers 50 km ou illimité).
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : showPreSearchHint ? (
+            <div className="space-y-2 rounded-xl border border-[#DCE5F0] bg-white px-4 py-3 text-sm text-[#475467]">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#EEF4FF] text-[#0B63D1]">
+                  ☁
+                </span>
+                <div className="space-y-1">
+                  <p>Aucun résultat affiché pour le moment.</p>
+                  <p className="text-xs text-[#667085]">
+                    Lancez une recherche de produit puis, si nécessaire, élargissez le
+                    périmètre avec le filtre de kilomètres.
+                  </p>
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="space-y-4">
               {visiblePharmacies.map((pharmacy) => {
