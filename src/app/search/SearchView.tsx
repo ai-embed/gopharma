@@ -65,11 +65,15 @@ type GroupedPharmacyResult = {
 const FAR_DISTANCE_THRESHOLD_KM = 50;
 const FAR_DISTANCE_FETCH_RADIUS_KM = 2000;
 
-function parseInitialQuery(rawQuery: string) {
+function parseInitialQuery(rawQuery: string, forceTokens: boolean) {
   const tokens = rawQuery
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean);
+
+  if (forceTokens && tokens.length > 0) {
+    return { queryInput: "", queryTokens: tokens };
+  }
 
   if (tokens.length > 1) {
     return { queryInput: "", queryTokens: tokens };
@@ -162,7 +166,11 @@ const isPharmacyOpenNow = (pharmacy: PublicPharmacy) =>
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams?.get("q") ?? "";
-  const initialState = useMemo(() => parseInitialQuery(initialQuery), [initialQuery]);
+  const initialSource = searchParams?.get("source") ?? "";
+  const initialState = useMemo(
+    () => parseInitialQuery(initialQuery, initialSource === "dashboard"),
+    [initialQuery, initialSource]
+  );
   const [queryInput, setQueryInput] = useState(initialState.queryInput);
   const [queryTokens, setQueryTokens] = useState<string[]>(initialState.queryTokens);
   const [openNow, setOpenNow] = useState(false);
