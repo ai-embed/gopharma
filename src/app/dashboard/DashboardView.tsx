@@ -85,7 +85,9 @@ function pickRandomNearbyPharmacies(items: Pharmacy[], limit = 6) {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [search, setSearch] = useState("");
+  const [queryInput, setQueryInput] = useState("");
+  const [queryTokens, setQueryTokens] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [recentSearches, setRecentSearches] = useState(fallbackSearches);
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
   const [pharmacyLoading, setPharmacyLoading] = useState(true);
@@ -144,6 +146,35 @@ export default function DashboardPage() {
       mountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!queryInput || queryInput.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    let active = true;
+    const timer = setTimeout(async () => {
+      const res = await apiJson<string[]>(
+        `/api/search/autocomplete?q=${encodeURIComponent(queryInput)}&prefix=true`
+      );
+
+      if (!active) {
+        return;
+      }
+
+      if (res.ok && res.data) {
+        setSuggestions(res.data.slice(0, 6));
+      } else {
+        setSuggestions([]);
+      }
+    }, 250);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [queryInput]);
 
   useEffect(() => {
     let active = true;
@@ -333,6 +364,41 @@ export default function DashboardPage() {
     setShowLocationChoice(false);
   };
 
+  const commitToken = (value: string) => {
+    const cleaned = value.trim();
+    if (!cleaned) return;
+    setQueryTokens((prev) => (prev.includes(cleaned) ? prev : [...prev, cleaned]));
+    setQueryInput("");
+    setSuggestions([]);
+  };
+
+  const removeToken = (value: string) => {
+    setQueryTokens((prev) => prev.filter((token) => token !== value));
+  };
+
+  const clearSearch = () => {
+    setQueryInput("");
+    setQueryTokens([]);
+    setSuggestions([]);
+  };
+
+  const submitSearch = () => {
+    const trailing = queryInput.trim();
+    const terms = [...queryTokens];
+    if (trailing) {
+      terms.push(trailing);
+    }
+
+    if (terms.length === 0) {
+      router.push("/search");
+      return;
+    }
+
+    router.push(`/search?q=${encodeURIComponent(terms.join(","))}`);
+  };
+
+  const visibleSuggestions = queryInput.length < 2 ? [] : suggestions;
+
   return (
     <PatientShell>
       <div
@@ -341,9 +407,11 @@ export default function DashboardPage() {
         }`}
         aria-hidden={showLocationChoice}
       >
-      <section className="relative overflow-hidden rounded-3xl border border-[#0B63D1] bg-[#0B63D1] px-5 py-8 text-white sm:px-8 sm:py-10">
-          <div className="absolute -left-10 -top-16 h-48 w-48 rounded-full bg-white/10" />
-          <div className="absolute -right-10 -bottom-20 h-56 w-56 rounded-full bg-white/10" />
+      <section className="relative rounded-3xl border border-[#0B63D1] bg-[#0B63D1] px-5 py-8 text-white sm:px-8 sm:py-10">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl">
+            <div className="absolute -left-10 -top-16 h-48 w-48 rounded-full bg-white/10" />
+            <div className="absolute -right-10 -bottom-20 h-56 w-56 rounded-full bg-white/10" />
+          </div>
           <div className="relative z-10 max-w-2xl space-y-4">
             <h1 className="text-2xl font-semibold">
               Trouvez vos médicaments et pharmacies à proximité
@@ -355,25 +423,82 @@ export default function DashboardPage() {
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                const value = search.trim();
-                router.push(
-                  value ? `/search?q=${encodeURIComponent(value)}` : "/search"
-                );
+                submitSearch();
               }}
-              className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl bg-white px-3 py-3"
+              className="relative mt-6 rounded-2xl bg-white px-3 py-3"
             >
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Rechercher un médicament (ex: Amoxicilline) ou une pharmacie..."
-                className="flex-1 border-none bg-transparent text-xs text-[#1F1D1B] outline-none"
-              />
-              <button
-                type="submit"
-                className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
-              >
-                Rechercher
-              </button>
+              <div className="rounded-[20px] border border-[#DCE5F0] bg-[#FBFCFE] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[18px] leading-none text-[#98A2B3]">⌕</span>
+                  {queryTokens.map((token) => (
+                    <span
+                      key={token}
+                      className="flex items-center gap-2 rounded-[10px] bg-[#1CA6E8] px-3 py-1.5 text-[10px] font-semibold text-white shadow-[0_6px_16px_rgba(22,163,224,0.18)]"
+                    >
+                      {token}
+                      <button
+                        type="button"
+                        onClick={() => removeToken(token)}
+                        className="text-xs font-bold text-white/90"
+                        aria-label={`Retirer ${token}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                  <input
+                    value={queryInput}
+                    onChange={(event) => setQueryInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === ",") {
+                        event.preventDefault();
+                        commitToken(queryInput);
+                      }
+
+                      if (event.key === "Enter") {
+                        if (queryInput.trim()) {
+                          event.preventDefault();
+                          if (queryTokens.length > 0) {
+                            commitToken(queryInput);
+                          }
+                        }
+                      }
+                    }}
+                    placeholder="Ajouter un produit..."
+                    className="min-w-45 flex-1 border-none bg-transparent text-[14px] leading-6 text-[#4B5563] outline-none placeholder:text-[#9CA3AF]"
+                  />
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    className="ml-auto text-[18px] leading-none text-[#667085] transition hover:text-[#111827]"
+                    aria-label="Effacer la recherche"
+                  >
+                    ×
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-md bg-blue-500 px-4 py-2 text-[12px] font-semibold text-white shadow-md transition hover:bg-blue-600"
+                  >
+                    Rechercher
+                  </button>
+                </div>
+              </div>
+              {visibleSuggestions.length > 0 ? (
+                <div className="absolute left-3 right-3 top-full z-20 mt-2 rounded-md border border-gray-200 bg-white p-2 text-sm shadow-md">
+                  {visibleSuggestions.map((item) => (
+                    <button
+                      type="button"
+                      key={item}
+                      onClick={() => {
+                        commitToken(item);
+                      }}
+                      className="block w-full rounded-md px-3 py-2 text-left text-[13px] text-[#1F2937] hover:bg-gray-100"
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </form>
           </div>
       </section>
