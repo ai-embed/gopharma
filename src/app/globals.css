@@ -3,8 +3,23 @@
 :root {
   --background: #f6f3ee;
   --foreground: #1f1d1b;
+  --app-bg: #f3f6f9;
+  --app-surface: #ffffff;
+  --app-text: #1f2937;
+  --app-muted: #6b7280;
+  --app-border: #e5e7eb;
   --font-manrope: "Manrope";
   --font-fraunces: "Fraunces";
+}
+
+:root[data-theme="dark"] {
+  --background: #0b1220;
+  --foreground: #e5e7eb;
+  --app-bg: #0b1220;
+  --app-surface: #111827;
+  --app-text: #e5e7eb;
+  --app-muted: #94a3b8;
+  --app-border: #334155;
 }
 
 @theme inline {
@@ -15,10 +30,68 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--app-bg);
+  color: var(--app-text);
   font-family: var(--font-sans), "Space Grotesk", "IBM Plex Sans", system-ui,
     sans-serif;
+}
+
+:root[data-theme="dark"] .bg-white {
+  background-color: var(--app-surface) !important;
+}
+
+:root[data-theme="dark"] [class*="bg-[#F3F6F9]"],
+:root[data-theme="dark"] [class*="bg-[#f3f6f9]"],
+body.gp-theme-dark [class*="bg-[#F3F6F9]"],
+body.gp-theme-dark [class*="bg-[#f3f6f9]"] {
+  background-color: #0f172a !important;
+}
+
+:root[data-theme="dark"] [class*="bg-[#F8FAFC]"],
+:root[data-theme="dark"] [class*="bg-[#f8fafc]"],
+body.gp-theme-dark [class*="bg-[#F8FAFC]"],
+body.gp-theme-dark [class*="bg-[#f8fafc]"] {
+  background-color: #1f2937 !important;
+}
+
+:root[data-theme="dark"] [class*="border-[#E5E7EB]"],
+:root[data-theme="dark"] [class*="border-[#e5e7eb]"],
+body.gp-theme-dark [class*="border-[#E5E7EB]"],
+body.gp-theme-dark [class*="border-[#e5e7eb]"] {
+  border-color: var(--app-border) !important;
+}
+
+:root[data-theme="dark"] [class*="text-[#1F1D1B]"],
+:root[data-theme="dark"] [class*="text-[#1F2937]"],
+:root[data-theme="dark"] [class*="text-[#1f1d1b]"],
+:root[data-theme="dark"] [class*="text-[#1f2937]"],
+body.gp-theme-dark [class*="text-[#1F1D1B]"],
+body.gp-theme-dark [class*="text-[#1F2937]"],
+body.gp-theme-dark [class*="text-[#1f1d1b]"],
+body.gp-theme-dark [class*="text-[#1f2937]"] {
+  color: var(--app-text) !important;
+}
+
+:root[data-theme="dark"] [class*="text-[#6B7280]"],
+:root[data-theme="dark"] [class*="text-[#9CA3AF]"],
+:root[data-theme="dark"] [class*="text-[#6b7280]"],
+:root[data-theme="dark"] [class*="text-[#9ca3af]"],
+body.gp-theme-dark [class*="text-[#6B7280]"],
+body.gp-theme-dark [class*="text-[#9CA3AF]"],
+body.gp-theme-dark [class*="text-[#6b7280]"],
+body.gp-theme-dark [class*="text-[#9ca3af]"] {
+  color: var(--app-muted) !important;
+}
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea,
+body.gp-theme-dark input,
+body.gp-theme-dark select,
+body.gp-theme-dark textarea {
+  background-color: #0f172a !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
 }
 
 @keyframes fadeIn {

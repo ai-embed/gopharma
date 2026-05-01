@@ -18,9 +18,10 @@ export function TopNav() {
   };
 
   const navItems = [
-    { href: "/dashboard", label: "Accueil" },
-    { href: "/history", label: "Historique" },
-    { href: "/favorites", label: "Favoris" },
+    { href: "/dashboard", label: "Accueil", matchPrefix: "/dashboard" },
+    { href: "/reminders/new", label: "Calendrier", matchPrefix: "/reminders" },
+    { href: "/history", label: "Historique", matchPrefix: "/history" },
+    { href: "/favorites", label: "Favoris", matchPrefix: "/favorites" },
   ];
 
   const displayName = user
@@ -42,7 +43,7 @@ export function TopNav() {
         </Link>
         <nav className="flex flex-wrap items-center gap-3 text-sm text-[#6B7280]">
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || pathname.startsWith(item.matchPrefix);
             return (
               <Link
                 key={item.href}

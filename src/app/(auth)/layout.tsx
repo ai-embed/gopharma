@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -8,11 +7,6 @@ import AppFooter from "@/components/AppFooter";
 import { clearTokens, getAccessToken, saveRoleCookie } from "@/lib/auth";
 import { getRolePostAuthPath } from "@/lib/roles";
 import { apiJsonAuth } from "@/lib/api";
-
-const tabs = [
-  { href: "/login", label: "Connexion" },
-  { href: "/register", label: "Inscription" },
-];
 
 export default function AuthLayout({
   children,
@@ -61,29 +55,21 @@ export default function AuthLayout({
           />
           <h1 className="mt-4 text-xl font-semibold">GoPharma</h1>
           <p className="mt-2 text-sm text-[#6B7280]">
-            Votre compagnon de confiance pour la gestion des médicaments.
+            {pathname === "/login"
+              ? "Veuillez entrer vos coordonnées pour vous connecter"
+              : "Votre compagnon de confiance pour la gestion des médicaments."}
           </p>
         </div>
 
-        {pathname !== "/verify-email" ? (
-          <div className="mt-6 flex border-b border-[#E5E7EB] text-sm">
-            {tabs.map((tab) => {
-              const isActive = pathname === tab.href;
-              return (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  className={`flex-1 pb-3 text-center font-medium transition ${
-                    isActive
-                      ? "border-b-2 border-[#0B63D1] text-[#0B63D1]"
-                      : "text-[#8A8F98]"
-                  }`}
-                >
-                  {tab.label}
-                </Link>
-              );
-            })}
-          </div>
+        {pathname === "/login" ? (
+          <h2 className="mt-6 text-center text-2xl font-semibold text-[#0B63D1]">
+            Connexion
+          </h2>
+        ) : null}
+        {pathname === "/register" ? (
+          <h2 className="mt-6 text-center text-2xl font-semibold text-[#0B63D1]">
+            Inscription
+          </h2>
         ) : null}
 
         <div className="mt-6">{children}</div>

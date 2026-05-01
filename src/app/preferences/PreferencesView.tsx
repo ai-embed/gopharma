@@ -1,11 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Notice } from "@/components/Notice";
 import ProfileShell from "@/components/ProfileShell";
 import { apiJson, apiJsonAuth } from "@/lib/api";
 import { clearLocationAccessState } from "@/lib/location-preferences";
+import {
+  getSavedThemePreference,
+  normalizeThemePreference,
+  setThemePreference,
+  type ThemePreference,
+} from "@/lib/theme-preferences";
 import { useUser } from "@/lib/useUser";
 
 type UpdatePreferencesResponse = {
@@ -14,6 +20,7 @@ type UpdatePreferencesResponse = {
     timezone: string;
     channels: string[];
     alertsEnabled: boolean;
+    theme: string;
   };
 };
 
@@ -48,6 +55,9 @@ export default function PreferencesView() {
         initialTimezone={user?.preferences?.timezone ?? "Africa/Porto-Novo"}
         initialChannels={user?.preferences?.channels ?? ["IN_APP", "EMAIL"]}
         initialAlertsEnabled={user?.preferences?.alertsEnabled ?? true}
+        initialTheme={normalizeThemePreference(
+          user?.preferences?.theme ?? getSavedThemePreference() ?? "light"
+        )}
         userLoading={userLoading}
       />
     </ProfileShell>
@@ -60,6 +70,7 @@ function PreferencesForm({
   initialTimezone,
   initialChannels,
   initialAlertsEnabled,
+  initialTheme,
   userLoading,
 }: {
   email: string;
@@ -67,16 +78,22 @@ function PreferencesForm({
   initialTimezone: string;
   initialChannels: string[];
   initialAlertsEnabled: boolean;
+  initialTheme: ThemePreference;
   userLoading: boolean;
 }) {
   const [language, setLanguage] = useState(initialLanguage);
   const [timezone, setTimezone] = useState(initialTimezone);
   const [channels, setChannels] = useState<string[]>(initialChannels);
   const [alertsEnabled, setAlertsEnabled] = useState(initialAlertsEnabled);
+  const [theme, setTheme] = useState<ThemePreference>(initialTheme);
   const [saving, setSaving] = useState(false);
   const [passwordResetLoading, setPasswordResetLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    setThemePreference(theme);
+  }, [theme]);
 
   const toggleChannel = (channel: string) => {
     setChannels((current) =>
@@ -100,6 +117,7 @@ function PreferencesForm({
           timezone,
           channels,
           alertsEnabled,
+          theme,
         }),
       }
     );
@@ -150,24 +168,13 @@ function PreferencesForm({
     );
   };
 
+  const onThemeChange = (value: ThemePreference) => {
+    setTheme(value);
+    setThemePreference(value);
+  };
+
   return (
     <div className="space-y-6">
-      <section className="space-y-3 rounded-2xl border border-[#E5E7EB] p-5">
-        <h2 className="text-sm font-semibold">Calendrier d&apos;ordonnance</h2>
-        <p className="text-xs text-[#6B7280]">
-          Accès rapide à votre planification.
-        </p>
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#F3F6F9] px-4 py-3 text-xs">
-          <span>Gérer votre calendrier</span>
-          <Link
-            href="/reminders/new"
-            className="rounded-full bg-[#0B63D1] px-3 py-2 text-[11px] font-semibold text-white"
-          >
-            Gérer mon calendrier d&apos;ordonnance
-          </Link>
-        </div>
-      </section>
-
       <section className="space-y-4 rounded-2xl border border-[#E5E7EB] p-5">
         <div>
           <h2 className="text-sm font-semibold">Paramètres de notification</h2>
@@ -262,6 +269,39 @@ function PreferencesForm({
               <option value="Europe/Paris">Europe/Paris</option>
             </select>
           </div>
+        </div>
+      </section>
+
+      <section className="space-y-3 rounded-2xl border border-[#E5E7EB] p-5">
+        <h2 className="text-sm font-semibold">Apparence</h2>
+        <p className="text-xs text-[#6B7280]">
+          Choisissez le thème clair ou sombre pour l&apos;application.
+        </p>
+        <div className="inline-flex items-center rounded-full border border-[#E5E7EB] bg-[#F8FAFC] p-1">
+          <button
+            type="button"
+            onClick={() => onThemeChange("light")}
+            disabled={userLoading || saving}
+            className={`min-w-[110px] rounded-full px-4 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${
+              theme === "light"
+                ? "bg-[#0B63D1] text-white"
+                : "text-[#1F1D1B] hover:bg-white"
+            }`}
+          >
+            Clair
+          </button>
+          <button
+            type="button"
+            onClick={() => onThemeChange("dark")}
+            disabled={userLoading || saving}
+            className={`min-w-[110px] rounded-full px-4 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${
+              theme === "dark"
+                ? "bg-[#0B63D1] text-white"
+                : "text-[#1F1D1B] hover:bg-white"
+            }`}
+          >
+            Sombre
+          </button>
         </div>
       </section>
 
