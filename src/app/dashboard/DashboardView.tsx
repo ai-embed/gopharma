@@ -394,7 +394,10 @@ export default function DashboardPage() {
       return;
     }
 
-    router.push(`/search?q=${encodeURIComponent(terms.join(","))}`);
+    const params = new URLSearchParams();
+    params.set("q", terms.join(","));
+    params.set("source", "dashboard");
+    router.push(`/search?${params.toString()}`);
   };
 
   const visibleSuggestions = queryInput.length < 2 ? [] : suggestions;
