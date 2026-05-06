@@ -1,0 +1,10 @@
+<svg width="1400" height="420" viewBox="0 0 1400 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="420" fill="#3F220E"/>
+  <circle cx="1180" cy="130" r="210" fill="#9A4B1D"/>
+  <circle cx="1320" cy="330" r="170" fill="#D36D2F"/>
+  <rect x="86" y="92" width="210" height="210" rx="34" fill="#C2410C"/>
+  <path d="M191 139V245" stroke="white" stroke-width="22" stroke-linecap="round"/>
+  <path d="M138 192H244" stroke="white" stroke-width="22" stroke-linecap="round"/>
+  <text x="356" y="176" fill="white" font-size="54" font-family="Arial" font-weight="700">Officine de quartier</text>
+  <text x="356" y="242" fill="#FFD6BF" font-size="28" font-family="Arial">Accueil humain, stock complet et conseils utiles</text>
+</svg>

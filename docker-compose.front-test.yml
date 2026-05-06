@@ -1,0 +1,10 @@
+services:
+  frontend-test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    env_file:
+      - .env.test.example
+    environment:
+      NODE_ENV: test
+    command: sh -lc "npm run lint && npm run test && npm run test:integration"

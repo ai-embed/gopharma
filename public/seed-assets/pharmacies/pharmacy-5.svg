@@ -1,0 +1,14 @@
+<svg width="900" height="700" viewBox="0 0 900 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="700" fill="#FFF1F5"/>
+  <rect y="500" width="900" height="200" fill="#F0D9E1"/>
+  <rect x="136" y="204" width="628" height="316" rx="32" fill="#FFFEFE"/>
+  <rect x="168" y="164" width="564" height="82" rx="22" fill="#BE123C"/>
+  <rect x="220" y="286" width="144" height="148" rx="18" fill="#FFE0E8"/>
+  <rect x="386" y="286" width="128" height="234" rx="18" fill="#855D49"/>
+  <rect x="536" y="286" width="144" height="148" rx="18" fill="#FFE0E8"/>
+  <path d="M450 344V394" stroke="#FBE5BA" stroke-width="10" stroke-linecap="round"/>
+  <path d="M423 369H477" stroke="#FBE5BA" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="784" cy="520" r="34" fill="#F7C6D4"/>
+  <circle cx="106" cy="526" r="28" fill="#F2B7C9"/>
+  <text x="450" y="216" fill="white" font-size="33" font-family="Arial" text-anchor="middle">Pharmacie Famille</text>
+</svg>
