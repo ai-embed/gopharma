@@ -26,7 +26,6 @@ jobs:
       - name: Cleanup Docker test environment
         if: always()
         run: docker compose -f docker-compose.front-test.yml down -v --remove-orphans
-
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -98,3 +97,31 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Browser E2E
         run: npm run test:e2e:browser
+
+  deploy-test:
+    needs: [docker-test-env, lint, test, integration, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/test'
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy metadata
+        run: |
+          echo "Frontend test deployment context"
+          echo "branch=${GITHUB_REF_NAME}"
+          echo "sha=${GITHUB_SHA}"
+          echo "actor=${GITHUB_ACTOR}"
+
+  deploy-production:
+    needs: [docker-test-env, lint, test, integration, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy metadata
+        run: |
+          echo "Frontend production deployment context"
+          echo "branch=${GITHUB_REF_NAME}"
+          echo "sha=${GITHUB_SHA}"
+          echo "actor=${GITHUB_ACTOR}"
