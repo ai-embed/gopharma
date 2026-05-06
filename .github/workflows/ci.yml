@@ -103,8 +103,16 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/test'
     runs-on: ubuntu-latest
     environment: test
+    env:
+      API_PROXY_TARGET: ${{ secrets.API_PROXY_TARGET }}
+      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
     steps:
       - uses: actions/checkout@v4
+      - name: Validate environment secrets
+        run: |
+          test -n "${API_PROXY_TARGET}" || (echo "Missing API_PROXY_TARGET secret" && exit 1)
+          test -n "${NEXT_PUBLIC_API_URL}" || (echo "Missing NEXT_PUBLIC_API_URL secret" && exit 1)
       - name: Deploy metadata
         run: |
           echo "Frontend test deployment context"
@@ -117,8 +125,16 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
+    env:
+      API_PROXY_TARGET: ${{ secrets.API_PROXY_TARGET }}
+      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
     steps:
       - uses: actions/checkout@v4
+      - name: Validate environment secrets
+        run: |
+          test -n "${API_PROXY_TARGET}" || (echo "Missing API_PROXY_TARGET secret" && exit 1)
+          test -n "${NEXT_PUBLIC_API_URL}" || (echo "Missing NEXT_PUBLIC_API_URL secret" && exit 1)
       - name: Deploy metadata
         run: |
           echo "Frontend production deployment context"
