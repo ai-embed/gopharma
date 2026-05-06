@@ -1,6 +1,7 @@
 name: Frontend CI
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -16,6 +17,16 @@ on:
       - dev
 
 jobs:
+  docker-test-env:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Docker test environment (lint + unit + integration)
+        run: docker compose -f docker-compose.front-test.yml up --build --abort-on-container-exit --exit-code-from frontend-test-runner frontend-test-runner
+      - name: Cleanup Docker test environment
+        if: always()
+        run: docker compose -f docker-compose.front-test.yml down -v --remove-orphans
+
   lint:
     runs-on: ubuntu-latest
     steps:
