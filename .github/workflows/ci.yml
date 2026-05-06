@@ -26,7 +26,6 @@ jobs:
       - name: Cleanup Docker test environment
         if: always()
         run: docker compose -f docker-compose.front-test.yml down -v --remove-orphans
-
   lint:
     runs-on: ubuntu-latest
     steps:
