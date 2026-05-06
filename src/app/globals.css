@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f3ee;
+  --foreground: #1f1d1b;
+  --app-bg: #f3f6f9;
+  --app-surface: #ffffff;
+  --app-text: #1f2937;
+  --app-muted: #6b7280;
+  --app-border: #e5e7eb;
+  --font-manrope: "Manrope";
+  --font-fraunces: "Fraunces";
+}
+
+:root[data-theme="dark"] {
+  --background: #0b1220;
+  --foreground: #e5e7eb;
+  --app-bg: #0b1220;
+  --app-surface: #111827;
+  --app-text: #e5e7eb;
+  --app-muted: #94a3b8;
+  --app-border: #334155;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-fraunces);
+}
+
+body {
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-family: var(--font-sans), "Space Grotesk", "IBM Plex Sans", system-ui,
+    sans-serif;
+}
+
+:root[data-theme="dark"] .bg-white {
+  background-color: var(--app-surface) !important;
+}
+
+:root[data-theme="dark"] [class*="bg-[#F3F6F9]"],
+:root[data-theme="dark"] [class*="bg-[#f3f6f9]"],
+body.gp-theme-dark [class*="bg-[#F3F6F9]"],
+body.gp-theme-dark [class*="bg-[#f3f6f9]"] {
+  background-color: #0f172a !important;
+}
+
+:root[data-theme="dark"] [class*="bg-[#F8FAFC]"],
+:root[data-theme="dark"] [class*="bg-[#f8fafc]"],
+body.gp-theme-dark [class*="bg-[#F8FAFC]"],
+body.gp-theme-dark [class*="bg-[#f8fafc]"] {
+  background-color: #1f2937 !important;
+}
+
+:root[data-theme="dark"] [class*="border-[#E5E7EB]"],
+:root[data-theme="dark"] [class*="border-[#e5e7eb]"],
+body.gp-theme-dark [class*="border-[#E5E7EB]"],
+body.gp-theme-dark [class*="border-[#e5e7eb]"] {
+  border-color: var(--app-border) !important;
+}
+
+:root[data-theme="dark"] [class*="text-[#1F1D1B]"],
+:root[data-theme="dark"] [class*="text-[#1F2937]"],
+:root[data-theme="dark"] [class*="text-[#1f1d1b]"],
+:root[data-theme="dark"] [class*="text-[#1f2937]"],
+body.gp-theme-dark [class*="text-[#1F1D1B]"],
+body.gp-theme-dark [class*="text-[#1F2937]"],
+body.gp-theme-dark [class*="text-[#1f1d1b]"],
+body.gp-theme-dark [class*="text-[#1f2937]"] {
+  color: var(--app-text) !important;
+}
+
+:root[data-theme="dark"] [class*="text-[#6B7280]"],
+:root[data-theme="dark"] [class*="text-[#9CA3AF]"],
+:root[data-theme="dark"] [class*="text-[#6b7280]"],
+:root[data-theme="dark"] [class*="text-[#9ca3af]"],
+body.gp-theme-dark [class*="text-[#6B7280]"],
+body.gp-theme-dark [class*="text-[#9CA3AF]"],
+body.gp-theme-dark [class*="text-[#6b7280]"],
+body.gp-theme-dark [class*="text-[#9ca3af]"] {
+  color: var(--app-muted) !important;
+}
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea,
+body.gp-theme-dark input,
+body.gp-theme-dark select,
+body.gp-theme-dark textarea {
+  background-color: #0f172a !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gp-map-badge {
+  display: inline-flex;
+  min-width: 72px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
+}
+
+.gp-map-badge-open {
+  background: #0b63d1;
+  color: #ffffff;
+}
+
+.gp-map-badge-closed {
+  background: #ffffff;
+  color: #1f1d1b;
+}
+
+.gp-current-location {
+  display: flex;
+  height: 54px;
+  width: 54px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.gp-current-location span {
+  display: block;
+  height: 16px;
+  width: 16px;
+  border-radius: 999px;
+  border: 3px solid #ffffff;
+  background: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+}
+
+.gp-search-map .gm-style-iw-c {
+  border-radius: 18px !important;
+  padding: 0 !important;
+  box-shadow: 0 20px 36px rgba(15, 23, 42, 0.16) !important;
+}
+
+.gp-search-map .gm-style-iw-d {
+  overflow: hidden !important;
+  padding: 14px 16px 12px !important;
+}
+
+.gp-search-map .gm-ui-hover-effect {
+  top: 4px !important;
+  right: 4px !important;
+}
+
+.gp-search-map .gm-style .gm-style-cc {
+  display: none;
+}
