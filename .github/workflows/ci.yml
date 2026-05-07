@@ -18,6 +18,8 @@ on:
 
 jobs:
   docker-test-env:
+    # L'environnement de test complet (Docker) ne tourne que sur la branche `test`
+    if: github.ref == 'refs/heads/test'
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/test'
     steps:
@@ -105,6 +107,7 @@ jobs:
 
   deploy-test:
     needs: [docker-test-env, lint, test, integration, build]
+    # Déploiement test uniquement sur push vers la branche `test`
     if: github.event_name == 'push' && github.ref == 'refs/heads/test'
     runs-on: ubuntu-latest
     environment: test
