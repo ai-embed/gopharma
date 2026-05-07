@@ -21,7 +21,6 @@ jobs:
     # L'environnement de test complet (Docker) ne tourne que sur la branche `test`
     if: github.ref == 'refs/heads/test'
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/test'
     steps:
       - uses: actions/checkout@v4
       - name: Docker test environment (lint + unit + integration)
@@ -107,8 +106,8 @@ jobs:
 
   deploy-test:
     needs: [docker-test-env, lint, test, integration, build]
-    # Déploiement test uniquement sur push vers la branche `test`
-    if: github.event_name == 'push' && github.ref == 'refs/heads/test'
+    # Déploiement test uniquement sur la branche `test` (push ou lancement manuel)
+    if: github.ref == 'refs/heads/test' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     environment: test
     env:
