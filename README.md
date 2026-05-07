@@ -4,9 +4,16 @@
 This repo follows: `feature/*` -> `dev` -> `test` -> `main`.
 Details are documented in `.github/BRANCHING_STRATEGY.md` and `.github/BRANCH_PROTECTION.md`.
 
-## CI Pipeline
-GitHub Actions runs on PRs and pushes for lint, unit tests, integration tests, and build.
+## CI/CD Pipeline
+GitHub Actions runs on PRs and pushes for lint, unit tests, integration tests, build, and Docker test environment.
 Workflow: `.github/workflows/ci.yml`.
+
+### Environments
+- **test** : déploiement automatique sur push vers la branche `test` (secrets: `API_PROXY_TARGET`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`)
+- **production** : déploiement automatique sur push vers la branche `main` (mêmes secrets)
+
+### Docker test environment
+Le job `docker-test-env` exécute lint, unit tests et integration tests dans un conteneur Docker isolé via `docker-compose.front-test.yml`.
 
 ## Project
 Ce projet est une plateforme de recherche et de gestion pharmaceutique bâtie avec [Next.js](https://nextjs.org).
@@ -93,3 +100,4 @@ Le script `test:e2e:browser` valide les protections d'accès de routes (patient/
 - `src/app`: Routes et pages (App Router)
 - `src/components`: Composants UI réutilisables
 - `src/lib`: Utilitaires et hooks API
+- `docker-compose.front-test.yml`: Environnement de test Dockerisé pour CI
