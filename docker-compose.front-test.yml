@@ -1,10 +1,16 @@
+# === Docker Compose pour Frontend Phase Test (Local + GCP) ===
+# Utilisation locale: docker-compose -f docker-compose.front-test.yml up -d
+# Utilisation GCP: FRONT_DOCKERFILE=Dockerfile docker-compose -f docker-compose.front-test.yml up -d
+
 services:
   frontend-test-runner:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      # MODE LOCAL: dockerfile: Dockerfile.dev
+      # MODE GCP: dockerfile: Dockerfile (build production)
+      dockerfile: ${FRONT_DOCKERFILE:-Dockerfile.dev}
     env_file:
       - .env.test.example
     environment:
-      NODE_ENV: test
+      NODE_ENV: ${NODE_ENV:-test}
     command: sh -lc "npm run lint && npm run test && npm run test:integration"
