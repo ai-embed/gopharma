@@ -135,8 +135,8 @@ jobs:
       IMAGE_NAME: go-pharma-front
       IMAGE_TAG: ${{ github.sha }}
       GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID || secrets.GCP_PROJECT_ID }}
-      GCP_REGION: ${{ vars.GCP_REGION || secrets.GCP_REGION }}
-      GCP_ARTIFACT_REPOSITORY: ${{ vars.GCP_ARTIFACT_REPOSITORY || secrets.GCP_ARTIFACT_REPOSITORY }}
+      GCP_REGION: ${{ vars.GCP_REGION || secrets.GCP_REGION || 'europe-west1' }}
+      GCP_ARTIFACT_REPOSITORY: ${{ vars.GCP_ARTIFACT_REPOSITORY || secrets.GCP_ARTIFACT_REPOSITORY || 'gopharma-test' }}
       API_PROXY_TARGET: ${{ secrets.API_PROXY_TARGET }}
       NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
       NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
