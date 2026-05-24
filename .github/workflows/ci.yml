@@ -16,6 +16,9 @@ on:
       - test
       - dev
 
+permissions:
+  contents: read
+
 jobs:
   docker-test-env:
     # L'environnement de test complet (Docker) ne tourne que sur la branche `test`
@@ -122,6 +125,54 @@ jobs:
           echo "branch=${GITHUB_REF_NAME}"
           echo "sha=${GITHUB_SHA}"
           echo "actor=${GITHUB_ACTOR}"
+
+  build-and-push-test-image:
+    needs: [docker-test-env, lint, test, integration, build, browser-e2e]
+    if: github.ref == 'refs/heads/test' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    environment: test
+    env:
+      IMAGE_NAME: go-pharma-front
+      IMAGE_TAG: ${{ github.sha }}
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID || secrets.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION || secrets.GCP_REGION }}
+      GCP_ARTIFACT_REPOSITORY: ${{ vars.GCP_ARTIFACT_REPOSITORY || secrets.GCP_ARTIFACT_REPOSITORY }}
+      API_PROXY_TARGET: ${{ secrets.API_PROXY_TARGET }}
+      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate test registry configuration
+        run: |
+          test -n "${GCP_PROJECT_ID}" || (echo "Missing GCP_PROJECT_ID" && exit 1)
+          test -n "${GCP_REGION}" || (echo "Missing GCP_REGION" && exit 1)
+          test -n "${GCP_ARTIFACT_REPOSITORY}" || (echo "Missing GCP_ARTIFACT_REPOSITORY" && exit 1)
+          test -n "${API_PROXY_TARGET}" || (echo "Missing API_PROXY_TARGET" && exit 1)
+          test -n "${NEXT_PUBLIC_API_URL}" || (echo "Missing NEXT_PUBLIC_API_URL" && exit 1)
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+          token_format: access_token
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GCP_REGION }}-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.auth_token }}
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          build-args: |
+            API_PROXY_TARGET=${{ env.API_PROXY_TARGET }}
+            NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+          tags: |
+            ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REPOSITORY }}/${{ env.IMAGE_NAME }}:test
 
   deploy-production:
     needs: [lint, test, integration, build, browser-e2e]
