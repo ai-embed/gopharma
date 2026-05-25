@@ -127,8 +127,11 @@ jobs:
           echo "actor=${GITHUB_ACTOR}"
 
   build-and-push-test-image:
+    # ⚠️ DÉSACTIVÉ - En attente de configuration GCP (permissions sur service account)
+    # Voir: GCP_SETUP.md pour les instructions
+    if: false
     needs: [docker-test-env, lint, test, integration, build, browser-e2e]
-    if: github.ref == 'refs/heads/test' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    # if: github.ref == 'refs/heads/test' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     environment: test
     env:
