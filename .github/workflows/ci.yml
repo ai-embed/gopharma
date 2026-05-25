@@ -127,47 +127,34 @@ jobs:
           echo "actor=${GITHUB_ACTOR}"
 
   build-and-push-test-image:
-    # ⚠️ DÉSACTIVÉ - En attente de configuration GCP (permissions sur service account)
-    # Voir: GCP_SETUP.md pour les instructions
-    if: false
+    # Push Docker image vers GitHub Container Registry (ghcr.io)
+    # ✅ Zéro configuration GCP requise - utilise GITHUB_TOKEN natif
     needs: [docker-test-env, lint, test, integration, build, browser-e2e]
-    # if: github.ref == 'refs/heads/test' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: github.ref == 'refs/heads/test' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     environment: test
     env:
       IMAGE_NAME: go-pharma-front
       IMAGE_TAG: ${{ github.sha }}
-      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID || secrets.GCP_PROJECT_ID }}
-      GCP_REGION: ${{ vars.GCP_REGION || secrets.GCP_REGION || 'europe-west1' }}
-      GCP_ARTIFACT_REPOSITORY: ${{ vars.GCP_ARTIFACT_REPOSITORY || secrets.GCP_ARTIFACT_REPOSITORY || 'gopharma-test' }}
+      REGISTRY: ghcr.io
       API_PROXY_TARGET: ${{ secrets.API_PROXY_TARGET }}
       NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
       NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+    permissions:
+      packages: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Validate test registry configuration
         run: |
-          test -n "${GCP_REGION}" || (echo "Missing GCP_REGION" && exit 1)
-          test -n "${GCP_ARTIFACT_REPOSITORY}" || (echo "Missing GCP_ARTIFACT_REPOSITORY" && exit 1)
-          test -n "${API_PROXY_TARGET}" || (echo "Missing API_PROXY_TARGET" && exit 1)
-          test -n "${NEXT_PUBLIC_API_URL}" || (echo "Missing NEXT_PUBLIC_API_URL" && exit 1)
-      - id: auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
-          token_format: access_token
-      - name: Resolve GCP project
-        run: |
-          PROJECT_ID="${GCP_PROJECT_ID:-${{ steps.auth.outputs.project_id }}}"
-          test -n "${PROJECT_ID}" || (echo "Missing GCP project id in GCP_PROJECT_ID or GCP_CREDENTIALS" && exit 1)
-          echo "GCP_PROJECT_ID=${PROJECT_ID}" >> "${GITHUB_ENV}"
-          echo "IMAGE_BASE=${GCP_REGION}-docker.pkg.dev/${PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/${IMAGE_NAME}" >> "${GITHUB_ENV}"
+          test -n "${API_PROXY_TARGET}" || (echo "Missing API_PROXY_TARGET secret" && exit 1)
+          test -n "${NEXT_PUBLIC_API_URL}" || (echo "Missing NEXT_PUBLIC_API_URL secret" && exit 1)
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
-          registry: ${{ env.GCP_REGION }}-docker.pkg.dev
-          username: oauth2accesstoken
-          password: ${{ steps.auth.outputs.auth_token }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push frontend image
         run: |
           docker buildx build \
@@ -176,8 +163,8 @@ jobs:
             --build-arg API_PROXY_TARGET="${API_PROXY_TARGET}" \
             --build-arg NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL}" \
             --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}" \
-            --tag "${IMAGE_BASE}:${IMAGE_TAG}" \
-            --tag "${IMAGE_BASE}:test" \
+            --tag "${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}" \
+            --tag "${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:test" \
             .
 
   deploy-production:
