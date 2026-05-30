@@ -1,16 +1,21 @@
-# === Docker Compose pour Frontend Phase Test (Local + GCP) ===
-# Utilisation locale: docker-compose -f docker-compose.front-test.yml up -d
-# Utilisation GCP: FRONT_DOCKERFILE=Dockerfile docker-compose -f docker-compose.front-test.yml up -d
+name: gopharma-frontend-test
 
 services:
   frontend-test-runner:
+    init: true
     build:
       context: .
-      # MODE LOCAL: dockerfile: Dockerfile.dev
-      # MODE GCP: dockerfile: Dockerfile (build production)
-      dockerfile: ${FRONT_DOCKERFILE:-Dockerfile.dev}
-    env_file:
-      - .env.test.example
+      dockerfile: Dockerfile.dev
     environment:
       NODE_ENV: ${NODE_ENV:-test}
-    command: sh -lc "npm run lint && npm run test && npm run test:integration"
+      API_PROXY_TARGET: ${API_PROXY_TARGET:-http://localhost:3006}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3006}
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:-}
+    command:
+      - sh
+      - -lc
+      - |
+        set -e
+        npm run lint
+        npm run test
+        npm run test:integration
