@@ -155,6 +155,10 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Resolve lowercase image name
+        run: |
+          OWNER_LC="$(printf '%s' "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          echo "IMAGE_BASE=${REGISTRY}/${OWNER_LC}/${IMAGE_NAME}" >> "${GITHUB_ENV}"
       - name: Build and push frontend image
         run: |
           docker buildx build \
@@ -163,8 +167,8 @@ jobs:
             --build-arg API_PROXY_TARGET="${API_PROXY_TARGET}" \
             --build-arg NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL}" \
             --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}" \
-            --tag "${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}" \
-            --tag "${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:test" \
+            --tag "${IMAGE_BASE}:${IMAGE_TAG}" \
+            --tag "${IMAGE_BASE}:test" \
             .
 
   deploy-production:
