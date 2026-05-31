@@ -6,11 +6,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    environment:
-      NODE_ENV: ${NODE_ENV:-test}
-      API_PROXY_TARGET: ${API_PROXY_TARGET:-http://localhost:3006}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3006}
-      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:-}
+    env_file:
+      - ${FRONT_TEST_ENV_FILE:-.env.front-test.example}
     command:
       - sh
       - -lc

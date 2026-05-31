@@ -14,6 +14,7 @@ Workflow: `.github/workflows/ci.yml`.
 
 ### Docker test environment
 Le job `docker-test-env` exécute lint, unit tests et integration tests dans un conteneur Docker isolé via `docker-compose.front-test.yml`.
+Les variables de ce runner sont centralisées dans `.env.front-test.example`; créer `.env.front-test` uniquement pour des overrides locaux non versionnés.
 
 ## Project
 Ce projet est une plateforme de recherche et de gestion pharmaceutique bâtie avec [Next.js](https://nextjs.org).
