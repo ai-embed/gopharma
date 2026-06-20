@@ -1,33 +1,42 @@
 # GoPharma Frontend
 
-## Branching Strategy
-This repo follows: `feature/*` -> `dev` -> `test` -> `main`.
-Details are documented in `.github/BRANCHING_STRATEGY.md` and `.github/BRANCH_PROTECTION.md`.
+Frontend Next.js de GoPharma. Ce depot est separe du backend et publie uniquement l'image frontend consommee par les stacks runtime du repo API/infra.
 
-## CI/CD Pipeline
-GitHub Actions runs on PRs and pushes for lint, unit tests, integration tests, build, and Docker test environment.
-Workflow: `.github/workflows/ci.yml`.
+Remote attendu:
 
-### Environments
-- **test** : déploiement automatique sur push vers la branche `test` (secrets: `API_PROXY_TARGET`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`)
-- **production** : déploiement automatique sur push vers la branche `main` (mêmes secrets)
+```text
+NXTCV/go_pharma
+```
 
-### Docker test environment
-Le job `docker-test-env` exécute lint, unit tests et integration tests dans un conteneur Docker isolé via `docker-compose.front-test.yml`.
-Les variables de ce runner sont centralisées dans `.env.front-test.example`; créer `.env.front-test` uniquement pour des overrides locaux non versionnés.
+Images publiees:
 
-## Project
-Ce projet est une plateforme de recherche et de gestion pharmaceutique bâtie avec [Next.js](https://nextjs.org).
+```text
+ghcr.io/nxtcv/go-pharma-front:test
+ghcr.io/nxtcv/go-pharma-front:latest
+```
 
-## Fonctionnalités
-- Authentification complète (Patient & Professionnel)
-- Recherche de médicaments et pharmacies
-- Historique, favoris et préférences patient
-- Tableau de bord patient + pages profil (profil, historique, favoris, préférences)
-- Espace pharmacie (dashboard, inventaire, horaires, historique, paramètres)
-- Espace admin (dashboard, file de validation, utilisateurs, pharmacies, base médicaments, rapports, croissance, journaux d'audit)
-- PWA (manifest + prompt d'installation)
-- PharmaBot flottant sur les pages patient
+## Role Du Frontend
+
+- Interface patient, pharmacie et admin.
+- Recherche medicaments/pharmacies.
+- Tableaux de bord patient, pharmacie et admin.
+- PWA, notifications, favoris, historique et preferences.
+- Proxy Next.js vers l'API NestJS via `API_PROXY_TARGET`.
+
+L'API et l'infrastructure Docker Compose sont dans le repo separe `NXTCV/go_pharma_api`.
+
+## Branches
+
+Strategie:
+
+```text
+feature/* -> dev -> test -> main
+```
+
+Documentation GitHub:
+
+- `.github/BRANCHING_STRATEGY.md`
+- `.github/BRANCH_PROTECTION.md`
 
 ## Installation
 
@@ -35,70 +44,99 @@ Ce projet est une plateforme de recherche et de gestion pharmaceutique bâtie av
 npm install
 ```
 
-## Connexion au backend
+## Configuration Locale
 
-Le frontend utilise maintenant un proxy Next.js pour relayer ` /api/* ` vers le backend GoPharma. Cela évite les problèmes de CORS et garde les appels front sur la même origine.
+Creer `.env.local`:
 
-Créez un fichier `.env.local` dans le frontend avec :
-
-```bash
+```env
 API_PROXY_TARGET=http://localhost:3000
+NEXT_PUBLIC_API_URL=
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
 ```
 
-Le backend NestJS doit exposer ses routes sous `http://localhost:3000/api/*`.
+`API_PROXY_TARGET` est l'URL interne utilisee par Next.js pour relayer les appels `/api/*` vers le backend.
 
-Le flux de connexion patient/professionnel est branché sur les endpoints réels :
-- `POST /api/auth/login`
-- `GET /api/users/me`
+Si `NEXT_PUBLIC_API_URL` est vide, le frontend utilise le proxy Next.js. Si elle est definie, certains appels peuvent cibler directement cette URL publique.
 
-Le flux d’inscription est partiellement branché :
-- patient : `POST /api/auth/register-patient`
-- pharmacie : `POST /api/auth/register-pharmacy`
-
-Après connexion, le frontend redirige automatiquement selon le rôle :
-- `ADMIN` → `/admin/dashboard`
-- `PHARMACY_MANAGER` → `/pharmacy/dashboard`
-- `PATIENT` → `/dashboard`
-
-Modules déjà branchés sur l’API backend :
-- auth (`/api/auth/*`, `/api/users/me`)
-- recherche (`/api/search/*`, `/api/pharmacies/:id`, `/api/pharmacies/:id/schedule`)
-- historique, favoris, notifications et rappels
-- espaces admin et pharmacie sur leurs endpoints dédiés
-
-Certains écrans restent encore partiellement mockés ou hybrides, mais la base applicative n’est plus limitée au seul login/register.
-
-Option avancée :
-- `NEXT_PUBLIC_API_URL` peut être défini si vous voulez forcer des appels directs vers une URL externe.
-- Si `NEXT_PUBLIC_API_URL` est vide, le frontend passe automatiquement par le proxy Next.
-
-## Démarrage
+## Developpement
 
 ```bash
 npm run dev
 ```
 
-Ouvrez l’URL indiquée par Next.js dans le terminal. En local, ce sera souvent :
-- `http://localhost:3000` si ce port est libre
-- `http://localhost:3001` si le backend utilise déjà `3000`
+Selon les ports disponibles:
 
-Si le backend tourne aussi sur la machine locale, relancez Next.js après modification de `.env.local`.
+- Frontend: `http://localhost:3000` ou `http://localhost:3001`.
+- API locale attendue: `http://localhost:3000/api/*`.
 
-## Tests
+## Tests Et Build
 
 ```bash
+npm run lint
 npm run test
 npm run test:integration
-npx playwright install chromium
-npm run test:e2e:browser
-npm run lint
 npm run build
 ```
 
-Le script `test:e2e:browser` valide les protections d'accès de routes (patient/pharmacie/admin) en navigateur réel via Playwright.
+Tests navigateur:
+
+```bash
+npx playwright install chromium
+npm run test:e2e:browser
+```
+
+## Docker
+
+Build image locale:
+
+```bash
+docker build -t go-pharma-front:local .
+```
+
+Compose de test CI:
+
+```bash
+docker compose --env-file .env.front-test.example -f docker-compose.front-test.yml config
+docker compose --env-file .env.front-test.example -f docker-compose.front-test.yml up --build --abort-on-container-exit --exit-code-from front-test-runner front-test-runner
+```
+
+Ce compose est uniquement pour les tests frontend. Il ne deploie pas l'application runtime.
+
+## CI/CD
+
+Workflow principal:
+
+```text
+.github/workflows/ci.yml
+```
+
+Le workflow frontend doit:
+
+- verifier lint/tests/build;
+- builder l'image frontend;
+- publier `ghcr.io/nxtcv/go-pharma-front:test` depuis la branche `test`;
+- publier `ghcr.io/nxtcv/go-pharma-front:latest` depuis la branche `main`.
+
+Le deploiement runtime complet est gere cote repo API/infra par:
+
+```text
+Gopharma/deploy/test/docker-compose.yml
+Gopharma/deploy/production/docker-compose.yml
+```
 
 ## Structure
-- `src/app`: Routes et pages (App Router)
-- `src/components`: Composants UI réutilisables
-- `src/lib`: Utilitaires et hooks API
-- `docker-compose.front-test.yml`: Environnement de test Dockerisé pour CI
+
+```text
+src/app          Routes App Router
+src/components   Composants UI
+src/lib          API client, schemas, observabilite, helpers
+public           Assets statiques
+tests            Tests integration et e2e
+```
+
+## Documentation Locale
+
+- `FRONTEND_EVOLUTION.md`: historique fonctionnel du frontend.
+- `src/lib/observability/README.md`: notes observabilite.
+- `src/lib/firebase/README.md`: notes Firebase/FCM.
+- `src/lib/schemas/README.md`: schemas Zod et contrats front.
