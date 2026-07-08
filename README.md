@@ -120,8 +120,8 @@ Le workflow frontend doit:
 Le deploiement runtime complet est gere cote repo API/infra par:
 
 ```text
-Gopharma/deploy/test/docker-compose.yml
-Gopharma/deploy/production/docker-compose.yml
+Gopharma/docker-compose-test.yml
+Gopharma/docker-compose-production.yml
 ```
 
 ## Structure
