@@ -140,3 +140,4 @@ tests            Tests integration et e2e
 - `src/lib/observability/README.md`: notes observabilite.
 - `src/lib/firebase/README.md`: notes Firebase/FCM.
 - `src/lib/schemas/README.md`: schemas Zod et contrats front.
+# gopharma
