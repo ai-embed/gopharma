@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import AdminDashboardPage from "@/app/admin/dashboard/page";
 import AdminUsersPage from "@/app/admin/users/page";
 import AdminPharmaciesPage from "@/app/admin/pharmacies/page";
+import ObservabilityDashboard from "@/app/admin/observability/page";
 import ValidationQueuePage from "@/app/admin/validation-queue/page";
 import { apiJsonAuth } from "@/lib/api";
 
@@ -165,6 +166,69 @@ describe("Admin flow integration", () => {
     expect(apiMock).toHaveBeenCalledWith("/api/admin/validations");
     expect(apiMock).toHaveBeenCalledWith("/api/admin/audit-logs?page=1&limit=20");
     expect(apiMock).toHaveBeenCalledWith("/api/admin/integrations/status");
+  });
+
+  it("loads real observability metrics and filters server errors", async () => {
+    apiMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      data: {
+        totalActions: 12,
+        totalErrors: 2,
+        totalWarnings: 1,
+        errorRate: 25,
+        uniqueEndpointsAffected: 2,
+        recentEvents: [
+          {
+            id: "event-1",
+            timestamp: "2026-04-08T10:16:00.000Z",
+            level: "error",
+            message: "Erreur serveur",
+            path: "/api/admin/users",
+            method: "POST",
+            statusCode: 500,
+            traceId: "request-1",
+          },
+          {
+            id: "event-2",
+            timestamp: "2026-04-08T10:15:00.000Z",
+            level: "warn",
+            message: "Requête rejetée par le serveur",
+            path: "/api/admin/pharmacies",
+            method: "PATCH",
+            statusCode: 400,
+            traceId: "request-2",
+          },
+        ],
+      },
+    });
+
+    render(<ObservabilityDashboard />);
+
+    expect(await screen.findByText("Erreur serveur")).toBeInTheDocument();
+    expect(screen.getByText("25%")).toBeInTheDocument();
+    expect(screen.getByText("POST /api/admin/users")).toBeInTheDocument();
+    expect(screen.getByText("PATCH /api/admin/pharmacies")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Erreurs serveur" }));
+
+    expect(screen.getByText("POST /api/admin/users")).toBeInTheDocument();
+    expect(screen.queryByText("PATCH /api/admin/pharmacies")).not.toBeInTheDocument();
+    expect(apiMock).toHaveBeenCalledWith("/api/admin/observability");
+  });
+
+  it("shows an observability error instead of fabricated metrics", async () => {
+    apiMock.mockResolvedValue({
+      ok: false,
+      status: 404,
+      error: "Not Found",
+    });
+
+    render(<ObservabilityDashboard />);
+
+    expect(await screen.findByText("Not Found")).toBeInTheDocument();
+    expect(screen.queryByText("2.4%")).not.toBeInTheDocument();
+    expect(screen.queryByText("Database connection timeout")).not.toBeInTheDocument();
   });
 
   it("lets admin suspend a user from users list", async () => {

@@ -203,7 +203,7 @@ export default function PharmacyRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F6F9] px-6 py-10 text-[#1F1D1B]">
+    <div className="gp-auth-page min-h-screen px-6 py-10 text-[#1F1D1B]">
       <div className="mx-auto w-full max-w-4xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -214,7 +214,7 @@ export default function PharmacyRegisterPage() {
               height={40}
               className="h-10 w-10 rounded-2xl"
             />
-            <span className="text-sm font-semibold">GoPharma Pro</span>
+            <span className="text-sm font-bold tracking-[-0.02em]">GoPharma Pro</span>
           </div>
           <div className="flex items-center gap-3 text-xs text-[#6B7280]">
             <Link href="/pharmacy-login">Connexion</Link>
@@ -225,7 +225,7 @@ export default function PharmacyRegisterPage() {
         </div>
 
         <div className="mt-10 text-center">
-          <h1 className="text-2xl font-semibold">
+          <h1 className="text-2xl font-bold tracking-[-0.04em]">
             Créez votre compte pharmacie
           </h1>
           <p className="mt-2 text-sm text-[#6B7280]">
@@ -238,7 +238,7 @@ export default function PharmacyRegisterPage() {
         </div>
 
         <form
-          className="mt-8 rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm md:p-8"
+          className="gp-pro-register-form mt-8 rounded-3xl p-6 md:p-8"
           onSubmit={onSubmit}
         >
           <div className="grid gap-4 md:grid-cols-2">

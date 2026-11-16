@@ -170,16 +170,17 @@ export default function ReminderForm() {
 
   return (
     <PatientShell>
-      <div className="space-y-6">
+      <div className="gp-reminders space-y-6">
         {error ? <Notice tone="error" message={error} /> : null}
         {success ? <Notice tone="success" message={success} /> : null}
 
         <form
           onSubmit={createReminder}
-          className="rounded-3xl border border-[#E5E7EB] bg-white p-6"
+          className="gp-reminder-form rounded-[2rem] p-6 sm:p-7"
         >
           <div className="space-y-2">
-            <h1 className="text-lg font-semibold">Calendrier d&apos;ordonnance</h1>
+            <p className="gp-section-kicker">Organisez votre traitement</p>
+            <h1 className="gp-section-heading text-xl">Calendrier d&apos;ordonnance</h1>
             <p className="text-sm text-[#6B7280]">
               Créez et gérez vos rappels de prise de médicaments.
             </p>
@@ -192,7 +193,7 @@ export default function ReminderForm() {
                 value={medicationName}
                 onChange={(event) => setMedicationName(event.target.value)}
                 placeholder="Ex: Paracétamol 500mg"
-                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm"
+                className="gp-form-field w-full rounded-xl border px-4 py-2.5 text-sm"
               />
             </label>
 
@@ -201,7 +202,7 @@ export default function ReminderForm() {
               <select
                 value={frequency}
                 onChange={(event) => setFrequency(event.target.value as ReminderFrequency)}
-                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm"
+                className="gp-form-field w-full rounded-xl border px-4 py-2.5 text-sm"
               >
                 {frequencyOptions.map((item) => (
                   <option key={item.value} value={item.value}>
@@ -218,7 +219,7 @@ export default function ReminderForm() {
                 onChange={(event) => setIntervalHours(event.target.value)}
                 disabled={frequency !== "CUSTOM"}
                 placeholder="8"
-                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm disabled:bg-[#F8FAFC]"
+                className="gp-form-field w-full rounded-xl border px-4 py-2.5 text-sm disabled:bg-[#F8FAFC]"
               />
             </label>
 
@@ -228,7 +229,7 @@ export default function ReminderForm() {
                 type="datetime-local"
                 value={startDate}
                 onChange={(event) => setStartDate(event.target.value)}
-                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm"
+                className="gp-form-field w-full rounded-xl border px-4 py-2.5 text-sm"
               />
             </label>
 
@@ -238,7 +239,7 @@ export default function ReminderForm() {
                 type="datetime-local"
                 value={endDate}
                 onChange={(event) => setEndDate(event.target.value)}
-                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm"
+                className="gp-form-field w-full rounded-xl border px-4 py-2.5 text-sm"
               />
             </label>
 
@@ -249,7 +250,7 @@ export default function ReminderForm() {
                 onChange={(event) => setNote(event.target.value)}
                 rows={3}
                 placeholder="Ex: après le repas"
-                className="w-full rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm"
+                className="gp-form-field w-full rounded-xl border px-4 py-2.5 text-sm"
               />
             </label>
           </div>
@@ -258,15 +259,23 @@ export default function ReminderForm() {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="rounded-full bg-[#0B63D1] px-5 py-2 text-xs font-semibold text-white disabled:opacity-60"
+              className="gp-search-submit rounded-full px-5 py-2 text-xs font-bold text-white disabled:opacity-60"
             >
               {saving ? "Enregistrement..." : "Créer le rappel"}
             </button>
           </div>
         </form>
 
-        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6">
-          <h2 className="text-sm font-semibold">Rappels existants</h2>
+        <div className="gp-reminder-list rounded-[2rem] p-6 sm:p-7">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="gp-section-kicker">Suivi de traitement</p>
+              <h2 className="gp-section-heading mt-1">Rappels existants</h2>
+            </div>
+            <span className="rounded-full bg-[#EAF3FF] px-3 py-1.5 text-[11px] font-bold text-[#0B63D1]">
+              {reminders.filter((item) => item.isActive).length} actif{reminders.filter((item) => item.isActive).length > 1 ? "s" : ""}
+            </span>
+          </div>
           {loading ? (
             <p className="mt-3 text-xs text-[#6B7280]">Chargement...</p>
           ) : reminders.length === 0 ? (
@@ -278,7 +287,7 @@ export default function ReminderForm() {
                 return (
                   <div
                     key={item._id}
-                    className="rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] px-4 py-3"
+                    className="gp-reminder-item rounded-2xl px-4 py-3"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -312,7 +321,7 @@ export default function ReminderForm() {
                         type="button"
                         disabled={busy}
                         onClick={() => void toggleReminder(item)}
-                        className="rounded-full border border-[#E5E7EB] bg-white px-3 py-1.5 text-xs font-semibold text-[#1F2937] disabled:opacity-60"
+                        className="gp-outline-button rounded-full border bg-white px-3 py-1.5 text-xs font-semibold text-[#1F2937] disabled:opacity-60"
                       >
                         {item.isActive ? "Désactiver" : "Activer"}
                       </button>

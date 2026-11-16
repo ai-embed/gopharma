@@ -352,7 +352,7 @@ export default function InventoryView() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="gp-pro-page space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-lg font-semibold">Inventaire des produits</h1>
         <div className="flex items-center gap-2">
@@ -379,25 +379,25 @@ export default function InventoryView() {
       {success ? <Notice tone="success" message={success} /> : null}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Total produits</p>
           <p className="mt-2 text-xl font-semibold">{stats.total}</p>
         </div>
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Stock faible</p>
           <p className="mt-2 text-xl font-semibold text-amber-600">{stats.lowStock}</p>
         </div>
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Rupture</p>
           <p className="mt-2 text-xl font-semibold text-rose-600">{stats.outOfStock}</p>
         </div>
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Expiration proche (30 j)</p>
           <p className="mt-2 text-xl font-semibold">{stats.nearExpiry}</p>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+      <div className="gp-panel rounded-2xl p-4">
         <div className="rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-4">
           <p className="text-xs font-semibold text-[#1F1D1B]">Catégories produit (CRUD)</p>
           <div className="mt-3 flex flex-wrap gap-2">

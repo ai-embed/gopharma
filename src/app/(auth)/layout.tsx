@@ -43,8 +43,8 @@ export default function AuthLayout({
   }, [pathname, router]);
 
   return (
-    <div className="min-h-screen bg-[#F3F6F9] px-4 py-6 text-[#1E1E1E] sm:px-6 sm:py-10">
-      <div className="mx-auto w-full max-w-105 rounded-[28px] bg-white p-8 shadow-[0_18px_60px_-40px_rgba(15,23,42,0.6)]">
+    <div className="gp-auth-page min-h-screen px-4 py-6 text-[#1E1E1E] sm:px-6 sm:py-10">
+      <div className="gp-auth-card mx-auto w-full max-w-105 rounded-[28px] p-8">
         <div className="flex flex-col items-center text-center">
           <Image
             src="/icons/Untitled design.png"
@@ -53,7 +53,7 @@ export default function AuthLayout({
             height={48}
             className="h-12 w-12 rounded-2xl"
           />
-          <h1 className="mt-4 text-xl font-semibold">GoPharma</h1>
+          <h1 className="mt-4 text-xl font-bold tracking-[-0.03em] text-[#10233F]">GoPharma</h1>
           <p className="mt-2 text-sm text-[#6B7280]">
             {pathname === "/login"
               ? "Veuillez entrer vos coordonnées pour vous connecter"
@@ -62,12 +62,12 @@ export default function AuthLayout({
         </div>
 
         {pathname === "/login" ? (
-          <h2 className="mt-6 text-center text-2xl font-semibold text-[#0B63D1]">
+          <h2 className="mt-6 text-center text-2xl font-bold tracking-[-0.04em] text-[#0B63D1]">
             Connexion
           </h2>
         ) : null}
         {pathname === "/register" ? (
-          <h2 className="mt-6 text-center text-2xl font-semibold text-[#0B63D1]">
+          <h2 className="mt-6 text-center text-2xl font-bold tracking-[-0.04em] text-[#0B63D1]">
             Inscription
           </h2>
         ) : null}

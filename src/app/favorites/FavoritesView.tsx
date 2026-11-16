@@ -78,7 +78,7 @@ export default function FavoritesView() {
       {error ? <Notice tone="error" message={error} /> : null}
 
       {loading ? (
-        <p className="text-center text-xs text-[#6B7280]">
+        <p className="gp-empty-state text-center text-xs text-[#6B7280]">
           Chargement des favoris...
         </p>
       ) : hasFavorites ? (
@@ -86,11 +86,23 @@ export default function FavoritesView() {
           {displayFavorites.map((fav) => (
             <div
               key={fav.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm"
+              className="gp-favorite-card flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm"
             >
-              <div className="min-w-[220px]">
+              <div className="flex min-w-[220px] items-center gap-3">
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${
+                    fav.type === "PHARMACY"
+                      ? "bg-[#EAF3FF] text-[#0B63D1]"
+                      : "bg-[#FFF1F6] text-[#D64E7B]"
+                  }`}
+                  aria-hidden="true"
+                >
+                  {fav.type === "PHARMACY" ? "PH" : "Rx"}
+                </span>
+                <div>
                 <p className="text-sm font-semibold">{fav.label}</p>
                 <p className="text-xs text-[#6B7280]">{fav.subtitle}</p>
+                </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -120,11 +132,15 @@ export default function FavoritesView() {
           ))}
         </div>
       ) : (
-        <div className="text-center">
-          <h2 className="text-sm font-semibold">Aucun favori pour le moment</h2>
+        <div className="gp-empty-state text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF1F6] text-lg text-[#D64E7B]" aria-hidden="true">♥</span>
+          <h2 className="mt-3 text-sm font-semibold">Aucun favori pour le moment</h2>
           <p className="mt-2 text-xs text-[#6B7280]">
             Ajoutez des produits ou pharmacies pour les retrouver plus vite.
           </p>
+          <Link href="/search" className="mt-4 inline-flex rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-bold text-white">
+            Explorer les pharmacies
+          </Link>
         </div>
       )}
     </ProfileShell>

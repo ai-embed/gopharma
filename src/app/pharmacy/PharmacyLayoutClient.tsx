@@ -175,8 +175,8 @@ export default function PharmacyLayout({
 
   if (!canRender) {
     return (
-      <div className="min-h-screen bg-[#F3F6F9] px-4 py-6 text-[#1F1D1B] sm:px-6 sm:py-10">
-        <div className="mx-auto flex max-w-6xl items-center justify-center rounded-3xl border border-[#E5E7EB] bg-white py-16 text-sm text-[#6B7280]">
+      <div className="gp-workspace min-h-screen px-4 py-6 text-[#1F1D1B] sm:px-6 sm:py-10">
+        <div className="gp-panel mx-auto flex max-w-6xl items-center justify-center rounded-3xl py-16 text-sm text-[#6B7280]">
           Vérification de session…
         </div>
       </div>
@@ -184,9 +184,9 @@ export default function PharmacyLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#F3F6F9] text-[#1F1D1B]">
+    <div className="gp-workspace min-h-screen text-[#1F1D1B]">
       <div className="flex flex-col md:flex-row">
-        <aside className="flex w-full flex-col border-b border-[#E5E7EB] bg-white px-6 py-6 md:sticky md:top-0 md:h-screen md:w-64 md:border-b-0 md:border-r">
+        <aside className="gp-workspace-rail flex w-full flex-col border-b px-6 py-6 md:sticky md:top-0 md:h-screen md:w-64 md:border-b-0 md:border-r">
           <Link
           href="/pharmacy/dashboard"
           className="flex items-center gap-3"
@@ -213,10 +213,10 @@ export default function PharmacyLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-2 transition ${
+                  className={`gp-workspace-nav-link flex items-center gap-3 rounded-xl px-3 py-2 ${
                     isActive
-                      ? "bg-[#EAF2FF] text-[#0B63D1]"
-                      : "text-[#6B7280] hover:bg-[#F3F6F9]"
+                      ? "gp-workspace-nav-link--active text-[#0B63D1]"
+                      : "text-[#6B7280]"
                   }`}
                 >
                   <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/0">
@@ -228,7 +228,7 @@ export default function PharmacyLayout({
             })}
           </nav>
 
-          <div className="mt-auto rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] px-4 py-3 text-xs text-[#6B7280]">
+          <div className="gp-panel mt-auto rounded-2xl px-4 py-3 text-xs text-[#6B7280]">
             <p className="font-semibold text-[#1F1D1B]">Statut du magasin</p>
             <div className="mt-2 flex items-center justify-between">
               <span className="flex items-center gap-2">
@@ -272,7 +272,7 @@ export default function PharmacyLayout({
         </aside>
 
         <div className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
-          <div className="mx-auto w-full max-w-6xl space-y-6">
+          <div className="gp-page-reveal mx-auto w-full max-w-6xl space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div />
               <div className="flex flex-wrap items-center gap-3">

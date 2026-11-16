@@ -239,7 +239,7 @@ export default function PharmacyPlanningsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="gp-pro-page space-y-6">
       <div>
         <h1 className="text-lg font-semibold">Configuration des horaires</h1>
       </div>
@@ -247,7 +247,7 @@ export default function PharmacyPlanningsPage() {
       {error ? <Notice tone="error" message={error} /> : null}
       {success ? <Notice tone="success" message={success} /> : null}
 
-      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+      <div className="gp-panel rounded-2xl p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold">Heures d&apos;ouverture hebdomadaires</h2>
           <button
@@ -332,7 +332,7 @@ export default function PharmacyPlanningsPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+      <div className="gp-panel rounded-2xl p-5">
         <h2 className="text-sm font-semibold">Exceptions & jours spéciaux</h2>
 
         <div className="mt-4 grid gap-3 md:grid-cols-2">

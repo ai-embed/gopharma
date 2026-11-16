@@ -116,7 +116,7 @@ export default function RegisterForm() {
   };
 
   return (
-    <form className="space-y-5" onSubmit={onSubmit}>
+    <form className="gp-auth-form space-y-5" onSubmit={onSubmit}>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <label

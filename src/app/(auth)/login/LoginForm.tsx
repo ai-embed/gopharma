@@ -80,7 +80,7 @@ export default function LoginForm() {
   };
 
   return (
-    <form className="space-y-5" onSubmit={onSubmit}>
+    <form className="gp-auth-form space-y-5" onSubmit={onSubmit}>
       <div className="space-y-2">
         <label htmlFor="email" className="text-xs font-semibold text-[#6B7280]">
           ADRESSE E-MAIL
