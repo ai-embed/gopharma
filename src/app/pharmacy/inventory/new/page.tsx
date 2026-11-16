@@ -217,8 +217,8 @@ export default function PharmacyInventoryNewPage() {
       return;
     }
 
-    if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
-      setError("Prix unitaire invalide.");
+    if (!Number.isInteger(parsedPrice) || parsedPrice < 0) {
+      setError("Le prix unitaire doit être un montant entier en FCFA.");
       return;
     }
 
@@ -452,12 +452,12 @@ export default function PharmacyInventoryNewPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-[#6B7280]">Prix unitaire (€)</label>
+                <label className="text-xs font-semibold text-[#6B7280]">Prix unitaire (FCFA)</label>
                 <input
                   value={price}
                   onChange={(event) => setPrice(event.target.value)}
-                  inputMode="decimal"
-                  placeholder="0.00"
+                  inputMode="numeric"
+                  placeholder="0"
                   className="w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm"
                 />
               </div>

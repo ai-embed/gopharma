@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Notice } from "@/components/Notice";
 import { apiJsonAuth } from "@/lib/api";
+import { formatCurrency } from "@/lib/currency";
 
 type ManagerProduct = {
   inventoryId: string;
@@ -100,14 +101,6 @@ function formatDateTime(value: string) {
       minute: "2-digit",
     }),
   };
-}
-
-function formatCurrency(value?: number) {
-  if (value === undefined || value === null) return "-";
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(value);
 }
 
 function mapScheduleAction(activity: AuditActivityItem): {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Notice } from "@/components/Notice";
 import { apiJsonAuth } from "@/lib/api";
+import { formatCurrency } from "@/lib/currency";
 
 type ManagerPharmacy = {
   _id: string;
@@ -32,14 +33,6 @@ type VisitStats = {
   last7Days: number;
   last30Days: number;
 };
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 export default function PharmacyDashboardPage() {
   const [pharmacy, setPharmacy] = useState<ManagerPharmacy | null>(null);
