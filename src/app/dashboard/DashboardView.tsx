@@ -18,11 +18,6 @@ import {
   type Coordinates,
 } from "@/lib/location-preferences";
 
-const fallbackSearches = [
-  { name: "Doliprane 1000mg", time: "Il y a 2 heures" },
-  { name: "Vitamine C 500", time: "Hier" },
-];
-
 const popularSearches = ["Paracétamol", "Vitamine C", "Ibuprofène"];
 
 type Pharmacy = {
@@ -94,7 +89,7 @@ export default function DashboardPage() {
   const [queryInput, setQueryInput] = useState("");
   const [queryTokens, setQueryTokens] = useState<string[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [recentSearches, setRecentSearches] = useState(fallbackSearches);
+  const [recentSearches, setRecentSearches] = useState<{ name: string; time: string }[]>([]);
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
   const [pharmacyLoading, setPharmacyLoading] = useState(true);
   const [pharmacyError, setPharmacyError] = useState<string | null>(null);

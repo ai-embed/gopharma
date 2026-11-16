@@ -1,14 +1,116 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PatientShell } from "@/components/PatientShell";
+
+type BarcodeDetectorResult = { rawValue: string };
+
+type BarcodeDetectorInstance = {
+  detect(source: HTMLVideoElement): Promise<BarcodeDetectorResult[]>;
+};
+
+type BarcodeDetectorConstructor = new (options?: {
+  formats?: string[];
+}) => BarcodeDetectorInstance;
 
 export default function ScanPage() {
   const router = useRouter();
   const [barcode, setBarcode] = useState("");
-  const [isScanning, setIsScanning] = useState(true);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraPending, setCameraPending] = useState(false);
+  const [scanMessage, setScanMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const scanTimerRef = useRef<number | null>(null);
+
+  const stopCamera = useCallback(() => {
+    if (scanTimerRef.current !== null) {
+      window.clearTimeout(scanTimerRef.current);
+      scanTimerRef.current = null;
+    }
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setCameraActive(false);
+  }, []);
+
+  const startCamera = useCallback(async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError("La caméra n’est pas disponible dans ce navigateur. Utilisez la saisie manuelle.");
+      return;
+    }
+
+    const BarcodeDetector = (window as Window & {
+      BarcodeDetector?: BarcodeDetectorConstructor;
+    }).BarcodeDetector;
+
+    if (!BarcodeDetector) {
+      setError("La détection automatique n’est pas prise en charge. Utilisez la saisie manuelle.");
+      return;
+    }
+
+    setCameraPending(true);
+    setError(null);
+    setScanMessage(null);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+      streamRef.current = stream;
+
+      if (!videoRef.current) {
+        stopCamera();
+        return;
+      }
+
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
+      setCameraActive(true);
+
+      const detector = new BarcodeDetector({
+        formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39", "qr_code"],
+      });
+
+      const scanFrame = async () => {
+        const video = videoRef.current;
+        if (!video || !streamRef.current) return;
+
+        try {
+          const codes = await detector.detect(video);
+          const code = codes[0]?.rawValue?.trim();
+          if (code) {
+            setBarcode(code);
+            setScanMessage("Code détecté. Lancez la recherche pour voir sa disponibilité.");
+            stopCamera();
+            return;
+          }
+        } catch {
+          setError("La lecture du code a échoué. Essayez à nouveau ou saisissez-le manuellement.");
+        }
+
+        scanTimerRef.current = window.setTimeout(() => void scanFrame(), 300);
+      };
+
+      void scanFrame();
+    } catch (reason) {
+      setError(
+        reason instanceof Error && reason.name === "NotAllowedError"
+          ? "Autorisez l’accès à la caméra pour scanner un produit."
+          : "Impossible d’ouvrir la caméra. Utilisez la saisie manuelle."
+      );
+      stopCamera();
+    } finally {
+      setCameraPending(false);
+    }
+  }, [stopCamera]);
+
+  useEffect(() => stopCamera, [stopCamera]);
 
   const submitBarcode = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -19,6 +121,7 @@ export default function ScanPage() {
       return;
     }
 
+    stopCamera();
     router.push(`/search?q=${encodeURIComponent(query)}&source=scan`);
   };
 
@@ -54,7 +157,10 @@ export default function ScanPage() {
               </div>
               <button
                 type="button"
-                onClick={() => router.back()}
+                onClick={() => {
+                  stopCamera();
+                  router.back();
+                }}
                 className="flex h-9 w-9 items-center justify-center rounded-full text-lg text-[#6B7280] transition hover:bg-[#F1F6FB] hover:text-[#10233F]"
                 aria-label="Fermer le scanner"
               >
@@ -70,20 +176,34 @@ export default function ScanPage() {
                     "url('https://images.unsplash.com/photo-1580281658629-81a3a364c0fa?auto=format&fit=crop&w=1100&q=80')",
                 }}
               />
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className={`absolute inset-0 h-full w-full object-cover transition-opacity ${
+                  cameraActive ? "opacity-100" : "opacity-0"
+                }`}
+              />
               <div className="absolute inset-0 bg-[#06162D]/42" />
               <div className="gp-scan-frame absolute inset-x-8 top-1/2 h-28 -translate-y-1/2 rounded-2xl" />
-              <span className={`gp-scan-line ${isScanning ? "" : "gp-scan-line--paused"}`} />
+              <span className={`gp-scan-line ${cameraActive ? "" : "gp-scan-line--paused"}`} />
               <div className="absolute inset-x-0 top-4 flex justify-center">
                 <span className="rounded-full bg-[#071729]/70 px-3 py-1.5 text-[11px] font-semibold text-white backdrop-blur">
-                  {isScanning ? "Cadrez le code-barres" : "Aperçu en pause"}
+                  {cameraPending
+                    ? "Ouverture de la caméra…"
+                    : cameraActive
+                      ? "Cadrez le code-barres"
+                      : "Caméra en pause"}
                 </span>
               </div>
               <button
                 type="button"
-                onClick={() => setIsScanning((value) => !value)}
-                className="absolute bottom-4 right-4 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur transition hover:bg-white/25"
+                onClick={() => void (cameraActive ? stopCamera() : startCamera())}
+                disabled={cameraPending}
+                className="absolute bottom-4 right-4 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur transition hover:bg-white/25 disabled:cursor-wait disabled:opacity-60"
               >
-                {isScanning ? "Mettre en pause" : "Reprendre"}
+                {cameraPending ? "Ouverture…" : cameraActive ? "Mettre en pause" : "Activer la caméra"}
               </button>
             </div>
 
@@ -97,7 +217,10 @@ export default function ScanPage() {
                   value={barcode}
                   onChange={(event) => {
                     setBarcode(event.target.value);
-                    if (error) setError(null);
+                    if (error || scanMessage) {
+                      setError(null);
+                      setScanMessage(null);
+                    }
                   }}
                   placeholder="Code-barres ou nom du médicament"
                   className="min-w-0 flex-1 border-none bg-transparent px-2 py-2 text-sm text-[#10233F] outline-none placeholder:text-[#93A4B8]"
@@ -107,6 +230,7 @@ export default function ScanPage() {
                 </button>
               </div>
               {error ? <p className="mt-2 text-xs font-medium text-[#B91C1C]">{error}</p> : null}
+              {scanMessage ? <p className="mt-2 text-xs font-medium text-[#16834A]">{scanMessage}</p> : null}
             </form>
 
             <p className="mt-4 text-center text-[11px] leading-5 text-[#6B7280]">
