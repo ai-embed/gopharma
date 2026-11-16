@@ -155,7 +155,7 @@ export default function AdminReportsPage() {
   }
 
   return (
-    <div>
+    <div className="gp-admin-analytics">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold">Rapports</h1>
@@ -186,19 +186,19 @@ export default function AdminReportsPage() {
       {error ? <Notice tone="error" message={error} /> : null}
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Rapports générés</p>
           <p className="mt-2 text-2xl font-semibold">{data?.reportTotal ?? 0}</p>
           <p className="mt-2 text-[11px] text-[#9CA3AF]">Journal d&apos;audit total</p>
         </div>
 
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Alertes système</p>
           <p className="mt-2 text-2xl font-semibold">{data?.alertsTotal ?? 0}</p>
           <p className="mt-2 text-[11px] text-amber-600">À traiter</p>
         </div>
 
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Pharmacies analysées</p>
           <p className="mt-2 text-2xl font-semibold">{data?.pharmaciesTotal ?? 0}</p>
           <p className="mt-2 text-[11px] text-[#9CA3AF]">Base administrée</p>
@@ -206,7 +206,7 @@ export default function AdminReportsPage() {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+        <div className="gp-panel rounded-2xl p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">Activité hebdomadaire</h2>
             <span className="text-xs text-[#6B7280]">7 jours</span>
@@ -225,7 +225,7 @@ export default function AdminReportsPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+        <div className="gp-panel rounded-2xl p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">Alertes et incidents</h2>
             <span className="text-xs text-[#6B7280]">Temps réel</span>

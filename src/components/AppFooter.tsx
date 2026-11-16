@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function AppFooter({ align = "left" }: { align?: "left" | "center" }) {
   return (
     <footer
-      className={`flex flex-wrap items-center justify-between gap-3 text-xs text-[#6B7280] ${
+      className={`gp-footer flex flex-wrap items-center justify-between gap-3 text-xs text-[#6B7280] ${
         align === "center" ? "justify-center" : ""
       }`}
     >

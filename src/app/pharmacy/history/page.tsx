@@ -333,7 +333,7 @@ export default function PharmacyHistoryPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="gp-pro-page space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-lg font-semibold">Historique d&apos;activité</h1>
       </div>
@@ -394,7 +394,7 @@ export default function PharmacyHistoryPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+      <div className="gp-panel rounded-2xl p-4">
         <div className="overflow-hidden rounded-2xl border border-[#E5E7EB]">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-xs">

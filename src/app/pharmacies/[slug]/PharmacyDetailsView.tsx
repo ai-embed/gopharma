@@ -139,22 +139,23 @@ export default function PharmacyDetailPage() {
   return (
     <PatientShell>
       {loading ? (
-        <p className="text-sm text-[#6B7280]">Chargement de la pharmacie...</p>
+        <p className="gp-panel rounded-2xl p-5 text-sm text-[#6B7280]">Chargement de la pharmacie...</p>
       ) : error ? (
         <p className="text-sm text-red-600">{error}</p>
       ) : pharmacy ? (
-        <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
+        <div className="gp-pharmacy-detail grid gap-6 lg:grid-cols-[1.7fr_1fr]">
           <section className="space-y-6">
-            <div className="relative overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white">
+            <div className="gp-pharmacy-hero relative overflow-hidden rounded-[2rem]">
               <div
                 className="relative h-55 bg-cover bg-center"
                 style={{ backgroundImage: `url('${heroImage}')` }}
                 role="img"
                 aria-label={`Bannière de ${pharmacy.name}`}
               >
-                <div className="absolute inset-0 bg-linear-to-r from-black/60 to-transparent" />
-                <div className="absolute bottom-4 left-4 text-white">
-                  <h1 className="text-xl font-semibold">{pharmacy.name}</h1>
+                <div className="absolute inset-0 bg-linear-to-r from-[#071D3A]/80 via-[#071D3A]/28 to-transparent" />
+                <div className="absolute bottom-5 left-5 text-white sm:bottom-6 sm:left-6">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-cyan-100/85">Fiche pharmacie</p>
+                  <h1 className="mt-1 text-xl font-bold tracking-[-0.03em]">{pharmacy.name}</h1>
                   <div className="mt-2 flex items-center gap-3 text-xs">
                     <span
                       className={`rounded-full px-2 py-1 ${
@@ -188,7 +189,7 @@ export default function PharmacyDetailPage() {
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-2xl border border-[#E5E7EB] bg-white p-4 text-sm"
+                  className="gp-pharmacy-info-card rounded-2xl p-4 text-sm"
                 >
                   <p className="text-xs font-semibold text-[#6B7280]">{item.title}</p>
                   <p className="mt-2 font-semibold">{item.value}</p>
@@ -199,7 +200,7 @@ export default function PharmacyDetailPage() {
               ))}
             </div>
 
-            <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5">
+            <div className="gp-panel rounded-3xl p-5">
               <h2 className="text-sm font-semibold">À propos de nous</h2>
               <p className="mt-3 text-xs text-[#6B7280]">
                 {pharmacy.description ||
@@ -207,14 +208,14 @@ export default function PharmacyDetailPage() {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5">
+            <div className="gp-panel rounded-3xl p-5">
               <h2 className="text-sm font-semibold">Nos services</h2>
               {services.length > 0 ? (
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   {services.map((service) => (
                     <div
                       key={service.title}
-                      className="rounded-2xl border border-[#E5E7EB] px-4 py-3 text-xs"
+                      className="gp-pharmacy-service rounded-2xl px-4 py-3 text-xs"
                     >
                       <p className="text-sm font-semibold">{service.title}</p>
                       <p className="text-xs text-[#6B7280]">{service.desc}</p>
@@ -231,8 +232,8 @@ export default function PharmacyDetailPage() {
           </section>
 
           <aside className="space-y-4">
-            <div className="rounded-3xl border border-[#E5E7EB] bg-white p-5">
-              <div className="mb-4 rounded-2xl border border-[#E5E7EB] bg-[#FAFBFF] p-3">
+            <div className="gp-panel rounded-3xl p-5">
+              <div className="gp-pharmacy-schedule mb-4 rounded-2xl p-3">
                 <p className="text-xs font-semibold text-[#1F1D1B]">Horaires</p>
                 {weeklySchedule.length > 0 ? (
                   <div className="mt-2 grid gap-1 text-xs text-[#6B7280]">
@@ -254,7 +255,7 @@ export default function PharmacyDetailPage() {
                   href={mapsUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex w-full items-center justify-center rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
+                  className="gp-search-submit inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-xs font-bold text-white"
                 >
                   Obtenir l&apos;itinéraire
                 </a>
@@ -270,7 +271,7 @@ export default function PharmacyDetailPage() {
               <button
                 type="button"
                 disabled
-                className="mt-3 w-full rounded-full border border-[#E5E7EB] px-4 py-2 text-xs font-semibold text-[#1F1D1B]"
+                  className="gp-outline-button mt-3 w-full rounded-full border px-4 py-2 text-xs font-semibold text-[#1F1D1B]"
               >
                 Appeler maintenant
               </button>

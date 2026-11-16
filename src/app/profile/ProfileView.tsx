@@ -21,13 +21,14 @@ export default function ProfileView() {
       <div className="space-y-6">
         {error ? <Notice tone="error" message={error} /> : null}
 
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold">Identité</h2>
+        <section className="gp-profile-section space-y-3 rounded-2xl p-4 sm:p-5">
+          <p className="gp-section-kicker">Informations du compte</p>
+          <h2 className="gp-section-heading">Identité</h2>
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
               <p className="text-[11px] font-semibold text-[#9CA3AF]">NOM COMPLET</p>
               <div className="flex items-center gap-3 text-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F3F6F9] text-[10px] font-semibold text-[#6B7280]">
+                <div className="gp-profile-detail-icon flex h-10 w-10 items-center justify-center rounded-xl text-[10px] font-semibold text-[#6B7280]">
                   ID
                 </div>
                 <span>{loading ? "Chargement..." : displayName}</span>
@@ -36,7 +37,7 @@ export default function ProfileView() {
             <div className="space-y-2">
               <p className="text-[11px] font-semibold text-[#9CA3AF]">PAYS</p>
               <div className="flex items-center gap-3 text-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F3F6F9] text-[10px] font-semibold text-[#6B7280]">
+                <div className="gp-profile-detail-icon flex h-10 w-10 items-center justify-center rounded-xl text-[10px] font-semibold text-[#6B7280]">
                   GEO
                 </div>
                 <span>{loading ? "Chargement..." : country}</span>
@@ -45,7 +46,7 @@ export default function ProfileView() {
             <div className="space-y-2">
               <p className="text-[11px] font-semibold text-[#9CA3AF]">ID UTILISATEUR</p>
               <div className="flex items-center gap-3 text-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F3F6F9] text-[10px] font-semibold text-[#6B7280]">
+                <div className="gp-profile-detail-icon flex h-10 w-10 items-center justify-center rounded-xl text-[10px] font-semibold text-[#6B7280]">
                   UID
                 </div>
                 <span>{loading ? "Chargement..." : userId}</span>
@@ -54,15 +55,16 @@ export default function ProfileView() {
           </div>
         </section>
 
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold">Informations de contact</h2>
+        <section className="gp-profile-section space-y-3 rounded-2xl p-4 sm:p-5">
+          <p className="gp-section-kicker">Pour vous joindre</p>
+          <h2 className="gp-section-heading">Informations de contact</h2>
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
               <p className="text-[11px] font-semibold text-[#9CA3AF]">
                 NUMÉRO DE TÉLÉPHONE
               </p>
               <div className="flex items-center gap-3 text-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F3F6F9] text-[10px] font-semibold text-[#6B7280]">
+                <div className="gp-profile-detail-icon flex h-10 w-10 items-center justify-center rounded-xl text-[10px] font-semibold text-[#6B7280]">
                   TEL
                 </div>
                 <span>{phone}</span>
@@ -73,7 +75,7 @@ export default function ProfileView() {
                 ADRESSE E-MAIL
               </p>
               <div className="flex items-center gap-3 text-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F3F6F9] text-[10px] font-semibold text-[#6B7280]">
+                <div className="gp-profile-detail-icon flex h-10 w-10 items-center justify-center rounded-xl text-[10px] font-semibold text-[#6B7280]">
                   MAIL
                 </div>
                 <span>{loading ? "Chargement..." : email}</span>
@@ -82,13 +84,14 @@ export default function ProfileView() {
           </div>
         </section>
 
-        <section className="space-y-3 border-t border-[#E5E7EB] pt-6">
-          <h2 className="text-sm font-semibold">Préférences du compte</h2>
+        <section className="gp-profile-section space-y-3 rounded-2xl p-4 sm:p-5">
+          <p className="gp-section-kicker">Configuration locale</p>
+          <h2 className="gp-section-heading">Préférences du compte</h2>
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
               <p className="text-[11px] font-semibold text-[#9CA3AF]">LANGUE</p>
               <div className="flex items-center gap-3 text-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F3F6F9] text-[10px] font-semibold text-[#6B7280]">
+                <div className="gp-profile-detail-icon flex h-10 w-10 items-center justify-center rounded-xl text-[10px] font-semibold text-[#6B7280]">
                   LNG
                 </div>
                 <span>{loading ? "Chargement..." : language}</span>
@@ -97,7 +100,7 @@ export default function ProfileView() {
             <div className="space-y-2">
               <p className="text-[11px] font-semibold text-[#9CA3AF]">FUSEAU HORAIRE</p>
               <div className="flex items-center gap-3 text-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F3F6F9] text-[10px] font-semibold text-[#6B7280]">
+                <div className="gp-profile-detail-icon flex h-10 w-10 items-center justify-center rounded-xl text-[10px] font-semibold text-[#6B7280]">
                   TZ
                 </div>
                 <span>{loading ? "Chargement..." : timezone}</span>

@@ -113,16 +113,17 @@ export default function HistoryView() {
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold">Historique des activités</h2>
+          <p className="gp-section-kicker">Votre activité</p>
+          <h2 className="gp-section-heading mt-1 text-lg">Historique des activités</h2>
           <p className="text-sm text-[#6B7280]">
             Suivez les recherches, pharmacies consultées et demandes récentes.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <button className="rounded-full border border-[#E5E7EB] px-4 py-2 font-semibold text-[#1F2937]">
+          <button type="button" className="gp-outline-button rounded-full border px-4 py-2 font-semibold">
             Filtrer
           </button>
-          <button className="rounded-full bg-[#0B63D1] px-4 py-2 font-semibold text-white">
+          <button type="button" className="gp-search-submit rounded-full px-4 py-2 font-semibold text-white">
             Exporter
           </button>
         </div>
@@ -132,7 +133,7 @@ export default function HistoryView() {
         {loading ? (
           <p className="text-sm text-[#6B7280]">Chargement de l&apos;historique...</p>
         ) : activityItems.length === 0 ? (
-          <div className="rounded-2xl border border-[#E5E7EB] p-4 text-center">
+          <div className="gp-empty-state rounded-2xl p-4 text-center">
             <p className="text-sm font-semibold">Aucune activité récente</p>
             <p className="mt-1 text-xs text-[#6B7280]">
               Vos recherches et actions apparaîtront ici.
@@ -142,7 +143,7 @@ export default function HistoryView() {
           activityItems.map((item) => (
             <div
               key={item.id}
-              className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#E5E7EB] p-4"
+              className="gp-history-item flex flex-wrap items-center justify-between gap-4 rounded-2xl p-4"
             >
               <div className="flex items-start gap-4">
                 <div

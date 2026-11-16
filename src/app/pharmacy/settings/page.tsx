@@ -296,7 +296,7 @@ export default function PharmacySettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="gp-pro-page space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold">Paramètres de la pharmacie</h1>
@@ -327,7 +327,7 @@ export default function PharmacySettingsPage() {
 
       {/* Section Photo et Bannière de la pharmacie */}
       {!loading && pharmacyId && (
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+        <div className="gp-panel rounded-2xl p-5">
           <h2 className="mb-4 text-sm font-semibold">Apparence de la pharmacie</h2>
           <PharmacyPhotoUpload
             pharmacyId={pharmacyId}
@@ -342,7 +342,7 @@ export default function PharmacySettingsPage() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="space-y-6">
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+          <div className="gp-panel rounded-2xl p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EAF2FF] text-sm font-semibold text-[#0B63D1]">
@@ -404,7 +404,7 @@ export default function PharmacySettingsPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+          <div className="gp-panel rounded-2xl p-5">
             <h2 className="text-sm font-semibold">Adresse & localisation</h2>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="md:col-span-2 space-y-2">
@@ -446,7 +446,7 @@ export default function PharmacySettingsPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+          <div className="gp-panel rounded-2xl p-5">
             <h2 className="text-sm font-semibold">Présentation</h2>
             <div className="mt-4 grid gap-4">
               <label>
@@ -471,7 +471,7 @@ export default function PharmacySettingsPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+          <div className="gp-panel rounded-2xl p-5">
             <h2 className="text-sm font-semibold">Notifications</h2>
             <p className="mt-2 text-xs text-[#6B7280]">
               Contrôler les alertes automatiques envoyées par la plateforme.
@@ -512,7 +512,7 @@ export default function PharmacySettingsPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+          <div className="gp-panel rounded-2xl p-5">
             <h2 className="text-sm font-semibold">Sécurité du compte</h2>
             <p className="mt-2 text-xs text-[#6B7280]">
               Utilisez la réinitialisation sécurisée par e-mail pour changer le mot de passe.

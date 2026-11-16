@@ -29,9 +29,9 @@ export function TopNav() {
     : "Utilisateur";
 
   return (
-    <header className="flex flex-wrap items-center justify-between gap-6 rounded-3xl border border-[#E5E7EB] bg-white px-4 py-3 sm:px-6 sm:py-4">
-      <div className="flex flex-wrap items-center gap-6">
-        <Link href="/dashboard" className="flex items-center gap-3">
+    <header className="gp-top-nav flex flex-wrap items-center justify-between gap-4 rounded-3xl px-4 py-3 sm:px-6 sm:py-4">
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-4 sm:gap-6">
+        <Link href="/dashboard" className="gp-brand-link flex shrink-0 items-center gap-3">
           <Image
             src="/icons/Untitled design.png"
             alt="GoPharma Logo"
@@ -39,19 +39,23 @@ export function TopNav() {
             height={40}
             className="h-10 w-10 rounded-xl"
           />
-          <span className="text-lg font-semibold text-[#0B63D1]">GoPharma</span>
+          <span className="text-lg font-bold tracking-[-0.03em] text-[#0B63D1]">GoPharma</span>
         </Link>
-        <nav className="flex flex-wrap items-center gap-3 text-sm text-[#6B7280]">
+        <nav
+          aria-label="Navigation principale"
+          className="gp-nav-links flex min-w-0 items-center gap-1.5 text-sm text-[#6B7280] sm:gap-2"
+        >
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.matchPrefix);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`rounded-full px-3 py-2 text-xs font-semibold transition ${
+                aria-current={isActive ? "page" : undefined}
+                className={`gp-nav-link whitespace-nowrap rounded-full px-3 py-2 text-xs font-semibold ${
                   isActive
-                    ? "bg-[#0B63D1] text-white"
-                    : "border border-transparent text-[#6B7280] hover:border-[#E5E7EB]"
+                    ? "gp-nav-link--active"
+                    : ""
                 }`}
               >
                 {item.label}
@@ -60,11 +64,11 @@ export function TopNav() {
           })}
         </nav>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
         <button
           type="button"
           onClick={logout}
-          className="rounded-full border border-[#E5E7EB] px-4 py-2 text-xs font-semibold text-[#1F2937]"
+          className="hidden rounded-full border border-[#D7E5F2] bg-white/70 px-4 py-2 text-xs font-semibold text-[#1F2937] transition hover:border-[#9FC8EC] hover:bg-[#F4FAFF] sm:inline-flex"
         >
           Se déconnecter
         </button>
@@ -78,7 +82,7 @@ export function TopNav() {
         <Link
           href="/profile"
           aria-label="Profil patient"
-          className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#EEF2F7]"
+          className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#EAF3FF] ring-2 ring-white transition hover:scale-105 hover:ring-[#B9DCF6]"
         >
           {user?.profilePhotoUrl ? (
             <Image

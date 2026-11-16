@@ -649,10 +649,10 @@ export default function SearchPage() {
 
   return (
     <PatientShell>
-      <div className="grid gap-6 xl:grid-cols-[560px_minmax(0,1fr)]">
-        <aside className="space-y-5">
-          <div className="relative overflow-visible rounded-[28px] border border-[#DCE5F0] bg-white p-3 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-            <div className="rounded-[20px] border border-[#DCE5F0] bg-[#FBFCFE] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+      <div className="gp-search-layout grid gap-6 xl:grid-cols-[560px_minmax(0,1fr)]">
+        <aside className="gp-search-sidebar space-y-5">
+          <div className="gp-search-command-wrap relative overflow-visible rounded-[28px] border bg-white p-3">
+            <div className="gp-search-command rounded-[20px] border px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[18px] leading-none text-[#98A2B3]">⌕</span>
                 {queryTokens.map((token) => (
@@ -693,7 +693,7 @@ export default function SearchPage() {
                     }
                   }}
                   placeholder="Ajouter un produit..."
-                  className="min-w-45 flex-1 border-none bg-transparent text-[14px] leading-6 text-[#4B5563] outline-none placeholder:text-[#9CA3AF]"
+                  className="gp-search-input min-w-45 flex-1 border-none bg-transparent text-[14px] leading-6 text-[#4B5563] outline-none placeholder:text-[#9CA3AF]"
                 />
                 <button
                   type="button"
@@ -708,14 +708,14 @@ export default function SearchPage() {
                   onClick={() => {
                     void runSearch();
                   }}
-                  className="rounded-md bg-blue-500 px-4 py-2 text-[12px] font-semibold text-white shadow-md transition hover:bg-blue-600"
+                  className="gp-search-submit rounded-xl px-4 py-2 text-[12px] font-semibold text-white"
                 >
                   Rechercher
                 </button>
               </div>
             </div>
             {visibleSuggestions.length > 0 ? (
-              <div className="absolute left-5 right-5 top-full z-10 mt-3 rounded-md border border-gray-200 bg-white p-2 text-sm shadow-md">
+              <div className="gp-panel absolute left-5 right-5 top-full z-10 mt-3 rounded-xl p-2 text-sm shadow-md">
                 {visibleSuggestions.map((item) => (
                   <button
                     type="button"
@@ -733,9 +733,10 @@ export default function SearchPage() {
           </div>
 
           <div className="flex flex-wrap items-end justify-between gap-3 px-1 pt-1">
-            <h2 className="text-[18px] font-semibold tracking-[-0.02em] text-[#111827]">
-              Résultats de recherche
-            </h2>
+            <div>
+              <p className="gp-section-kicker">Comparaison en direct</p>
+              <h2 className="gp-section-heading mt-1">Résultats de recherche</h2>
+            </div>
             {hasExecutedSearch ? (
               <p className="text-[13px] text-[#6B7280]">
                 {pharmacyCount} pharmacies trouvées {locationLabel}
@@ -802,10 +803,10 @@ export default function SearchPage() {
                       resultCardRefs.current[group.pharmacy._id] = node;
                     }}
                     onClick={() => setSelectedPharmacyId(group.pharmacy._id)}
-                    className={`cursor-pointer rounded-md bg-white p-4 transition hover:-translate-y-0.5 ${
+                    className={`gp-result-card cursor-pointer rounded-2xl border bg-white p-4 ${
                       isSelected || isBestPrice
-                        ? "border-2 border-blue-200 shadow-md"
-                        : "border border-gray-200 shadow-sm hover:border-blue-200 hover:shadow-md"
+                        ? "gp-result-card--selected border-2 border-blue-200"
+                        : "border border-gray-200"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -979,10 +980,10 @@ export default function SearchPage() {
                       resultCardRefs.current[pharmacy._id] = node;
                     }}
                     onClick={() => setSelectedPharmacyId(pharmacy._id)}
-                    className={`cursor-pointer rounded-[20px] bg-white p-4 transition hover:-translate-y-0.5 ${
+                    className={`gp-result-card cursor-pointer rounded-[20px] border bg-white p-4 ${
                       isSelected
-                        ? "border-2 border-[#CBE8FA] shadow-[0_18px_38px_rgba(34,157,227,0.14)]"
-                        : "border border-[#DCE5F0] shadow-[0_10px_24px_rgba(15,23,42,0.05)] hover:border-[#CBE8FA] hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]"
+                        ? "gp-result-card--selected border-2 border-[#CBE8FA]"
+                        : "border border-[#DCE5F0]"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">

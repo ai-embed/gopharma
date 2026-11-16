@@ -175,7 +175,7 @@ function PreferencesForm({
 
   return (
     <div className="space-y-6">
-      <section className="space-y-4 rounded-2xl border border-[#E5E7EB] p-5">
+      <section className="gp-settings-card space-y-4 rounded-2xl p-5">
         <div>
           <h2 className="text-sm font-semibold">Paramètres de notification</h2>
           <p className="text-xs text-[#6B7280]">
@@ -233,7 +233,7 @@ function PreferencesForm({
         </div>
       </section>
 
-      <section className="space-y-3 rounded-2xl border border-[#E5E7EB] p-5">
+      <section className="gp-settings-card space-y-3 rounded-2xl p-5">
         <h2 className="text-sm font-semibold">Langue &amp; région</h2>
         <p className="text-xs text-[#6B7280]">
           Ces informations sont enregistrées dans votre profil utilisateur.
@@ -272,7 +272,7 @@ function PreferencesForm({
         </div>
       </section>
 
-      <section className="space-y-3 rounded-2xl border border-[#E5E7EB] p-5">
+      <section className="gp-settings-card space-y-3 rounded-2xl p-5">
         <h2 className="text-sm font-semibold">Apparence</h2>
         <p className="text-xs text-[#6B7280]">
           Choisissez le thème clair ou sombre pour l&apos;application.
@@ -305,7 +305,7 @@ function PreferencesForm({
         </div>
       </section>
 
-      <section className="space-y-3 rounded-2xl border border-[#E5E7EB] p-5">
+      <section className="gp-settings-card space-y-3 rounded-2xl p-5">
         <h2 className="text-sm font-semibold">Sécurité du compte</h2>
         <p className="text-xs text-[#6B7280]">
           Utilisez le flux sécurisé de réinitialisation mot de passe par e-mail.
@@ -320,7 +320,7 @@ function PreferencesForm({
         </button>
       </section>
 
-      <section className="space-y-3 rounded-2xl border border-[#E5E7EB] p-5">
+      <section className="gp-settings-card space-y-3 rounded-2xl p-5">
         <h2 className="text-sm font-semibold">Localisation</h2>
         <p className="text-xs text-[#6B7280]">
           Réinitialisez votre choix “Cette fois / Toujours” pour afficher à nouveau

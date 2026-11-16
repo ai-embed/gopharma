@@ -290,14 +290,14 @@ export default function AdminDashboardPage() {
 
   if (loading && !data) {
     return (
-      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5 text-sm text-[#6B7280]">
+      <div className="gp-panel rounded-2xl p-5 text-sm text-[#6B7280]">
         Chargement du dashboard administrateur...
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="gp-dashboard">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-lg font-semibold">Vue d&apos;ensemble du Tableau de bord</h1>
         <button
@@ -319,7 +319,7 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Utilisateurs</p>
           <div className="mt-2 flex items-center gap-2">
             <span className="text-xl font-semibold">{data?.totalUsers ?? 0}</span>
@@ -330,7 +330,7 @@ export default function AdminDashboardPage() {
           <p className="mt-2 text-[11px] text-[#9CA3AF]">Comptes enregistrés</p>
         </div>
 
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Pharmacies</p>
           <div className="mt-2 flex items-center gap-2">
             <span className="text-xl font-semibold">{data?.totalPharmacies ?? 0}</span>
@@ -343,7 +343,7 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Validations</p>
           <div className="mt-2 flex items-center gap-2">
             <span className="text-xl font-semibold">{data?.pendingValidations ?? 0}</span>
@@ -354,7 +354,7 @@ export default function AdminDashboardPage() {
           <p className="mt-2 text-[11px] text-[#9CA3AF]">Demandes à traiter</p>
         </div>
 
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Audit système</p>
           <div className="mt-2 flex items-center gap-2">
             <span className="text-xl font-semibold">{data?.auditTotal ?? 0}</span>
@@ -368,7 +368,7 @@ export default function AdminDashboardPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
         <div className="space-y-6">
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <div className="gp-panel rounded-2xl p-4">
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-semibold">File de validation</div>
               <Link href="/admin/validation-queue" className="text-xs font-semibold text-[#0B63D1]">
@@ -419,7 +419,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <div className="gp-panel rounded-2xl p-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold">Derniers événements audit</h3>
               <Link href="/admin/audit-logs" className="text-xs font-semibold text-[#0B63D1]">
@@ -460,7 +460,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <div className="gp-panel rounded-2xl p-4">
             <h3 className="text-sm font-semibold">Intégrations</h3>
             <div className="mt-4 space-y-3 text-xs">
               {(data?.integrationRows ?? []).map((item, index) => (
@@ -487,7 +487,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <div className="gp-panel rounded-2xl p-4">
             <h3 className="text-sm font-semibold">Répartition des rôles</h3>
             <div className="mt-4 space-y-3 text-xs text-[#6B7280]">
               {(data?.roleBreakdown ?? []).length === 0 ? (

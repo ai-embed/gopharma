@@ -90,7 +90,7 @@ export default function AdminGrowthPage() {
   }
 
   return (
-    <div>
+    <div className="gp-admin-analytics">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold">Croissance</h1>
@@ -120,7 +120,7 @@ export default function AdminGrowthPage() {
       {error ? <Notice tone="error" message={error} /> : null}
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Nouveaux utilisateurs</p>
           <p className="mt-2 text-2xl font-semibold">
             {data?.usersGrowth && data.usersGrowth > 0 ? "+" : ""}
@@ -128,7 +128,7 @@ export default function AdminGrowthPage() {
           </p>
           <p className="mt-2 text-[11px] text-emerald-600">{data?.usersCurrent ?? 0} ce mois</p>
         </div>
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Pharmacies ajoutées</p>
           <p className="mt-2 text-2xl font-semibold">
             {data?.pharmaciesGrowth && data.pharmaciesGrowth > 0 ? "+" : ""}
@@ -136,7 +136,7 @@ export default function AdminGrowthPage() {
           </p>
           <p className="mt-2 text-[11px] text-[#9CA3AF]">{data?.pharmaciesCurrent ?? 0} ce mois</p>
         </div>
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Recherches totales</p>
           <p className="mt-2 text-2xl font-semibold">{data?.searchesCount ?? 0}</p>
           <p className="mt-2 text-[11px] text-[#9CA3AF]">30 derniers jours</p>
@@ -144,7 +144,7 @@ export default function AdminGrowthPage() {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+        <div className="gp-panel rounded-2xl p-5">
           <h2 className="text-sm font-semibold">Adoption par région</h2>
           <div className="mt-6 space-y-3">
             {(data?.topCountries ?? []).map((row) => (
@@ -164,7 +164,7 @@ export default function AdminGrowthPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+        <div className="gp-panel rounded-2xl p-5">
           <h2 className="text-sm font-semibold">Cohortes d&apos;utilisateurs</h2>
           <div className="mt-6 space-y-3 text-xs text-[#6B7280]">
             {(data?.roleBreakdown ?? []).map((row) => (

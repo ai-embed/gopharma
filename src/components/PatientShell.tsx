@@ -42,8 +42,8 @@ export function PatientShell({ children }: PatientShellProps) {
 
   if (!canRenderPatientPage) {
     return (
-      <div className="min-h-screen bg-[#F3F6F9] px-4 py-6 text-[#1F1D1B] sm:px-6 sm:py-10">
-        <div className="mx-auto flex max-w-6xl items-center justify-center rounded-3xl border border-[#E5E7EB] bg-white py-16 text-sm text-[#6B7280]">
+      <div className="gp-patient-shell min-h-screen px-4 py-6 text-[#1F1D1B] sm:px-6 sm:py-10">
+        <div className="gp-panel mx-auto flex max-w-6xl items-center justify-center rounded-3xl py-16 text-sm text-[#6B7280]">
           Vérification de session…
         </div>
       </div>
@@ -51,12 +51,12 @@ export function PatientShell({ children }: PatientShellProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F3F6F9] px-4 py-6 text-[#1F1D1B] sm:px-6 sm:py-10">
-      <div className="mx-auto max-w-6xl space-y-6">
+    <div className="gp-patient-shell min-h-screen px-4 py-4 text-[#1F1D1B] sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-7xl space-y-6">
         <div className="sticky top-3 z-40">
           <TopNav />
         </div>
-        {children}
+        <main className="gp-page-reveal">{children}</main>
         <AppFooter />
       </div>
       <Chatbot />

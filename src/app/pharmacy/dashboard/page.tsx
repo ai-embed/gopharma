@@ -129,14 +129,14 @@ export default function PharmacyDashboardPage() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 text-sm text-[#6B7280]">
+      <div className="gp-panel rounded-2xl p-6 text-sm text-[#6B7280]">
         Chargement du tableau de bord pharmacie...
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="gp-dashboard space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold">Tableau de bord pharmacie</h1>
@@ -156,14 +156,14 @@ export default function PharmacyDashboardPage() {
       {error ? <Notice tone="error" message={error} /> : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Produits au catalogue</p>
           <p className="mt-2 text-xl font-semibold">{stats.totalProducts}</p>
           <p className="mt-2 text-[11px] text-[#9CA3AF]">
             {stats.availableCount} produits disponibles
           </p>
         </div>
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Stock faible</p>
           <p className="mt-2 text-xl font-semibold text-amber-600">
             {stats.lowStockCount}
@@ -172,14 +172,14 @@ export default function PharmacyDashboardPage() {
             {stats.outOfStockCount} produits en rupture
           </p>
         </div>
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Visites</p>
           <p className="mt-2 text-xl font-semibold">{visits?.last7Days ?? 0}</p>
           <p className="mt-2 text-[11px] text-[#9CA3AF]">
             7 jours · {visits?.last30Days ?? 0} sur 30 jours
           </p>
         </div>
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel gp-metric-card rounded-2xl p-4">
           <p className="text-xs text-[#6B7280]">Valeur du stock</p>
           <p className="mt-2 text-xl font-semibold">{formatCurrency(stats.stockValue)}</p>
           <p className="mt-2 text-[11px] text-[#9CA3AF]">
@@ -189,7 +189,7 @@ export default function PharmacyDashboardPage() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="gp-panel rounded-2xl p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-sm font-semibold">Alertes stock faible</h2>
             <Link
@@ -243,7 +243,7 @@ export default function PharmacyDashboardPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <div className="gp-panel rounded-2xl p-4">
             <h2 className="text-sm font-semibold">État du compte</h2>
             <div className="mt-3 space-y-2 text-xs">
               <div className="flex items-center justify-between">
@@ -257,7 +257,7 @@ export default function PharmacyDashboardPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <div className="gp-panel rounded-2xl p-4">
             <h2 className="text-sm font-semibold">Actions rapides</h2>
             <div className="mt-3 flex flex-col gap-2">
               <Link
