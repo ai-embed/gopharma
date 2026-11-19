@@ -7,12 +7,9 @@ export default function PwaRegister() {
     if (process.env.NODE_ENV !== "production") return;
     if (!("serviceWorker" in navigator)) return;
 
-    const onLoad = () => {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
-    };
-
-    window.addEventListener("load", onLoad);
-    return () => window.removeEventListener("load", onLoad);
+    navigator.serviceWorker.register("/sw.js").catch((error: unknown) => {
+      console.error("[PWA] Impossible d’enregistrer le service worker.", error);
+    });
   }, []);
 
   return null;
