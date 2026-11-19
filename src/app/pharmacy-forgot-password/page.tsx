@@ -6,8 +6,6 @@ import Image from "next/image";
 import { Notice } from "@/components/Notice";
 import { apiJson } from "@/lib/api";
 
-export const dynamic = "force-dynamic";
-
 export default function PharmacyForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);

@@ -9,8 +9,6 @@ import { API_BASE, apiJson, apiJsonAuth } from "@/lib/api";
 import { clearTokens, getAccessToken, saveRoleCookie } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 
-export const dynamic = "force-dynamic";
-
 type RegisterPharmacyResponse = {
   message?: string;
 };
@@ -36,6 +34,7 @@ export default function PharmacyRegisterPage() {
   const [pharmacyName, setPharmacyName] = useState("");
   const [ifu, setIfu] = useState("");
   const [pharmacyAddress, setPharmacyAddress] = useState("");
+  const [pharmacyPhoneNumber, setPharmacyPhoneNumber] = useState("");
   const [managerEmail, setManagerEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -180,6 +179,7 @@ export default function PharmacyRegisterPage() {
         country: country.trim(),
         pharmacyName: pharmacyName.trim(),
         pharmacyAddress: pharmacyAddress.trim(),
+        pharmacyPhoneNumber: pharmacyPhoneNumber.trim() || undefined,
         ifu: ifu.trim(),
         documentFileIds,
       }),
@@ -300,6 +300,18 @@ export default function PharmacyRegisterPage() {
                 placeholder="123 Rue de la Pharmacie, Ville, Pays"
                 className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm"
                 required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-[#6B7280]">
+                Téléphone de la pharmacie (facultatif)
+              </label>
+              <input
+                type="tel"
+                value={pharmacyPhoneNumber}
+                onChange={(event) => setPharmacyPhoneNumber(event.target.value)}
+                placeholder="+229 01 23 45 67"
+                className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-3 text-sm"
               />
             </div>
             <div className="space-y-2">

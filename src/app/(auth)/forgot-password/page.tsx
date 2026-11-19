@@ -5,8 +5,6 @@ import { useState } from "react";
 import { Notice } from "@/components/Notice";
 import { apiJson } from "@/lib/api";
 
-export const dynamic = "force-dynamic";
-
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);

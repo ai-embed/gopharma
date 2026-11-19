@@ -7,12 +7,22 @@ import { useSearchParams } from "next/navigation";
 import { apiJson, apiJsonAuth } from "@/lib/api";
 import { PatientShell } from "@/components/PatientShell";
 import { useFavorites } from "@/lib/useFavorites";
-import { getSavedLocationCoords, type Coordinates } from "@/lib/location-preferences";
+import {
+  getPersistentLocationChoice,
+  getSavedLocationCoords,
+  saveLocationCoords,
+  type Coordinates,
+} from "@/lib/location-preferences";
 import { DistanceMode, SearchFilters } from "@/components/search/SearchFilters";
+import { ReportMissingPharmacy } from "@/components/ReportMissingPharmacy";
 
 const SearchResultsMap = dynamic(() => import("@/components/SearchResultsMap"), {
   ssr: false,
 });
+const LocationPicker = dynamic(
+  () => import("@/components/LocationPicker").then((module) => module.LocationPicker),
+  { ssr: false }
+);
 
 type PharmacyLocation = {
   coordinates: [number, number];
@@ -24,12 +34,16 @@ type PublicPharmacy = {
   address?: string;
   description?: string;
   email?: string;
+  phoneNumber?: string;
   services?: string[];
   photoUrl?: string;
   bannerUrl?: string;
   operationalStatus?: "OUVERT" | "FERME";
   openNow?: boolean;
   nextTransitionAt?: string;
+  source?: "registered" | "community";
+  isCommunityReported?: boolean;
+  availabilitySource?: "manual" | "schedule" | "unknown";
   location?: PharmacyLocation;
 };
 
@@ -151,8 +165,13 @@ const formatTransitionHour = (isoDate?: string) => {
   return minutes === "00" ? `${hours}h` : `${hours}h${minutes}`;
 };
 
-const getOpenStatusPill = (isOpen?: boolean, nextTransitionAt?: string) => {
-  if (!isOpen) {
+const getOpenStatusPill = (
+  isOpen?: boolean,
+  nextTransitionAt?: string,
+  availabilitySource?: PublicPharmacy["availabilitySource"]
+) => {
+  if (availabilitySource === "unknown") return "Horaires à confirmer";
+  if (isOpen === false) {
     return "◔ Fermé";
   }
 
@@ -161,7 +180,7 @@ const getOpenStatusPill = (isOpen?: boolean, nextTransitionAt?: string) => {
 };
 
 const isPharmacyOpenNow = (pharmacy: PublicPharmacy) =>
-  pharmacy.openNow ?? pharmacy.operationalStatus === "OUVERT";
+  pharmacy.openNow ?? (pharmacy.operationalStatus === "OUVERT" ? true : undefined);
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
@@ -174,11 +193,15 @@ export default function SearchPage() {
   const [queryInput, setQueryInput] = useState(initialState.queryInput);
   const [queryTokens, setQueryTokens] = useState<string[]>(initialState.queryTokens);
   const [openNow, setOpenNow] = useState(false);
+  const [areaQuery, setAreaQuery] = useState("");
+  const [locationSearchSubmitted, setLocationSearchSubmitted] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("priceAsc");
   const [distanceMode, setDistanceMode] = useState<DistanceMode>("within20");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [pharmacyMatches, setPharmacyMatches] = useState<PublicPharmacy[]>([]);
   const [userCoords, setUserCoords] = useState<Coordinates | null>(null);
+  const [pendingUserCoords, setPendingUserCoords] = useState<Coordinates | null>(null);
   const [selectedPharmacyId, setSelectedPharmacyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -189,6 +212,8 @@ export default function SearchPage() {
   const { isPharmacyFavorite, togglePharmacyFavorite, mutating: favoriteMutating } =
     useFavorites();
   const shouldAutoSearchRef = useRef(Boolean(initialQuery));
+  const locationSearchActiveRef = useRef(false);
+  const areaQueryRef = useRef("");
   const runSearchRef = useRef<(() => Promise<void>) | null>(null);
   const hasSearchInputRef = useRef(
     initialState.queryTokens.length > 0 || initialState.queryInput.trim() !== ""
@@ -220,6 +245,34 @@ export default function SearchPage() {
     },
     [distanceMode]
   );
+
+  const runAreaSearch = useCallback(async () => {
+    const search = areaQueryRef.current.trim();
+    if (!search) return;
+
+    setLocationSearchSubmitted(true);
+    setHasExecutedSearch(true);
+    setLoading(true);
+    setError(null);
+    setResults([]);
+    setPharmacyMatches([]);
+    setSelectedPharmacyId(null);
+
+    const params = new URLSearchParams({ search, openNow: String(openNow) });
+    if (userCoords) {
+      params.set("lat", userCoords.lat.toString());
+      params.set("lng", userCoords.lng.toString());
+    }
+    applyDistanceParams(params);
+
+    const response = await apiJson<PublicPharmacy[]>(`/api/pharmacies?${params}`);
+    setLoading(false);
+    if (!response.ok) {
+      setError(response.error ?? "Impossible de rechercher dans ce quartier ou cette ville.");
+      return;
+    }
+    setPharmacyMatches(response.data ?? []);
+  }, [applyDistanceParams, openNow, userCoords]);
 
   const recordHistory = useCallback(
     (query: string, searchType: "PRODUIT" | "PHARMACIE", resultCount: number) => {
@@ -297,6 +350,11 @@ export default function SearchPage() {
   };
 
   const clearSearch = () => {
+    locationSearchActiveRef.current = false;
+    setLocationSearchSubmitted(false);
+    setAreaQuery("");
+    areaQueryRef.current = "";
+    setShowLocationPicker(false);
     setQueryInput("");
     setQueryTokens([]);
     setSuggestions([]);
@@ -309,6 +367,8 @@ export default function SearchPage() {
   };
 
   const runSearch = useCallback(async () => {
+    locationSearchActiveRef.current = false;
+    setLocationSearchSubmitted(false);
     setLoading(true);
     setError(null);
 
@@ -418,6 +478,14 @@ export default function SearchPage() {
   ]);
 
   useEffect(() => {
+    if (!locationSearchActiveRef.current) return;
+    const timer = window.setTimeout(() => {
+      void runAreaSearch();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [distanceMode, openNow, userCoords, runAreaSearch]);
+
+  useEffect(() => {
     runSearchRef.current = runSearch;
   }, [runSearch]);
 
@@ -436,6 +504,7 @@ export default function SearchPage() {
   }, [queryInput, queryTokens, runSearch]);
 
   useEffect(() => {
+    if (locationSearchActiveRef.current) return;
     if (!hasSearchInputRef.current) {
       return;
     }
@@ -448,7 +517,7 @@ export default function SearchPage() {
     }, 250);
 
     return () => window.clearTimeout(timer);
-  }, [distanceMode, openNow]);
+  }, [distanceMode, openNow, userCoords]);
 
   useEffect(() => {
     if (!selectedPharmacyId) {
@@ -578,6 +647,34 @@ export default function SearchPage() {
       return [];
     }
 
+    const applyFarDistanceFilter = (pharmacies: PublicPharmacy[]) => {
+      if (distanceMode !== "beyond50" || !userCoords) {
+        return pharmacies;
+      }
+
+      return pharmacies.filter((pharmacy) => {
+        const distanceKm = getDistanceKm(userCoords, pharmacy);
+        return distanceKm !== null && distanceKm >= FAR_DISTANCE_THRESHOLD_KM;
+      });
+    };
+
+    if (locationSearchSubmitted) {
+      return applyFarDistanceFilter([...pharmacyMatches])
+        .sort((a, b) => {
+          if (!userCoords) return a.name.localeCompare(b.name);
+          const distanceA = getDistanceKm(userCoords, a) ?? Number.POSITIVE_INFINITY;
+          const distanceB = getDistanceKm(userCoords, b) ?? Number.POSITIVE_INFINITY;
+          return distanceA - distanceB;
+        })
+        .map((pharmacy) => ({
+          ...pharmacy,
+          secondaryLabel:
+            pharmacy.services?.slice(0, 2).join(" • ") ??
+            pharmacy.description ??
+            pharmacy.email,
+        }));
+    }
+
     if (groupedResults.length > 0) {
       return groupedResults.map((group) => {
         return {
@@ -590,17 +687,6 @@ export default function SearchPage() {
         };
       });
     }
-
-    const applyFarDistanceFilter = (pharmacies: PublicPharmacy[]) => {
-      if (distanceMode !== "beyond50" || !userCoords) {
-        return pharmacies;
-      }
-
-      return pharmacies.filter((pharmacy) => {
-        const distanceKm = getDistanceKm(userCoords, pharmacy);
-        return distanceKm !== null && distanceKm >= FAR_DISTANCE_THRESHOLD_KM;
-      });
-    };
 
     if (pharmacyMatches.length > 0) {
       return applyFarDistanceFilter([...pharmacyMatches])
@@ -624,6 +710,7 @@ export default function SearchPage() {
     return [];
   }, [
     hasExecutedSearch,
+    locationSearchSubmitted,
     distanceMode,
     groupedResults,
     pharmacyMatches,
@@ -731,6 +818,38 @@ export default function SearchPage() {
               </div>
             ) : null}
           </div>
+          <form
+            className="gp-panel space-y-3 rounded-2xl p-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!areaQuery.trim()) return;
+              locationSearchActiveRef.current = true;
+              void runAreaSearch();
+            }}
+          >
+            <label htmlFor="pharmacy-area-search" className="block text-xs font-semibold">
+              Rechercher une pharmacie par quartier ou ville
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <input
+                id="pharmacy-area-search"
+                value={areaQuery}
+                onChange={(event) => {
+                  setAreaQuery(event.target.value);
+                  areaQueryRef.current = event.target.value;
+                }}
+                placeholder="Ex. Akpakpa, Cotonou"
+                className="min-w-40 flex-1 rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-sm"
+              />
+              <button
+                type="submit"
+                disabled={!areaQuery.trim() || loading}
+                className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
+              >
+                Chercher
+              </button>
+            </div>
+          </form>
 
           <div className="flex flex-wrap items-end justify-between gap-3 px-1 pt-1">
             <div>
@@ -750,11 +869,68 @@ export default function SearchPage() {
           {!userCoords ? (
             <p className="mx-1 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-700">
               Vous avez continué sans localisation: la distance et le tri par proximité
-              peuvent être moins précis.
+              peuvent être moins précis.{" "}
+              <Link href="/localisation" className="font-semibold underline">
+                Définir ma position sur la carte
+              </Link>
+            </p>
+          ) : null}
+          {userCoords?.accuracyMeters !== undefined ? (
+            <p className="mx-1 rounded-md border border-blue-100 bg-blue-50 px-3 py-2 text-[12px] text-blue-800">
+              Position GPS estimée à ±{Math.round(userCoords.accuracyMeters)} m.
+              {userCoords.accuracyMeters > 1000
+                ? " Elle est imprécise; vous pouvez corriger le point sur la carte."
+                : ""}
+            </p>
+          ) : userCoords ? (
+            <p className="mx-1 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-[12px] text-slate-700">
+              Position enregistrée sans précision GPS mesurable. Vous pouvez ajuster le repère sur la carte.
             </p>
           ) : null}
 
-          {!hasComparedProducts ? (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <ReportMissingPharmacy userCoordinates={userCoords} />
+            {userCoords ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingUserCoords(userCoords);
+                  setShowLocationPicker((value) => !value);
+                }}
+                className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#374151]"
+              >
+                {showLocationPicker ? "Masquer la carte de position" : "Corriger ma position sur la carte"}
+              </button>
+            ) : null}
+          </div>
+          {showLocationPicker && pendingUserCoords ? (
+            <div className="gp-panel space-y-3 rounded-2xl p-4">
+              <p className="text-sm font-semibold">Placez le repère à votre position</p>
+              <LocationPicker
+                coordinates={pendingUserCoords}
+                onChange={setPendingUserCoords}
+              />
+              <p className="text-xs text-[#6B7280]">
+                {pendingUserCoords.lat.toFixed(5)}, {pendingUserCoords.lng.toFixed(5)} · position corrigée manuellement
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  saveLocationCoords(
+                    pendingUserCoords,
+                    getPersistentLocationChoice() === "always" ? "always" : "once"
+                  );
+                  setUserCoords(pendingUserCoords);
+                  setShowLocationPicker(false);
+                }}
+                className="rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
+              >
+                Utiliser ce point et actualiser les résultats
+              </button>
+            </div>
+          ) : null}
+
+          {!hasComparedProducts && !locationSearchSubmitted ? (
             <p className="px-1 text-[12px] text-[#6B7280]">
               Ajoutez un ou plusieurs produits pour comparer les prix par pharmacie.
             </p>
@@ -773,7 +949,7 @@ export default function SearchPage() {
             <p className="text-sm text-[#6B7280]">Recherche en cours...</p>
           ) : error ? (
             <p className="text-sm text-red-600">{error}</p>
-          ) : groupedResults.length > 0 ? (
+          ) : groupedResults.length > 0 && !locationSearchSubmitted ? (
             <div className="space-y-4">
               {groupedResults.map((group, index) => {
                 const directionsUrl = buildDirectionsUrl(group.pharmacy);
@@ -969,7 +1145,8 @@ export default function SearchPage() {
                     : null;
                 const bottomStatus = getOpenStatusPill(
                   pharmacyOpenNow,
-                  pharmacy.nextTransitionAt
+                  pharmacy.nextTransitionAt,
+                  pharmacy.availabilitySource
                 );
                 const totalPrice = totalPriceByPharmacy.get(pharmacy._id);
 
@@ -999,12 +1176,18 @@ export default function SearchPage() {
                             </Link>
                             <span
                               className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-                                pharmacyOpenNow
+                                pharmacy.availabilitySource === "unknown"
+                                  ? "bg-slate-100 text-slate-700"
+                                  : pharmacyOpenNow
                                   ? "bg-[#DCFCE7] text-[#15803D]"
                                   : "bg-[#FEE2E2] text-[#B91C1C]"
                               }`}
                             >
-                              {pharmacyOpenNow ? "Ouvert" : "Fermé"}
+                              {pharmacy.availabilitySource === "unknown"
+                                ? "Signalée · horaires inconnus"
+                                : pharmacyOpenNow
+                                  ? "Ouvert"
+                                  : "Fermé"}
                             </span>
                           </div>
                           <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-[#6B7280]">
@@ -1016,6 +1199,11 @@ export default function SearchPage() {
                         {pharmacy.secondaryLabel ? (
                           <p className="inline-flex rounded-full bg-[#EAFBF0] px-3 py-1 text-xs font-semibold text-[#1B8E48]">
                             {pharmacy.secondaryLabel}
+                          </p>
+                        ) : null}
+                        {pharmacy.isCommunityReported ? (
+                          <p className="text-xs text-amber-800">
+                            Établissement signalé et vérifié par GoPharma. Confirmez les horaires et la disponibilité avant de vous déplacer.
                           </p>
                         ) : null}
                         {services.length > 0 ? (
@@ -1057,7 +1245,9 @@ export default function SearchPage() {
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <span
                           className={`inline-flex rounded-full px-3 py-1.5 text-xs font-medium ${
-                            pharmacyOpenNow
+                            pharmacy.availabilitySource === "unknown"
+                              ? "bg-slate-100 text-slate-700"
+                              : pharmacyOpenNow
                               ? "bg-[#ECFDF3] text-[#15803D]"
                               : "bg-[#FEF2F2] text-[#B91C1C]"
                           }`}
@@ -1081,6 +1271,15 @@ export default function SearchPage() {
                               className="rounded-xl bg-[#18A8EA] px-4 py-2 text-[12px] font-semibold text-white shadow-[0_10px_24px_rgba(22,163,224,0.22)] transition hover:bg-[#1099DA]"
                             >
                               ⟡ Itinéraire
+                            </a>
+                          ) : null}
+                          {pharmacy.phoneNumber ? (
+                            <a
+                              href={`tel:${pharmacy.phoneNumber}`}
+                              onClick={(event) => event.stopPropagation()}
+                              className="rounded-xl border border-[#D1D5DB] px-4 py-2 text-center text-[12px] font-semibold text-[#1F1D1B]"
+                            >
+                              Appeler
                             </a>
                           ) : null}
                         </div>

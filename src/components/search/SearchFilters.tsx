@@ -31,11 +31,9 @@ export function SearchFilters({
 }: SearchFiltersProps) {
   return (
     <div className="gp-filter-bar flex flex-wrap gap-2 text-[11px] font-semibold text-[#374151]">
-      <button type="button" className="rounded-full bg-[#0B63D1] px-3.5 py-2 text-white shadow-[0_10px_20px_rgba(11,99,209,0.18)] transition hover:bg-[#0754B7]">
-        ✣ Tous les filtres
-      </button>
       <button
         type="button"
+        aria-pressed={openNow}
         onClick={() => onOpenNowChange(!openNow)}
         className={`${baseFilterPillClass} ${
           openNow

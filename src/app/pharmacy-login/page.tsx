@@ -9,8 +9,6 @@ import { apiJson, apiJsonAuth } from "@/lib/api";
 import { clearTokens, getAccessToken, saveRoleCookie, saveTokens } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 
-export const dynamic = "force-dynamic";
-
 type LoginResponse = {
   accessToken: string;
   refreshToken: string;

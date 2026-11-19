@@ -79,7 +79,7 @@ describe("Pharmacy location", () => {
     const getCurrentPosition = vi.fn(
       (success: PositionCallback) =>
         success({
-          coords: { latitude: 6.36, longitude: 2.4 },
+          coords: { latitude: 6.36, longitude: 2.4, accuracy: 42 },
         } as GeolocationPosition)
     );
     Object.defineProperty(navigator, "geolocation", {
@@ -88,7 +88,11 @@ describe("Pharmacy location", () => {
     });
 
     try {
-      await expect(requestCurrentPosition()).resolves.toEqual({ lat: 6.36, lng: 2.4 });
+      await expect(requestCurrentPosition()).resolves.toEqual({
+        lat: 6.36,
+        lng: 2.4,
+        accuracyMeters: 42,
+      });
       expect(getCurrentPosition).toHaveBeenCalledWith(
         expect.any(Function),
         expect.any(Function),

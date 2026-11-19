@@ -1,6 +1,7 @@
 export type Coordinates = {
   lat: number;
   lng: number;
+  accuracyMeters?: number;
 };
 
 export type LocationMode = "once" | "always";
@@ -146,6 +147,7 @@ export function requestCurrentPosition(
         resolve({
           lat: position.coords.latitude,
           lng: position.coords.longitude,
+          accuracyMeters: position.coords.accuracy,
         });
       },
       (error) => {
