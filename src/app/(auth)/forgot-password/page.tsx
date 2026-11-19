@@ -55,15 +55,15 @@ export default function ForgotPasswordPage() {
               Email envoyé
             </h1>
             <p className="mt-2 text-sm text-[#6B7280]">
-              Si un compte existe avec cette adresse email, vous recevrez un lien de réinitialisation.
+              Si un compte existe avec cette adresse e-mail, vous recevrez un code de réinitialisation.
             </p>
           </div>
           <div className="mt-6">
             <Link
-              href="/login"
+              href="/reset-password"
               className="flex w-full items-center justify-center rounded-xl bg-[#0B63D1] px-4 py-3 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(11,99,209,0.25)] transition hover:bg-[#0A58B8]"
             >
-              Retour à la connexion
+              Saisir le code reçu
             </Link>
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
             Mot de passe oublié ?
           </h1>
           <p className="mt-2 text-sm text-[#6B7280]">
-            Entrez votre adresse email et nous vous enverrons un lien de réinitialisation.
+            Entrez votre adresse e-mail et nous vous enverrons un code de réinitialisation.
           </p>
         </div>
 
