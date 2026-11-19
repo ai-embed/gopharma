@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { requestFcmToken, onForegroundMessage, registerToken } from "./firebase/config";
+import {
+  hasFirebaseMessagingConfig,
+  requestFcmToken,
+  onForegroundMessage,
+  registerToken,
+} from "./firebase/config";
 
 interface PushNotification {
   title: string;
@@ -13,6 +18,8 @@ interface UsePushNotificationsReturn {
   permission: NotificationPermission | "unsupported";
   token: string | null;
   isSupported: boolean;
+  isConfigured: boolean;
+  isRegistered: boolean;
   requestPermission: () => Promise<boolean>;
   lastMessage: PushNotification | null;
   error: string | null;
@@ -22,7 +29,7 @@ interface UsePushNotificationsReturn {
  * Hook pour gérer les push notifications FCM
  * Web + Mobile (iOS/Android via PWA/Capacitor)
  */
-export function usePushNotifications(userId: string | null): UsePushNotificationsReturn {
+export function usePushNotifications(): UsePushNotificationsReturn {
   // Initialisation lazy pour éviter setState dans useEffect
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">(() => {
     if (typeof window === "undefined") return "default";
@@ -30,10 +37,16 @@ export function usePushNotifications(userId: string | null): UsePushNotification
     return Notification.permission;
   });
   const [token, setToken] = useState<string | null>(null);
+  const [isRegistered, setIsRegistered] = useState(false);
   const [lastMessage, setLastMessage] = useState<PushNotification | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const isSupported = typeof window !== "undefined" && "Notification" in window;
+  const isConfigured = hasFirebaseMessagingConfig();
+  const isSupported =
+    typeof window !== "undefined" &&
+    "Notification" in window &&
+    typeof navigator !== "undefined" &&
+    "serviceWorker" in navigator;
 
   // Listen for foreground messages
   useEffect(() => {
@@ -67,31 +80,36 @@ export function usePushNotifications(userId: string | null): UsePushNotification
       
       if (!fcmToken) {
         setPermission(Notification.permission);
-        if (Notification.permission === "denied") {
-          setError("Permission refusée. Activez les notifications dans les paramètres.");
-        }
+        setError(
+          Notification.permission === "denied"
+            ? "Permission refusée. Activez les notifications dans les paramètres."
+            : "Impossible de récupérer un jeton push. Vérifiez la configuration Firebase et le service worker."
+        );
         return false;
       }
 
       setToken(fcmToken);
       setPermission("granted");
 
-      // Enregistre sur le backend
-      if (userId) {
-        await registerToken(fcmToken, userId);
+      const registered = await registerToken(fcmToken);
+      setIsRegistered(registered);
+      if (!registered) {
+        setError("Le jeton push n’a pas pu être enregistré sur votre compte.");
       }
 
-      return true;
+      return registered;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue");
       return false;
     }
-  }, [isSupported, userId]);
+  }, [isSupported]);
 
   return {
     permission,
     token,
     isSupported,
+    isConfigured,
+    isRegistered,
     requestPermission,
     lastMessage,
     error,

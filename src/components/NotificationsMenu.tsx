@@ -21,8 +21,15 @@ function formatNotificationDate(value: string) {
 export function NotificationsMenu({ pollIntervalMs = 15000 }: NotificationsMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const { notifications, unreadCount, loading, refreshing, markAsRead, markAllAsRead } =
-    useNotifications({ pollIntervalMs });
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    refreshing,
+    error,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications({ pollIntervalMs });
 
   useEffect(() => {
     if (!open) return;
@@ -82,6 +89,10 @@ export function NotificationsMenu({ pollIntervalMs = 15000 }: NotificationsMenuP
             {loading ? (
               <p className="rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2 text-xs text-[#6B7280]">
                 Chargement...
+              </p>
+            ) : error ? (
+              <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                {error}
               </p>
             ) : notifications.length === 0 ? (
               <p className="rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-3 py-2 text-xs text-[#6B7280]">
