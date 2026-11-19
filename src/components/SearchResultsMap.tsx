@@ -12,6 +12,7 @@ type PublicPharmacy = {
   name: string;
   address?: string;
   openNow?: boolean;
+  availabilitySource?: "manual" | "schedule" | "unknown";
   badgeLabel?: string;
   secondaryLabel?: string;
   location?: {
@@ -131,8 +132,8 @@ function loadGoogleMapsScript(apiKey: string) {
   return googleMapsScriptPromise;
 }
 
-function buildMarkerIcon(isOpen: boolean) {
-  const color = isOpen ? "#18A957" : "#E04F5F";
+function buildMarkerIcon(isOpen?: boolean) {
+  const color = isOpen === undefined ? "#64748B" : isOpen ? "#18A957" : "#E04F5F";
   const svg = `
     <svg width="38" height="52" viewBox="0 0 38 52" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M19 0C8.507 0 0 8.437 0 18.842C0 32.974 19 52 19 52C19 52 38 32.974 38 18.842C38 8.437 29.493 0 19 0Z" fill="${color}"/>
@@ -143,6 +144,17 @@ function buildMarkerIcon(isOpen: boolean) {
   return {
     url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
   };
+}
+
+function escapeHtml(value: string) {
+  const entities: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  };
+  return value.replace(/[&<>"']/g, (character) => entities[character] ?? character);
 }
 
 export default function SearchResultsMap({
@@ -244,7 +256,9 @@ export default function SearchResultsMap({
             map: mapRef.current ?? undefined,
             position: pharmacy.position,
             title: pharmacy.name,
-            icon: buildMarkerIcon(Boolean(pharmacy.openNow)),
+            icon: buildMarkerIcon(
+              pharmacy.availabilitySource === "unknown" ? undefined : pharmacy.openNow
+            ),
             label: pharmacy.badgeLabel
               ? {
                   text: pharmacy.badgeLabel.length > 10
@@ -261,13 +275,13 @@ export default function SearchResultsMap({
             onPharmacySelect?.(pharmacy._id);
             const popup = `
               <div style="min-width:180px;padding:2px 0;">
-                <p style="margin:0 0 6px;font-weight:700;color:#111827;">${pharmacy.name}</p>
+                <p style="margin:0 0 6px;font-weight:700;color:#111827;">${escapeHtml(pharmacy.name)}</p>
                 <p style="margin:0 0 4px;font-size:12px;color:#6B7280;">
-                  ${pharmacy.address ?? "Adresse non renseignée"}
+                  ${escapeHtml(pharmacy.address ?? "Adresse non renseignée")}
                 </p>
                 ${
                   pharmacy.secondaryLabel
-                    ? `<p style="margin:0;font-size:12px;color:#6B7280;">${pharmacy.secondaryLabel}</p>`
+                    ? `<p style="margin:0;font-size:12px;color:#6B7280;">${escapeHtml(pharmacy.secondaryLabel)}</p>`
                     : ""
                 }
               </div>
@@ -342,13 +356,13 @@ export default function SearchResultsMap({
 
     const popup = `
       <div style="min-width:180px;padding:2px 0;">
-        <p style="margin:0 0 6px;font-weight:700;color:#111827;">${selected.name}</p>
+        <p style="margin:0 0 6px;font-weight:700;color:#111827;">${escapeHtml(selected.name)}</p>
         <p style="margin:0 0 4px;font-size:12px;color:#6B7280;">
-          ${selected.address ?? "Adresse non renseignée"}
+          ${escapeHtml(selected.address ?? "Adresse non renseignée")}
         </p>
         ${
           selected.secondaryLabel
-            ? `<p style="margin:0;font-size:12px;color:#6B7280;">${selected.secondaryLabel}</p>`
+            ? `<p style="margin:0;font-size:12px;color:#6B7280;">${escapeHtml(selected.secondaryLabel)}</p>`
             : ""
         }
       </div>

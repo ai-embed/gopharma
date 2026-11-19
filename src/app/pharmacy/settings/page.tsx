@@ -13,6 +13,7 @@ type ManagerPharmacy = {
   address: string;
   ifu: string;
   email?: string;
+  phoneNumber?: string;
   description?: string;
   services?: string[];
   photoUrl?: string;
@@ -43,6 +44,7 @@ type SettingsSnapshot = {
   pharmacyName: string;
   ifu: string;
   pharmacyEmail: string;
+  pharmacyPhoneNumber: string;
   pharmacyAddress: string;
   description: string;
   servicesText: string;
@@ -60,6 +62,7 @@ const defaultSnapshot: SettingsSnapshot = {
   pharmacyName: "",
   ifu: "",
   pharmacyEmail: "",
+  pharmacyPhoneNumber: "",
   pharmacyAddress: "",
   description: "",
   servicesText: "",
@@ -81,6 +84,7 @@ function toSnapshot(pharmacy: ManagerPharmacy, user: UserMe): SettingsSnapshot {
     pharmacyName: pharmacy.name ?? "",
     ifu: pharmacy.ifu ?? "",
     pharmacyEmail: pharmacy.email ?? "",
+    pharmacyPhoneNumber: pharmacy.phoneNumber ?? "",
     pharmacyAddress: pharmacy.address ?? "",
     description: pharmacy.description ?? "",
     servicesText: (pharmacy.services ?? []).join(", "),
@@ -187,6 +191,7 @@ export default function PharmacySettingsPage() {
         name: form.pharmacyName,
         address: form.pharmacyAddress,
         email: form.pharmacyEmail,
+        phoneNumber: form.pharmacyPhoneNumber.trim() || null,
         description: form.description,
         services,
         latitude,
@@ -393,6 +398,15 @@ export default function PharmacySettingsPage() {
                 />
               </label>
 
+              <label>
+                <p className="text-[11px] text-[#6B7280]">Téléphone public de la pharmacie</p>
+                <input
+                  type="tel"
+                  value={form.pharmacyPhoneNumber}
+                  onChange={(event) => setField("pharmacyPhoneNumber", event.target.value)}
+                  className="mt-2 w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-xs"
+                />
+              </label>
               <label>
                 <p className="text-[11px] text-[#6B7280]">Téléphone gestionnaire</p>
                 <input

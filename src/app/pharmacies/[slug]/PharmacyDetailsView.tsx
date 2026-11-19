@@ -14,13 +14,16 @@ type PharmacyDetails = {
   address: string;
   ifu?: string;
   email?: string;
+  phoneNumber?: string;
   description?: string;
   services?: string[];
   photoUrl?: string;
   bannerUrl?: string;
   openNow?: boolean;
   operationalStatus?: "OUVERT" | "FERME";
-  availabilitySource?: "manual" | "schedule";
+  availabilitySource?: "manual" | "schedule" | "unknown";
+  source?: "registered" | "community";
+  isCommunityReported?: boolean;
   matchedRule?: string;
   validationDate?: string;
   location?: { coordinates: [number, number] };
@@ -102,11 +105,15 @@ export default function PharmacyDetailPage() {
     ? addCloudinaryTransformations(pharmacy.photoUrl, { width: 1200, height: 400, crop: 'fill' })
     : "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=1200&q=80";
 
-  const statusLabel = pharmacy?.openNow ? "Ouvert" : "Fermé";
-  const mapsUrl = lat && lng
+  const statusLabel = pharmacy?.availabilitySource === "unknown"
+    ? "Horaires à confirmer"
+    : pharmacy?.openNow
+      ? "Ouvert"
+      : "Fermé";
+  const mapsUrl = lat !== undefined && lng !== undefined
     ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
     : null;
-  const embedMapUrl = lat && lng
+  const embedMapUrl = lat !== undefined && lng !== undefined
     ? `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`
     : null;
 
@@ -159,7 +166,11 @@ export default function PharmacyDetailPage() {
                   <div className="mt-2 flex items-center gap-3 text-xs">
                     <span
                       className={`rounded-full px-2 py-1 ${
-                        pharmacy.openNow ? "bg-emerald-500/80" : "bg-rose-500/80"
+                        pharmacy.availabilitySource === "unknown"
+                          ? "bg-slate-500/80"
+                          : pharmacy.openNow
+                            ? "bg-emerald-500/80"
+                            : "bg-rose-500/80"
                       }`}
                     >
                       {statusLabel}
@@ -178,7 +189,7 @@ export default function PharmacyDetailPage() {
                 },
                 {
                   title: "Téléphone",
-                  value: "Non renseigné",
+                  value: pharmacy.phoneNumber ?? "Non renseigné",
                   sub: "",
                 },
                 {
@@ -250,6 +261,12 @@ export default function PharmacyDetailPage() {
                   </p>
                 )}
               </div>
+              {pharmacy.isCommunityReported ? (
+                <p className="mb-3 rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+                  Cette pharmacie a été signalée par la communauté puis vérifiée. Ses horaires,
+                  son numéro et la disponibilité des médicaments doivent être confirmés directement.
+                </p>
+              ) : null}
               {mapsUrl ? (
                 <a
                   href={mapsUrl}
@@ -268,13 +285,22 @@ export default function PharmacyDetailPage() {
                   Itinéraire indisponible
                 </button>
               )}
-              <button
-                type="button"
-                disabled
-                  className="gp-outline-button mt-3 w-full rounded-full border px-4 py-2 text-xs font-semibold text-[#1F1D1B]"
-              >
-                Appeler maintenant
-              </button>
+              {pharmacy.phoneNumber ? (
+                <a
+                  href={`tel:${pharmacy.phoneNumber}`}
+                  className="gp-outline-button mt-3 inline-flex w-full items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold text-[#1F1D1B]"
+                >
+                  Appeler {pharmacy.phoneNumber}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="gp-outline-button mt-3 w-full rounded-full border px-4 py-2 text-xs font-semibold text-[#1F1D1B] disabled:opacity-60"
+                >
+                  Téléphone non renseigné
+                </button>
+              )}
               {pharmacy?._id ? (
                 <button
                   type="button"

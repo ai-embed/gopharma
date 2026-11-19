@@ -2,13 +2,23 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import nextDynamic from "next/dynamic";
 import { PatientShell } from "@/components/PatientShell";
 import { getAccessToken } from "@/lib/auth";
 import {
+  getPersistentLocationChoice,
   markSessionLocationChoiceDone,
   requestCurrentPosition,
   saveLocationCoords,
 } from "@/lib/location-preferences";
+import type { Coordinates } from "@/lib/location-preferences";
+
+const LocationPicker = nextDynamic(
+  () => import("@/components/LocationPicker").then((module) => module.LocationPicker),
+  { ssr: false }
+);
+
+const defaultCenter: Coordinates = { lat: 6.3654, lng: 2.4183 };
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +26,10 @@ export default function LocalisationPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [coordinates, setCoordinates] = useState<Coordinates>(
+    () => defaultCenter
+  );
+  const [accuracyMeters, setAccuracyMeters] = useState<number | null>(null);
 
   const allowLocation = async () => {
     setLoading(true);
@@ -23,7 +37,12 @@ export default function LocalisationPage() {
 
     try {
       const coords = await requestCurrentPosition();
-      saveLocationCoords(coords, "once");
+      setCoordinates(coords);
+      setAccuracyMeters(coords.accuracyMeters ?? null);
+      saveLocationCoords(
+        coords,
+        getPersistentLocationChoice() === "always" ? "always" : "once"
+      );
       markSessionLocationChoiceDone(getAccessToken() ?? "anonymous");
       router.push("/search");
     } catch (reason) {
@@ -61,6 +80,14 @@ export default function LocalisationPage() {
           >
             {loading ? "Recherche de votre position…" : "Utiliser ma localisation"}
           </button>
+          {accuracyMeters !== null ? (
+            <p className="mt-3 text-xs text-[#6B7280]">
+              Précision GPS estimée : environ {Math.round(accuracyMeters)} m.
+              {accuracyMeters > 1000
+                ? " La position est imprécise; vous pouvez la corriger sur la carte."
+                : ""}
+            </p>
+          ) : null}
           <div className="my-5 flex items-center gap-3 text-xs text-[#9CA3AF]">
             <div className="h-px flex-1 bg-[#E5E7EB]" />
             ou
@@ -73,6 +100,27 @@ export default function LocalisationPage() {
           >
             Choisir une pharmacie sur la carte
           </button>
+          <div className="mt-5 text-left">
+            <p className="mb-2 text-xs font-semibold">Ou indiquez votre position sur la carte</p>
+            <LocationPicker coordinates={coordinates} onChange={(selected) => {
+              setCoordinates(selected);
+              setAccuracyMeters(null);
+            }} />
+            <button
+              type="button"
+              onClick={() => {
+                saveLocationCoords(
+                  coordinates,
+                  getPersistentLocationChoice() === "always" ? "always" : "once"
+                );
+                markSessionLocationChoiceDone(getAccessToken() ?? "anonymous");
+                router.push("/search");
+              }}
+              className="gp-outline-button mt-3 w-full rounded-full border bg-white py-3 text-sm font-bold"
+            >
+              Utiliser ce point
+            </button>
+          </div>
           {error ? <p className="mt-4 text-xs font-medium text-[#B91C1C]">{error}</p> : null}
           <p className="mt-6 text-[11px] leading-5 text-[#9CA3AF]">
             Votre localisation est uniquement utilisée pour personnaliser les résultats proches de vous.

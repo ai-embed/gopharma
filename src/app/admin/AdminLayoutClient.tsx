@@ -17,6 +17,7 @@ const navSections = [
       { href: "/admin/dashboard", label: "Tableau de bord" },
       { href: "/admin/users", label: "Utilisateurs" },
       { href: "/admin/pharmacies", label: "Pharmacies" },
+      { href: "/admin/pharmacy-reports", label: "Signalements pharmacies" },
       { href: "/admin/medicaments", label: "Base Médicaments" },
       { href: "/admin/validation-queue", label: "File de validation" },
     ],
