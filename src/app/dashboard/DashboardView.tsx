@@ -18,11 +18,6 @@ import {
   type Coordinates,
 } from "@/lib/location-preferences";
 
-const fallbackSearches = [
-  { name: "Doliprane 1000mg", time: "Il y a 2 heures" },
-  { name: "Vitamine C 500", time: "Hier" },
-];
-
 const popularSearches = ["Paracétamol", "Vitamine C", "Ibuprofène"];
 
 type Pharmacy = {
@@ -71,7 +66,7 @@ function addCloudinaryTransformations(url: string, options: { width?: number; he
   return url.replace(/\/upload\//, `/upload/${transformationString}/`);
 }
 
-function selectNearbyPharmacies(items: Pharmacy[], origin: Coordinates, limit = 12) {
+function selectNearbyPharmacies(items: Pharmacy[], origin: Coordinates) {
   return [...items]
     .sort((left, right) => {
       const leftCoordinates = left.location?.coordinates;
@@ -83,8 +78,7 @@ function selectNearbyPharmacies(items: Pharmacy[], origin: Coordinates, limit = 
         ? distanceInKm(origin, { lat: rightCoordinates[1], lng: rightCoordinates[0] })
         : Number.POSITIVE_INFINITY;
       return leftDistance - rightDistance;
-    })
-    .slice(0, limit);
+    });
 }
 
 export default function DashboardPage() {
@@ -94,7 +88,7 @@ export default function DashboardPage() {
   const [queryInput, setQueryInput] = useState("");
   const [queryTokens, setQueryTokens] = useState<string[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [recentSearches, setRecentSearches] = useState(fallbackSearches);
+  const [recentSearches, setRecentSearches] = useState<{ name: string; time: string }[]>([]);
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
   const [pharmacyLoading, setPharmacyLoading] = useState(true);
   const [pharmacyError, setPharmacyError] = useState<string | null>(null);
@@ -124,7 +118,6 @@ export default function DashboardPage() {
     params.set("lat", coords.lat.toString());
     params.set("lng", coords.lng.toString());
     params.set("radiusKm", "50");
-    params.set("seedOnly", "true");
 
     const res = await apiJson<Pharmacy[]>(
       `/api/pharmacies?${params.toString()}`
@@ -640,9 +633,14 @@ export default function DashboardPage() {
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 <h2 className="gp-section-heading">Pharmacies à proximité</h2>
                 {userCoords && !pharmacyLoading ? (
-                  <span className="gp-pharmacy-count">{pharmacies.length} autour de vous</span>
+                  <span className="gp-pharmacy-count">
+                    {pharmacies.length} pharmacies inscrites autour de vous
+                  </span>
                 ) : null}
               </div>
+              <p className="mt-1 text-xs text-[#6B7280]">
+                Seules les pharmacies inscrites et validées sur GoPharma apparaissent ici.
+              </p>
             </div>
             <div className="flex items-center gap-2">
               {userCoords ? (

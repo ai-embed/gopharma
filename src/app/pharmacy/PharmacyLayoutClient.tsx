@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import AppFooter from "@/components/AppFooter";
 import { NotificationsMenu } from "@/components/NotificationsMenu";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { clearTokens, getAccessToken } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 import { usePharmacyStoreStatus } from "@/lib/usePharmacyStoreStatus";
@@ -304,6 +305,7 @@ export default function PharmacyLayout({
                 />
               </div>
               <NotificationsMenu />
+              <ThemeToggle />
               <div className="flex items-center gap-3 rounded-full border border-[#E5E7EB] bg-white px-3 py-2 text-xs">
                 <Link
                   href="/pharmacy/profile/edit"

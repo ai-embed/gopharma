@@ -129,7 +129,11 @@ export function getSavedLocationCoords(): Coordinates | null {
 }
 
 export function requestCurrentPosition(
-  options: PositionOptions = { timeout: 7000, enableHighAccuracy: false }
+  options: PositionOptions = {
+    enableHighAccuracy: true,
+    maximumAge: 0,
+    timeout: 15000,
+  }
 ): Promise<Coordinates> {
   return new Promise((resolve, reject) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {

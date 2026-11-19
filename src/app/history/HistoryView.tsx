@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Notice } from "@/components/Notice";
 import ProfileShell from "@/components/ProfileShell";
 import { apiJsonAuth } from "@/lib/api";
@@ -34,78 +34,109 @@ type HistoryCard = {
   icon: string;
   tone: string;
   sortAt: number;
+  detail?: string;
 };
+
+type HistoryFilter = "ALL" | "MEDICAMENTS" | "PHARMACIES" | "ACTIVITY";
 
 export default function HistoryView() {
   const [activityItems, setActivityItems] = useState<HistoryCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<HistoryFilter>("ALL");
+  const [selectedItem, setSelectedItem] = useState<HistoryCard | null>(null);
 
-  useEffect(() => {
-    let active = true;
-    Promise.all([
+  const loadHistory = useCallback(async () => {
+    setLoading(true);
+    const [historyRes, auditRes] = await Promise.all([
       apiJsonAuth<SearchHistoryItem[]>("/api/history"),
       apiJsonAuth<{ items: UserActivityItem[] }>("/api/history/activity?limit=20&page=1"),
-    ]).then(([historyRes, auditRes]) => {
-      if (!active) return;
+    ]);
 
-      const hasHistory = historyRes.ok && Array.isArray(historyRes.data);
-      const hasAudit = auditRes.ok && Array.isArray(auditRes.data?.items);
+    const hasHistory = historyRes.ok && Array.isArray(historyRes.data);
+    const hasAudit = auditRes.ok && Array.isArray(auditRes.data?.items);
 
-      if (!hasHistory && !hasAudit) {
-        setError(
-          historyRes.error ?? auditRes.error ?? "Impossible de charger l’historique."
-        );
-        setLoading(false);
-        return;
-      }
-
-      const mappedSearchHistory = (historyRes.data ?? []).map((entry): HistoryCard => {
-        const isProduct = entry.searchType === "PRODUIT";
-        return {
-          id: `search-${entry._id}`,
-          title: entry.query,
-          subtitle: isProduct
-            ? `${entry.resultCount} résultats médicaments`
-            : `${entry.resultCount} résultats pharmacies`,
-          time: formatRelativeDate(entry.createdAt),
-          category: isProduct ? "Médicaments" : "Pharmacies",
-          action: "Relancer",
-          href: `/search?q=${encodeURIComponent(entry.query)}`,
-          icon: isProduct ? "Rx" : "PH",
-          tone: isProduct ? "bg-[#EAF2FF] text-[#0B63D1]" : "bg-[#E8FFF1] text-[#0F9D58]",
-          sortAt: new Date(entry.createdAt).getTime(),
-        };
-      });
-
-      const mappedAudit = (auditRes.data?.items ?? []).map((entry): HistoryCard => ({
-        id: `audit-${entry._id}`,
-        title: mapAuditTitle(entry),
-        subtitle: `${entry.method} ${entry.path}`,
-        time: formatRelativeDate(entry.createdAt),
-        category: "Activité",
-        action: "Voir",
-        icon: "ACT",
-        tone:
-          entry.outcome === "SUCCESS"
-            ? "bg-[#EEF2FF] text-[#4F46E5]"
-            : "bg-[#FEF2F2] text-[#B91C1C]",
-        sortAt: new Date(entry.createdAt).getTime(),
-      }));
-
-      const merged = [...mappedSearchHistory, ...mappedAudit].sort(
-        (a, b) => b.sortAt - a.sortAt
-      );
-
-      setActivityItems(merged);
-      setError(null);
+    if (!hasHistory && !hasAudit) {
+      setError(historyRes.error ?? auditRes.error ?? "Impossible de charger l’historique.");
       setLoading(false);
+      return;
+    }
+
+    const mappedSearchHistory = (historyRes.data ?? []).map((entry): HistoryCard => {
+      const isProduct = entry.searchType === "PRODUIT";
+      return {
+        id: `search-${entry._id}`,
+        title: entry.query,
+        subtitle: isProduct
+          ? `${entry.resultCount} résultats médicaments`
+          : `${entry.resultCount} résultats pharmacies`,
+        time: formatRelativeDate(entry.createdAt),
+        category: isProduct ? "Médicaments" : "Pharmacies",
+        action: "Relancer",
+        href: `/search?q=${encodeURIComponent(entry.query)}`,
+        icon: isProduct ? "Rx" : "PH",
+        tone: isProduct ? "bg-[#EAF2FF] text-[#0B63D1]" : "bg-[#E8FFF1] text-[#0F9D58]",
+        sortAt: new Date(entry.createdAt).getTime(),
+      };
     });
 
-    return () => {
-      active = false;
-    };
+    const mappedAudit = (auditRes.data?.items ?? []).map((entry): HistoryCard => ({
+      id: `audit-${entry._id}`,
+      title: mapAuditTitle(entry),
+      subtitle: `${entry.method} ${entry.path}`,
+      time: formatRelativeDate(entry.createdAt),
+      category: "Activité",
+      action: "Voir",
+      icon: "ACT",
+      tone:
+        entry.outcome === "SUCCESS"
+          ? "bg-[#EEF2FF] text-[#4F46E5]"
+          : "bg-[#FEF2F2] text-[#B91C1C]",
+      sortAt: new Date(entry.createdAt).getTime(),
+      detail: `Réponse ${entry.statusCode} · ${entry.outcome === "SUCCESS" ? "réussie" : "en erreur"}`,
+    }));
+
+    setActivityItems([...mappedSearchHistory, ...mappedAudit].sort((a, b) => b.sortAt - a.sortAt));
+    setSelectedItem(null);
+    setError(null);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadHistory();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadHistory]);
+
+  const filteredItems = useMemo(
+    () =>
+      activityItems.filter((item) => {
+        if (filter === "ALL") return true;
+        if (filter === "ACTIVITY") return item.category === "Activité";
+        if (filter === "MEDICAMENTS") return item.category === "Médicaments";
+        return item.category === "Pharmacies";
+      }),
+    [activityItems, filter]
+  );
+
+  const exportHistory = () => {
+    const rows: string[][] = filteredItems.map((item) => [
+      item.category,
+      item.title,
+      item.subtitle,
+      new Date(item.sortAt).toLocaleString("fr-FR"),
+    ]);
+    const csv = [["Catégorie", "Titre", "Détail", "Date"], ...rows]
+      .map((row) => row.map((value) => `"${value.replaceAll('"', '""')}"`).join(";"))
+      .join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "historique-gopharma.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <ProfileShell activeTab="history">
@@ -120,11 +151,32 @@ export default function HistoryView() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <button type="button" className="gp-outline-button rounded-full border px-4 py-2 font-semibold">
-            Filtrer
-          </button>
-          <button type="button" className="gp-search-submit rounded-full px-4 py-2 font-semibold text-white">
+          <select
+            value={filter}
+            onChange={(event) => setFilter(event.target.value as HistoryFilter)}
+            className="gp-outline-button rounded-full border bg-white px-4 py-2 text-xs font-semibold"
+            aria-label="Filtrer l’historique"
+          >
+            <option value="ALL">Toutes les activités</option>
+            <option value="MEDICAMENTS">Médicaments</option>
+            <option value="PHARMACIES">Pharmacies</option>
+            <option value="ACTIVITY">Activité du compte</option>
+          </select>
+          <button
+            type="button"
+            onClick={exportHistory}
+            disabled={filteredItems.length === 0}
+            className="gp-search-submit rounded-full px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
             Exporter
+          </button>
+          <button
+            type="button"
+            onClick={() => void loadHistory()}
+            disabled={loading}
+            className="gp-outline-button rounded-full border px-4 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Actualiser
           </button>
         </div>
       </div>
@@ -132,7 +184,7 @@ export default function HistoryView() {
       <div className="mt-6 space-y-4">
         {loading ? (
           <p className="text-sm text-[#6B7280]">Chargement de l&apos;historique...</p>
-        ) : activityItems.length === 0 ? (
+        ) : filteredItems.length === 0 ? (
           <div className="gp-empty-state rounded-2xl p-4 text-center">
             <p className="text-sm font-semibold">Aucune activité récente</p>
             <p className="mt-1 text-xs text-[#6B7280]">
@@ -140,7 +192,7 @@ export default function HistoryView() {
             </p>
           </div>
         ) : (
-          activityItems.map((item) => (
+          filteredItems.map((item) => (
             <div
               key={item.id}
               className="gp-history-item flex flex-wrap items-center justify-between gap-4 rounded-2xl p-4"
@@ -171,12 +223,20 @@ export default function HistoryView() {
                 ) : (
                   <button
                     type="button"
+                    onClick={() =>
+                      setSelectedItem((current) => (current?.id === item.id ? null : item))
+                    }
                     className="rounded-full border border-[#0B63D1] px-4 py-1 text-[#0B63D1]"
                   >
                     {item.action}
                   </button>
                 )}
               </div>
+              {selectedItem?.id === item.id && item.detail ? (
+                <p className="w-full rounded-xl bg-[#F8FAFC] px-3 py-2 text-xs text-[#4B5563]">
+                  {item.detail}
+                </p>
+              ) : null}
             </div>
           ))
         )}

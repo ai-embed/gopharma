@@ -32,6 +32,9 @@ export function setThemePreference(theme: ThemePreference) {
     window.localStorage.setItem(THEME_STORAGE_KEY, theme);
   }
   applyThemePreference(theme);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("gp-theme-change"));
+  }
 }
 
 export function hydrateThemePreference(defaultTheme: ThemePreference = "light") {

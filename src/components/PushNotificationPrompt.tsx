@@ -1,13 +1,26 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { usePushNotifications } from "@/lib/usePushNotifications";
 
-interface PushNotificationPromptProps {
-  userId: string | null;
-}
+const subscribeToMount = () => () => {};
 
-export function PushNotificationPrompt({ userId }: PushNotificationPromptProps) {
-  const { permission, isSupported, requestPermission, error } = usePushNotifications(userId);
+export function PushNotificationPrompt() {
+  const mounted = useSyncExternalStore(
+    subscribeToMount,
+    () => true,
+    () => false
+  );
+  const {
+    permission,
+    isSupported,
+    isConfigured,
+    isRegistered,
+    requestPermission,
+    error,
+  } = usePushNotifications();
+
+  if (!mounted) return null;
 
   if (!isSupported) {
     return (
@@ -19,15 +32,28 @@ export function PushNotificationPrompt({ userId }: PushNotificationPromptProps) 
     );
   }
 
-  if (permission === "granted") {
+  if (!isConfigured) {
+    return (
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+        <p className="text-sm text-amber-800">
+          Les notifications push ne sont pas configurées sur ce déploiement.
+        </p>
+      </div>
+    );
+  }
+
+  if (permission === "granted" && isRegistered) {
     return (
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-emerald-500" />
           <p className="text-sm font-semibold text-emerald-800">
-            Notifications activées
+            Appareil enregistré pour les notifications
           </p>
         </div>
+        <p className="mt-2 text-xs text-emerald-800">
+          La livraison push par le serveur reste à configurer.
+        </p>
       </div>
     );
   }
@@ -68,7 +94,7 @@ export function PushNotificationPrompt({ userId }: PushNotificationPromptProps) 
             onClick={requestPermission}
             className="mt-3 rounded-full bg-[#0B63D1] px-4 py-2 text-xs font-semibold text-white"
           >
-            Autoriser les notifications
+            {permission === "granted" ? "Réessayer l’activation" : "Autoriser les notifications"}
           </button>
         </div>
       </div>

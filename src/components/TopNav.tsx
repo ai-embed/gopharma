@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { NotificationsMenu } from "@/components/NotificationsMenu";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { clearTokens } from "@/lib/auth";
 import { useUser } from "@/lib/useUser";
 
@@ -73,6 +74,7 @@ export function TopNav() {
           Se déconnecter
         </button>
         <NotificationsMenu />
+        <ThemeToggle />
         <div className="hidden flex-col items-end text-[11px] leading-tight text-[#6B7280] sm:flex">
           <span>Bonjour</span>
           <span className="text-xs font-semibold text-[#1F2937]">

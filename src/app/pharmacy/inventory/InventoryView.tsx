@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Notice } from "@/components/Notice";
 import { apiJsonAuth } from "@/lib/api";
+import { formatCurrency } from "@/lib/currency";
 
 type ManagerProduct = {
   inventoryId: string;
@@ -34,13 +35,6 @@ type ManagerCategory = {
   normalizedName: string;
   productCount: number;
 };
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(value);
-}
 
 function formatDate(date?: string) {
   if (!date) return "-";
@@ -204,12 +198,12 @@ export default function InventoryView() {
 
   const quickUpdatePrice = async (item: ManagerProduct) => {
     const response = window.prompt(
-      `Nouveau prix (€) pour ${item.product.name}`,
+      `Nouveau prix (FCFA) pour ${item.product.name}`,
       String(item.price)
     );
     if (response === null) return;
     const nextValue = Number(response.replace(",", "."));
-    if (!Number.isFinite(nextValue) || nextValue < 0) {
+    if (!Number.isInteger(nextValue) || nextValue < 0) {
       setError("Prix invalide.");
       return;
     }

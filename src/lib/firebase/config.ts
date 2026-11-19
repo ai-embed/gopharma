@@ -5,6 +5,7 @@
 
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getMessaging, getToken, Messaging, onMessage } from "firebase/messaging";
+import { apiJsonAuth } from "@/lib/api";
 
 // Firebase config - REMPLACER PAR VOS VALEURS après création projet
 const firebaseConfig = {
@@ -19,14 +20,24 @@ const firebaseConfig = {
 let app: FirebaseApp | undefined;
 let messaging: Messaging | undefined;
 
+export function hasFirebaseMessagingConfig(): boolean {
+  return (
+    Object.values(firebaseConfig).every(
+      (value) => typeof value === "string" && value.trim().length > 0
+    ) &&
+    typeof process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY === "string" &&
+    process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY.trim().length > 0
+  );
+}
+
 /**
  * Initialise Firebase (client-side only)
  */
 export function initFirebase(): { app: FirebaseApp; messaging: Messaging } | null {
   if (typeof window === "undefined") return null;
 
-  if (!firebaseConfig.apiKey) {
-    console.warn("[FCM] Configuration Firebase manquante. Créez un projet Firebase d'abord.");
+  if (!hasFirebaseMessagingConfig()) {
+    console.warn("[FCM] Configuration Firebase ou clé VAPID manquante.");
     return null;
   }
 
@@ -48,6 +59,11 @@ export async function requestFcmToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
 
   try {
+    if (!hasFirebaseMessagingConfig()) {
+      console.warn("[FCM] Configuration Firebase ou clé VAPID manquante.");
+      return null;
+    }
+
     if (!("Notification" in window)) {
       console.warn("[FCM] Navigateur non supporté");
       return null;
@@ -98,18 +114,12 @@ export function onForegroundMessage(
 /**
  * Enregistre le token sur le backend
  */
-export async function registerToken(token: string, userId: string): Promise<boolean> {
-  try {
-    const res = await fetch("/api/notifications/register-token", {
+export async function registerToken(token: string): Promise<boolean> {
+  const result = await apiJsonAuth<{ success: boolean }>("/api/notifications/push-tokens", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, userId, platform: "web" }),
+      body: JSON.stringify({ token, platform: "web" }),
     });
-    return res.ok;
-  } catch (err) {
-    console.error("[FCM] Erreur register:", err);
-    return false;
-  }
+  return result.ok;
 }
 
 export { getToken, getMessaging };

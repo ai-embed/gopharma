@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import AppFooter from "@/components/AppFooter";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { clearTokens, getAccessToken } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 import { useUser } from "@/lib/useUser";
@@ -187,6 +188,10 @@ export default function AdminLayoutClient({
             </span>
             Déconnexion
           </button>
+          <div className="mt-4 flex items-center gap-3 text-xs font-semibold text-[#6B7280]">
+            <ThemeToggle />
+            <span>Thème clair / sombre</span>
+          </div>
         </aside>
 
         <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 md:px-8">

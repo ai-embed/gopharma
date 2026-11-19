@@ -42,39 +42,15 @@ NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef
 NEXT_PUBLIC_FIREBASE_VAPID_KEY=BLxxxxxxxx...
 ```
 
-**`public/firebase-messaging-sw.js`**
-Remplacer les `YOUR_*` par les mêmes valeurs que `.env.local`
+Le service worker `public/firebase-messaging-sw.js` doit aussi recevoir les mêmes
+valeurs Firebase. Ne laissez pas les valeurs `YOUR_*`.
 
-### 6. Backend - Clé serveur
+### 6. Backend - Livraison des notifications
 
-1. Firebase Console → ⚙️ **Project settings**
-2. Onglet **"Cloud Messaging"**
-3. Copier **"Server key"** (ou générer si absent)
-4. Ajouter au backend `.env` :
-```env
-FIREBASE_SERVER_KEY=AAAA...
-```
-
-### 7. Backend - API pour envoyer les pushes
-
-```typescript
-// Exemple d'envoi push depuis le backend
-async function sendPush(userFcmToken: string, title: string, body: string) {
-  const response = await fetch("https://fcm.googleapis.com/fcm/send", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `key=${process.env.FIREBASE_SERVER_KEY}`,
-    },
-    body: JSON.stringify({
-      to: userFcmToken,
-      notification: { title, body },
-      data: { type: "ORDER_STATUS", orderId: "123" },
-    }),
-  });
-  return response.ok;
-}
-```
+L'API GoPharma enregistre les jetons push, mais son expéditeur actuel ne fait que
+journaliser les envois : il ne transmet pas les notifications à Firebase. Un
+expéditeur Firebase Admin/HTTP v1 avec des identifiants de service est nécessaire
+avant que les notifications push puissent être livrées.
 
 ---
 
@@ -86,12 +62,12 @@ import { usePushNotifications } from "@/lib/usePushNotifications";
 
 // 1. Dans la page paramètres/utilisateur
 function SettingsPage({ user }) {
-  return <PushNotificationPrompt userId={user._id} />;
+  return <PushNotificationPrompt />;
 }
 
 // 2. Dans le layout pour écouter en temps réel
 function AppLayout({ user }) {
-  const { lastMessage } = usePushNotifications(user?._id);
+  const { lastMessage } = usePushNotifications();
   
   useEffect(() => {
     if (lastMessage) {
@@ -110,7 +86,7 @@ function AppLayout({ user }) {
 
 1. Ouvrir l'app dans Chrome/Firefox
 2. Accepter les notifications
-3. Copier le FCM token depuis la console
+3. Vérifier que le jeton est enregistré dans `POST /api/notifications/push-tokens`
 4. Utiliser [Firebase Console](https://console.firebase.google.com) → Cloud Messaging → **"Send test message"**
 
 ---

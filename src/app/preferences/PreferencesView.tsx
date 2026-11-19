@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Notice } from "@/components/Notice";
+import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import ProfileShell from "@/components/ProfileShell";
 import { apiJson, apiJsonAuth } from "@/lib/api";
 import { clearLocationAccessState } from "@/lib/location-preferences";
@@ -56,7 +57,7 @@ export default function PreferencesView() {
         initialChannels={user?.preferences?.channels ?? ["IN_APP", "EMAIL"]}
         initialAlertsEnabled={user?.preferences?.alertsEnabled ?? true}
         initialTheme={normalizeThemePreference(
-          user?.preferences?.theme ?? getSavedThemePreference() ?? "light"
+          getSavedThemePreference() ?? user?.preferences?.theme ?? "light"
         )}
         userLoading={userLoading}
       />
@@ -231,6 +232,7 @@ function PreferencesForm({
             </div>
           ))}
         </div>
+        <PushNotificationPrompt />
       </section>
 
       <section className="gp-settings-card space-y-3 rounded-2xl p-5">
