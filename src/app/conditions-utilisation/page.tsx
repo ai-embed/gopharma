@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
-
 export default function ConditionsUtilisationPage() {
   return (
     <main className="min-h-screen bg-[#F3F6F9] px-4 py-8 text-[#1F2937] sm:px-6 sm:py-10">

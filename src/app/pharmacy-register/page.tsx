@@ -9,8 +9,6 @@ import { API_BASE, apiJson, apiJsonAuth } from "@/lib/api";
 import { clearTokens, getAccessToken, saveRoleCookie } from "@/lib/auth";
 import { getRoleHomePath } from "@/lib/roles";
 
-export const dynamic = "force-dynamic";
-
 type RegisterPharmacyResponse = {
   message?: string;
 };

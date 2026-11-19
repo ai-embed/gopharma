@@ -20,8 +20,6 @@ const LocationPicker = nextDynamic(
 
 const defaultCenter: Coordinates = { lat: 6.3654, lng: 2.4183 };
 
-export const dynamic = "force-dynamic";
-
 export default function LocalisationPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
